@@ -1,0 +1,657 @@
+{
+	"info": {
+		"name": "Chia Platform API",
+		"description": "Complete API collection for the Chia Platform subscription billing API.\n\nAuthentication: All endpoints (except Storefront) require a Bearer token in the Authorization header using your API key.\n\n- Sandbox keys use the `sk_test_` prefix\n- Production keys use the `sk_live_` prefix",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{apiKey}}",
+				"type": "string"
+			}
+		]
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "https://api.usechia.com",
+			"type": "string"
+		},
+		{
+			"key": "apiKey",
+			"value": "sk_test_your_api_key_here",
+			"type": "string"
+		},
+		{
+			"key": "planId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "subscriberId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "intentId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "paymentId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "webhookId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "deliveryId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "keyId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "orgSlug",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "Plans",
+			"item": [
+				{
+					"name": "Create a Plan",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"if (pm.response.code === 200 || pm.response.code === 201) {",
+									"    var json = pm.response.json();",
+									"    pm.collectionVariables.set('planId', json.id);",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Basic Plan\",\n  \"amount\": 5000,\n  \"currency\": \"MWK\",\n  \"interval\": \"monthly\",\n  \"provider\": \"paychangu\",\n  \"description\": \"Basic monthly subscription\",\n  \"metadata\": {\n    \"tier\": \"basic\"\n  }\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/plans",
+							"host": ["{{baseUrl}}"],
+							"path": ["plans"]
+						},
+						"description": "Create a new subscription plan.\n\nRequired fields: name, amount, currency, interval, provider.\n\nSupported intervals: daily, weekly, monthly.\nSupported providers: paychangu, pawapay, onekhusa.\nSupported currencies: MWK, ZMW, UGX, KES."
+					}
+				},
+				{
+					"name": "List Plans",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/plans",
+							"host": ["{{baseUrl}}"],
+							"path": ["plans"]
+						},
+						"description": "Retrieve all plans for the current organization and environment."
+					}
+				},
+				{
+					"name": "Get a Plan",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/plans/{{planId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["plans", "{{planId}}"]
+						},
+						"description": "Retrieve a single plan by ID."
+					}
+				},
+				{
+					"name": "Update a Plan",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Updated Plan Name\",\n  \"description\": \"Updated description\",\n  \"metadata\": {\n    \"tier\": \"premium\"\n  }\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/plans/{{planId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["plans", "{{planId}}"]
+						},
+						"description": "Update a plan's name, description, or metadata. Amount, currency, interval, and provider cannot be changed."
+					}
+				},
+				{
+					"name": "Delete a Plan",
+					"request": {
+						"method": "DELETE",
+						"url": {
+							"raw": "{{baseUrl}}/plans/{{planId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["plans", "{{planId}}"]
+						},
+						"description": "Delete a plan. Plans with active subscribers cannot be deleted."
+					}
+				}
+			],
+			"description": "Manage subscription plans - the billing templates that define amount, currency, interval, and provider."
+		},
+		{
+			"name": "Subscribers",
+			"item": [
+				{
+					"name": "List Subscribers",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/subscribers",
+							"host": ["{{baseUrl}}"],
+							"path": ["subscribers"]
+						},
+						"description": "Retrieve all subscribers for the current organization."
+					}
+				},
+				{
+					"name": "Get a Subscriber",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/subscribers/{{subscriberId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["subscribers", "{{subscriberId}}"]
+						},
+						"description": "Retrieve a single subscriber by ID.\n\nSubscriber statuses: incomplete, awaiting_customer_action, active, renewal_pending, paused, cancelled, past_due."
+					}
+				},
+				{
+					"name": "Cancel a Subscription",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"mode\": \"at_period_end\",\n  \"reason\": \"Customer requested cancellation\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/subscribers/{{subscriberId}}/cancel",
+							"host": ["{{baseUrl}}"],
+							"path": ["subscribers", "{{subscriberId}}", "cancel"]
+						},
+						"description": "Cancel a subscriber's subscription.\n\nModes:\n- immediate: Cancel right away\n- at_period_end: Cancel at the end of the current billing period"
+					}
+				},
+				{
+					"name": "Update Subscriber Status",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"paused\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/subscribers/{{subscriberId}}/status",
+							"host": ["{{baseUrl}}"],
+							"path": ["subscribers", "{{subscriberId}}", "status"]
+						},
+						"description": "Manually update a subscriber's status.\n\nAllowed values: active, paused, cancelled."
+					}
+				}
+			],
+			"description": "Manage subscribers - customers subscribed to your plans."
+		},
+		{
+			"name": "Subscription Intents",
+			"item": [
+				{
+					"name": "Create a Subscription Intent",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"if (pm.response.code === 200 || pm.response.code === 201) {",
+									"    var json = pm.response.json();",
+									"    pm.collectionVariables.set('intentId', json.id);",
+									"    if (json.subscriberId) {",
+									"        pm.collectionVariables.set('subscriberId', json.subscriberId);",
+									"    }",
+									"    if (json.paymentId) {",
+									"        pm.collectionVariables.set('paymentId', json.paymentId);",
+									"    }",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"planId\": \"{{planId}}\",\n  \"phone\": \"+265000000001\",\n  \"name\": \"Test Subscriber\",\n  \"metadata\": {\n    \"source\": \"postman\"\n  }\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/subscription-intents",
+							"host": ["{{baseUrl}}"],
+							"path": ["subscription-intents"]
+						},
+						"description": "Create a subscription intent to start the checkout flow.\n\nThe response includes nextActionType and nextActionPayload indicating what the customer needs to do next.\n\nNext action types: redirect, tan_prompt, ussd_prompt, pin_prompt, wait_for_webhook, none.\n\nSandbox test phones:\n- +265000000001: Auto-succeeds\n- +265000FAIL00: Always fails\n- +265000SLOW00: Delays 30s then succeeds\n- +265000EXPI00: Expires after timeout\n- +265000ACTN00: Requires customer action (USSD)"
+					}
+				},
+				{
+					"name": "List Subscription Intents",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/subscription-intents",
+							"host": ["{{baseUrl}}"],
+							"path": ["subscription-intents"]
+						},
+						"description": "Retrieve all subscription intents for the current organization.\n\nIntent statuses: created, requires_action, processing, succeeded, failed, cancelled, expired."
+					}
+				},
+				{
+					"name": "Get a Subscription Intent",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/subscription-intents/{{intentId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["subscription-intents", "{{intentId}}"]
+						},
+						"description": "Retrieve a single subscription intent by ID. Use this to poll for status updates during the checkout flow."
+					}
+				}
+			],
+			"description": "Subscription intents represent the checkout flow for creating a new subscription. They track the state of the initial payment and customer actions."
+		},
+		{
+			"name": "Payments",
+			"item": [
+				{
+					"name": "List Payments",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/payments",
+							"host": ["{{baseUrl}}"],
+							"path": ["payments"]
+						},
+						"description": "Retrieve all payments for the current organization.\n\nOptional query parameters: subscriberId, status."
+					}
+				},
+				{
+					"name": "List Payments by Subscriber",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/payments?subscriberId={{subscriberId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["payments"],
+							"query": [
+								{
+									"key": "subscriberId",
+									"value": "{{subscriberId}}"
+								}
+							]
+						},
+						"description": "Filter payments by subscriber ID."
+					}
+				},
+				{
+					"name": "List Payments by Status",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/payments?status=success",
+							"host": ["{{baseUrl}}"],
+							"path": ["payments"],
+							"query": [
+								{
+									"key": "status",
+									"value": "success"
+								}
+							]
+						},
+						"description": "Filter payments by status.\n\nStatuses: pending, requires_action, processing, success, failed, expired, cancelled.\n\nPayment kinds: initial, renewal, manual_retry."
+					}
+				},
+				{
+					"name": "Get a Payment",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/payments/{{paymentId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["payments", "{{paymentId}}"]
+						},
+						"description": "Retrieve a single payment by ID."
+					}
+				}
+			],
+			"description": "View payment records - initial payments, renewals, and manual retries."
+		},
+		{
+			"name": "Webhooks",
+			"item": [
+				{
+					"name": "Create a Webhook",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"if (pm.response.code === 200 || pm.response.code === 201) {",
+									"    var json = pm.response.json();",
+									"    pm.collectionVariables.set('webhookId', json.id);",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"url\": \"https://example.com/webhooks/chia\",\n  \"events\": [\n    \"subscriber.created\",\n    \"subscriber.activated\",\n    \"payment.succeeded\",\n    \"payment.failed\"\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/orgs/webhooks",
+							"host": ["{{baseUrl}}"],
+							"path": ["orgs", "webhooks"]
+						},
+						"description": "Create a new webhook endpoint.\n\nThe response includes a signingSecret for verifying webhook payloads.\n\nAvailable events:\n- subscriber.created, subscriber.activated, subscriber.renewed\n- subscriber.paused, subscriber.resumed, subscriber.cancelled, subscriber.past_due\n- payment.succeeded, payment.failed\n- plan.created, plan.updated, plan.deactivated"
+					}
+				},
+				{
+					"name": "List Webhooks",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/orgs/webhooks",
+							"host": ["{{baseUrl}}"],
+							"path": ["orgs", "webhooks"]
+						},
+						"description": "Retrieve all webhook configurations for the current organization."
+					}
+				},
+				{
+					"name": "Update a Webhook",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"url\": \"https://example.com/webhooks/chia-updated\",\n  \"enabled\": true,\n  \"events\": [\n    \"subscriber.created\",\n    \"subscriber.activated\",\n    \"subscriber.cancelled\",\n    \"payment.succeeded\",\n    \"payment.failed\"\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/orgs/webhooks/{{webhookId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["orgs", "webhooks", "{{webhookId}}"]
+						},
+						"description": "Update a webhook's URL, enabled status, or subscribed events."
+					}
+				},
+				{
+					"name": "Delete a Webhook",
+					"request": {
+						"method": "DELETE",
+						"url": {
+							"raw": "{{baseUrl}}/orgs/webhooks/{{webhookId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["orgs", "webhooks", "{{webhookId}}"]
+						},
+						"description": "Delete a webhook endpoint."
+					}
+				},
+				{
+					"name": "Test a Webhook",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/orgs/webhooks/{{webhookId}}/test",
+							"host": ["{{baseUrl}}"],
+							"path": ["orgs", "webhooks", "{{webhookId}}", "test"]
+						},
+						"description": "Send a test webhook delivery to the endpoint. Returns the HTTP response code from your server."
+					}
+				},
+				{
+					"name": "List Webhook Deliveries",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/orgs/webhooks/{{webhookId}}/deliveries",
+							"host": ["{{baseUrl}}"],
+							"path": ["orgs", "webhooks", "{{webhookId}}", "deliveries"]
+						},
+						"description": "Retrieve delivery history for a webhook.\n\nOptional query parameters: status, eventType.\n\nDelivery statuses: pending, delivered, failed."
+					}
+				},
+				{
+					"name": "List Webhook Deliveries by Status",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/orgs/webhooks/{{webhookId}}/deliveries?status=failed",
+							"host": ["{{baseUrl}}"],
+							"path": ["orgs", "webhooks", "{{webhookId}}", "deliveries"],
+							"query": [
+								{
+									"key": "status",
+									"value": "failed"
+								}
+							]
+						},
+						"description": "Filter webhook deliveries by status (pending, delivered, failed)."
+					}
+				},
+				{
+					"name": "Retry Webhook Delivery",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/orgs/webhooks/{{webhookId}}/deliveries/{{deliveryId}}/retry",
+							"host": ["{{baseUrl}}"],
+							"path": ["orgs", "webhooks", "{{webhookId}}", "deliveries", "{{deliveryId}}", "retry"]
+						},
+						"description": "Manually retry a failed webhook delivery."
+					}
+				}
+			],
+			"description": "Configure webhook endpoints to receive real-time notifications for subscription and payment events.\n\nWebhook payloads are signed with HMAC-SHA256. Verify using the X-Chia-Signature and X-Chia-Timestamp headers."
+		},
+		{
+			"name": "API Keys",
+			"item": [
+				{
+					"name": "Create an API Key",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"if (pm.response.code === 200 || pm.response.code === 201) {",
+									"    var json = pm.response.json();",
+									"    pm.collectionVariables.set('keyId', json.id);",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"environment\": \"sandbox\",\n  \"label\": \"Development key\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/orgs/api-keys",
+							"host": ["{{baseUrl}}"],
+							"path": ["orgs", "api-keys"]
+						},
+						"description": "Create a new API key.\n\nThe full key is returned only once in the response. Store it securely.\n\nKeys are prefixed: sk_test_ for sandbox, sk_live_ for production.\nMaximum 10 active keys per environment per organization."
+					}
+				},
+				{
+					"name": "List API Keys",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/orgs/api-keys",
+							"host": ["{{baseUrl}}"],
+							"path": ["orgs", "api-keys"]
+						},
+						"description": "Retrieve all API keys for the current organization. The full key value is not included - only the prefix and hint are shown."
+					}
+				},
+				{
+					"name": "Revoke an API Key",
+					"request": {
+						"method": "DELETE",
+						"url": {
+							"raw": "{{baseUrl}}/orgs/api-keys/{{keyId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["orgs", "api-keys", "{{keyId}}"]
+						},
+						"description": "Revoke an API key. The key is marked as revoked but not deleted (audit trail)."
+					}
+				}
+			],
+			"description": "Manage API keys for authenticating with the Chia Platform API.\n\nKeys are hashed before storage and the full key is only shown once at creation time."
+		},
+		{
+			"name": "Storefront (Public)",
+			"item": [
+				{
+					"name": "List Plans (Public)",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/s/{{orgSlug}}/plans",
+							"host": ["{{baseUrl}}"],
+							"path": ["s", "{{orgSlug}}", "plans"]
+						},
+						"description": "Public endpoint - no authentication required.\n\nRetrieve all plans for a storefront by organization slug."
+					}
+				},
+				{
+					"name": "Subscribe (Public)",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"planId\": \"{{planId}}\",\n  \"phone\": \"+265000000001\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/s/{{orgSlug}}/subscribe",
+							"host": ["{{baseUrl}}"],
+							"path": ["s", "{{orgSlug}}", "subscribe"]
+						},
+						"description": "Public endpoint - no authentication required.\n\nCreate a subscription through the storefront. Returns a subscription intent with next action details."
+					}
+				}
+			],
+			"description": "Public-facing storefront endpoints that do not require authentication. Used for customer-facing checkout pages."
+		}
+	]
+}
