@@ -1,6 +1,6 @@
 {
-  "name": "chia-sdk",
-  "version": "0.3.2",
+  "name": "@chiahq/sdk",
+  "version": "0.0.1",
   "description": "A unified SDK for African payment providers",
   "main": "dist/index.js",
   "module": "dist/index.js",

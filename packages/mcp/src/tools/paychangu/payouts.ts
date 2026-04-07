@@ -4,7 +4,7 @@
  * Tools for mobile money payouts and bank payouts
  */
 
-import type { PayChangu } from "chia-sdk";
+import type { PayChangu } from "@chiahq/sdk";
 import type { ToolRegistrationFunction, PayChanguToolArgs } from "../../types/index.js";
 
 export function registerPayChanguPayoutTools(

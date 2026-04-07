@@ -1,6 +1,6 @@
 import { Router } from "express";
 import type { Request, Response, NextFunction } from "express";
-import { ChiaSDK, logger } from "chia-sdk";
+import { ChiaSDK, logger } from "@chiahq/sdk";
 
 const router = Router();
 const sdk = ChiaSDK.getInstance();

@@ -4,7 +4,7 @@
  * Tools for creating and checking refund transactions
  */
 
-import type { PawaPay } from "chia-sdk";
+import type { PawaPay } from "@chiahq/sdk";
 import type { ToolRegistrationFunction, PawapayToolArgs } from "../../types/index.js";
 
 export function registerPawapayRefundTools(

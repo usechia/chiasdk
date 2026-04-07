@@ -4,7 +4,7 @@
  * Tools for getting merchant configuration, provider availability, and provider prediction
  */
 
-import type { PawaPay } from "chia-sdk";
+import type { PawaPay } from "@chiahq/sdk";
 import type { ToolRegistrationFunction, PawapayToolArgs } from "../../types/index.js";
 
 export function registerPawapayConfigTools(

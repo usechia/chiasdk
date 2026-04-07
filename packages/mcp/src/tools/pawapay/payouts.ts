@@ -4,7 +4,7 @@
  * Tools for sending payouts to mobile money accounts
  */
 
-import type { PawaPay, PawaPayTypes } from "chia-sdk";
+import type { PawaPay, PawaPayTypes } from "@chiahq/sdk";
 import type { ToolRegistrationFunction, PawapayToolArgs } from "../../types/index.js";
 
 export function registerPawapayPayoutTools(

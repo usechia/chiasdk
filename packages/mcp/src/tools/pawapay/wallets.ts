@@ -4,7 +4,7 @@
  * Tools for checking wallet balances
  */
 
-import type { PawaPay } from "chia-sdk";
+import type { PawaPay } from "@chiahq/sdk";
 import type { ToolRegistrationFunction, PawapayToolArgs } from "../../types/index.js";
 
 export function registerPawapayWalletTools(

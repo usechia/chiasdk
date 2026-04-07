@@ -1,4 +1,4 @@
-import type { OneKhusa } from "chia-sdk";
+import type { OneKhusa } from "@chiahq/sdk";
 import type { ToolRegistrationFunction } from "../../types/index.js";
 
 export function registerOneKhusaDisbursementTools(

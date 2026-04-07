@@ -13,7 +13,7 @@ import {
 	CallToolRequestSchema,
 	ListToolsRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
-import { ChiaSDK } from "chia-sdk";
+import { ChiaSDK } from "@chiahq/sdk";
 
 // Import tool handlers
 import { registerPayChanguTools } from "./tools/paychangu/payments.js";

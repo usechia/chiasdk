@@ -2,7 +2,7 @@
  * Type definitions for Chia MCP Server
  */
 
-import type { PayChangu as PayChanguSDK, PawaPayTypes, OneKhusaTypes } from "chia-sdk";
+import type { PayChangu as PayChanguSDK, PawaPayTypes, OneKhusaTypes } from "@chiahq/sdk";
 
 /**
  * JSON Schema type for tool input validation

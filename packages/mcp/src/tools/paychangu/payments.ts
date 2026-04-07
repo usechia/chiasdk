@@ -4,7 +4,7 @@
  * Tools for initiating payments, verifying transactions, and managing direct charges
  */
 
-import type { PayChangu } from "chia-sdk";
+import type { PayChangu } from "@chiahq/sdk";
 import type { ToolRegistrationFunction, PayChanguToolArgs } from "../../types/index.js";
 
 export function registerPayChanguTools(

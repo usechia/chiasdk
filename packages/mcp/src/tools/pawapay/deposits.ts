@@ -4,7 +4,7 @@
  * Tools for requesting and managing deposit transactions
  */
 
-import type { PawaPay, PawaPayTypes } from "chia-sdk";
+import type { PawaPay, PawaPayTypes } from "@chiahq/sdk";
 import type { ToolRegistrationFunction, PawapayToolArgs } from "../../types/index.js";
 
 export function registerPawapayDepositTools(

@@ -4,7 +4,7 @@
  * Tools for getting mobile money operator information
  */
 
-import type { PayChangu } from "chia-sdk";
+import type { PayChangu } from "@chiahq/sdk";
 import type { ToolRegistrationFunction } from "../../types/index.js";
 
 export function registerPayChanguOperatorTools(
