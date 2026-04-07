@@ -2,6 +2,8 @@ import { PayChangu } from "./services";
 import { PawaPay } from "./services";
 import { OneKhusa } from "./services";
 import { PaymentProviderAdapter, PaymentProviderConfig } from "./services";
+import { Platform } from "./services/platform";
+import type { PlatformConfig } from "./services/platform/types";
 import type { Environment } from "./config/constants";
 import {
 	type EnvConfig,
@@ -72,6 +74,11 @@ export interface SDKConfig {
 	 * Custom payment providers configuration
 	 */
 	providers?: Record<string, PaymentProviderConfig>;
+
+	/**
+	 * Chia Platform API configuration
+	 */
+	platform?: PlatformConfig;
 }
 
 /**
@@ -84,6 +91,7 @@ export class ChiaSDK {
 	private _onekhusa?: OneKhusa;
 	private readonly envConfig?: EnvConfig;
 	private _providers: Record<string, PaymentProviderAdapter> = {};
+	private _platform?: Platform;
 
 	private constructor(private readonly config: SDKConfig = {}) {
 		// Private constructor to enforce a singleton pattern
@@ -189,6 +197,15 @@ export class ChiaSDK {
 		return this._onekhusa;
 	}
 
+	get platform(): Platform {
+		if (!this._platform) {
+			throw new Error(
+				"Platform service is not configured. Please provide a Chia API key in the SDK config or set the CHIA_API_KEY environment variable.",
+			);
+		}
+		return this._platform;
+	}
+
 	/**
 	 * Access a custom payment provider
 	 * @param providerName - The name of the custom provider
@@ -235,6 +252,8 @@ export class ChiaSDK {
 				return !!this._pawapay;
 			case "onekhusa":
 				return !!this._onekhusa;
+			case "platform":
+				return !!this._platform;
 			default:
 				return !!this._providers[service];
 		}
@@ -244,11 +263,12 @@ export class ChiaSDK {
 	 * Gets a list of configured built-in payment services
 	 * @returns Array of configured service names
 	 */
-	getConfiguredServices(): ("paychangu" | "pawapay" | "onekhusa")[] {
-		const services: ("paychangu" | "pawapay" | "onekhusa")[] = [];
+	getConfiguredServices(): ("paychangu" | "pawapay" | "onekhusa" | "platform")[] {
+		const services: ("paychangu" | "pawapay" | "onekhusa" | "platform")[] = [];
 		if (this._paychangu) services.push("paychangu");
 		if (this._pawapay) services.push("pawapay");
 		if (this._onekhusa) services.push("onekhusa");
+		if (this._platform) services.push("platform");
 		return services;
 	}
 
@@ -291,6 +311,14 @@ export class ChiaSDK {
 				this.envConfig.ONEKHUSA_ENVIRONMENT as "DEVELOPMENT" | "PRODUCTION",
 			);
 		}
+
+		const chiaApiKey = process.env.CHIA_API_KEY;
+		if (chiaApiKey) {
+			this._platform = new Platform({
+				apiKey: chiaApiKey,
+				baseUrl: process.env.CHIA_API_BASE_URL,
+			});
+		}
 	}
 
 	private initializeFromConfig(): void {
@@ -326,6 +354,10 @@ export class ChiaSDK {
 				this.config.onekhusa.sandboxUrl,
 				this.config.onekhusa.productionUrl,
 			);
+		}
+
+		if (this.config.platform?.apiKey) {
+			this._platform = new Platform(this.config.platform);
 		}
 	}
 

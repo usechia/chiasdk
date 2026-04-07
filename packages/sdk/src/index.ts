@@ -108,3 +108,29 @@ export type {
 	GenericPaymentResponse,
 	PaymentProviderConfig,
 } from "./services/generic/paymentProvider";
+
+// Export Platform service and types
+export { Platform } from "./services/platform";
+export type {
+	PlatformConfig,
+	CreatePlanRequest,
+	Plan,
+	UpdatePlanRequest,
+	CreateSubscriptionRequest,
+	SubscriptionIntent,
+	Subscriber,
+	SubscriberStatus,
+	CancelSubscriberRequest,
+	Payment,
+	PaymentStatus,
+	PaymentKind,
+	CreateWebhookRequest,
+	UpdateWebhookRequest,
+	WebhookConfig,
+	WebhookDelivery,
+	WebhookTestResult,
+	CreateApiKeyRequest,
+	ApiKey,
+	ApiKeyWithSecret,
+	DeleteResult,
+} from "./services/platform/types";
