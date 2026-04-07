@@ -11,7 +11,7 @@ const config: Config = {
     v4: true,
   },
 
-  url: 'https://chia.fickson.com',
+  url: 'https://docs.usechia.com',
   baseUrl: '/',
 
   organizationName: 'joelfickson',
