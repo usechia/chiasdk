@@ -1,160 +1,482 @@
-/**
- * Chia Landing Page Styles
- */
-
-.heroBanner {
-  padding: 6rem 0;
+/* Hero */
+.hero {
+  padding: 112px 0 64px;
+  max-width: 720px;
+  margin: 0 auto;
   text-align: center;
-  position: relative;
-  overflow: hidden;
-}
-
-[data-theme='dark'] .heroBanner {
-  background: linear-gradient(180deg, rgba(163, 230, 53, 0.05) 0%, transparent 100%);
 }
 
 .heroTitle {
-  font-size: 3.5rem;
+  font-family: 'Manrope', sans-serif;
+  font-size: clamp(2rem, 4vw, 2.8rem);
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -1.5px;
+  color: var(--ifm-font-color-base);
+}
+
+.heroAccent {
+  color: #eab308;
+}
+
+.heroDesc {
+  margin-top: 16px;
+  font-size: 15px;
+  line-height: 1.7;
+  color: #9898a0;
+  max-width: 520px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.installCmd {
+  margin-top: 32px;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: 1px solid #1a1a1f;
+  background: #0f0f11;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  color: #9898a0;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.installCmd:hover {
+  border-color: #4a4a52;
+}
+
+.installDollar {
+  color: #4a4a52;
+  user-select: none;
+}
+
+.installPkg {
+  color: #e8e8ec;
+}
+
+.installCopy {
+  font-size: 10px;
+  color: #4a4a52;
+  border-left: 1px solid #1a1a1f;
+  padding-left: 12px;
+}
+
+/* What is Chia */
+.whatIs {
+  max-width: 1152px;
+  margin: 0 auto;
+  padding: 0 24px 80px;
+}
+
+.whatIsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1px;
+  background: #1a1a1f;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.whatIsCell {
+  background: #0f0f11;
+  padding: 32px;
+}
+
+.whatIsCellLabel {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: #4a4a52;
+}
+
+.whatIsCellTitle {
+  margin-top: 12px;
+  font-family: 'Manrope', sans-serif;
+  font-size: 15px;
   font-weight: 700;
-  line-height: 1.2;
-  margin-bottom: 1.5rem;
+  color: #e8e8ec;
 }
 
-.highlight {
-  color: var(--ifm-color-primary);
+.whatIsCellDesc {
+  margin-top: 6px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #9898a0;
 }
 
-.heroSubtitle {
-  font-size: 1.25rem;
-  color: var(--ifm-color-emphasis-600);
-  max-width: 600px;
-  margin: 0 auto 2rem;
+/* Section label */
+.sectionLabel {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: #eab308;
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
-.buttons {
+.sectionLabel::before {
+  content: '';
+  width: 24px;
+  height: 1px;
+  background: #ca9a04;
+}
+
+/* Docs section */
+.docsSection {
+  max-width: 1152px;
+  margin: 0 auto;
+  padding: 0 24px 96px;
+}
+
+.docsSectionTitle {
+  margin-top: 12px;
+  font-family: 'Manrope', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  color: var(--ifm-font-color-base);
+}
+
+.docsCards {
+  margin-top: 32px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.docCard {
+  padding: 28px;
+  border-radius: 10px;
+  border: 1px solid #1a1a1f;
+  background: #0f0f11;
+  text-decoration: none !important;
+  display: flex;
+  flex-direction: column;
+  transition: border-color 0.2s;
+  color: inherit !important;
+}
+
+.docCard:hover {
+  border-color: rgba(202, 154, 4, 0.3);
+  text-decoration: none !important;
+}
+
+.docCardHead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.docCardIcon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 1rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.docCardIconSdk {
+  background: rgba(96, 165, 250, 0.1);
+  color: #60a5fa;
+}
+
+.docCardIconMcp {
+  background: rgba(192, 132, 252, 0.1);
+  color: #c084fc;
+}
+
+.docCardIconApi {
+  background: rgba(34, 197, 94, 0.1);
+  color: #22c55e;
+}
+
+.docCardIconGuide {
+  background: rgba(202, 154, 4, 0.1);
+  color: #eab308;
+}
+
+.docCardTitle {
+  font-family: 'Manrope', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: #e8e8ec;
+}
+
+.docCardDesc {
+  margin-top: 10px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #9898a0;
+  flex: 1;
+}
+
+.docCardLinks {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #1a1a1f;
+  display: flex;
   flex-wrap: wrap;
+  gap: 6px 16px;
 }
 
-.buttons .button--outline {
-  border-color: rgba(255, 255, 255, 0.2);
+.docCardLink {
+  font-size: 12px;
+  color: #4a4a52 !important;
+  text-decoration: none !important;
+  transition: color 0.15s;
 }
 
-[data-theme='dark'] .buttons .button--outline:hover {
-  border-color: var(--ifm-color-primary);
-  color: var(--ifm-color-primary);
+.docCardLink:hover {
+  color: #eab308 !important;
 }
 
-.features {
-  padding: 4rem 0;
+/* Providers */
+.providersSection {
+  max-width: 1152px;
+  margin: 0 auto;
+  padding: 0 24px 96px;
 }
 
-.sectionTitle {
-  text-align: center;
-  margin-bottom: 3rem;
-  font-size: 2rem;
-}
-
-.featureCard {
-  padding: 2rem;
-  border: 1px solid var(--ifm-color-emphasis-200);
-  border-radius: 0.5rem;
-  text-align: center;
-  height: 100%;
-  transition: border-color 0.2s ease;
-}
-
-[data-theme='dark'] .featureCard {
-  border-color: rgba(255, 255, 255, 0.1);
-}
-
-.featureCard:hover {
-  border-color: var(--ifm-color-primary);
-}
-
-.featureIcon {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-}
-
-.providers {
-  padding: 4rem 0;
-  background: var(--ifm-color-emphasis-100);
-}
-
-[data-theme='dark'] .providers {
-  background: rgba(255, 255, 255, 0.02);
+.providerRow {
+  margin-top: 32px;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
 }
 
 .providerCard {
-  padding: 2rem;
-  border: 1px solid var(--ifm-color-emphasis-200);
-  border-radius: 0.5rem;
-  height: 100%;
-  background: var(--ifm-background-color);
+  padding: 28px;
+  border-radius: 10px;
+  border: 1px solid #1a1a1f;
+  background: #0f0f11;
 }
 
-[data-theme='dark'] .providerCard {
-  border-color: rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.02);
+.providerName {
+  font-family: 'Manrope', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: #e8e8ec;
 }
 
 .providerRegion {
-  color: var(--ifm-color-emphasis-600);
-  margin-bottom: 1rem;
+  margin-top: 2px;
+  font-size: 12px;
+  color: #4a4a52;
 }
 
-.providerCard ul {
+.providerFeatures {
+  margin-top: 16px;
   list-style: none;
   padding: 0;
-  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
-.providerCard li {
-  padding: 0.25rem 0;
-  color: var(--ifm-color-emphasis-700);
+.providerFeature {
+  font-size: 13px;
+  color: #9898a0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-.providerCard li::before {
-  content: '• ';
-  color: var(--ifm-color-primary);
+.providerDot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #4a4a52;
+  flex-shrink: 0;
 }
 
-.cta {
-  padding: 4rem 0;
-  text-align: center;
+.providerDocLink {
+  margin-top: 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: #eab308 !important;
+  text-decoration: none !important;
+  transition: opacity 0.15s;
 }
 
-.cta h2 {
-  font-size: 2.5rem;
-  margin-bottom: 1rem;
+.providerDocLink:hover {
+  opacity: 0.8;
 }
 
-.cta p {
-  font-size: 1.25rem;
-  color: var(--ifm-color-emphasis-600);
-  margin-bottom: 2rem;
+/* Quick start */
+.quickstart {
+  max-width: 1152px;
+  margin: 0 auto;
+  padding: 0 24px 96px;
 }
 
-@media screen and (max-width: 996px) {
-  .heroBanner {
-    padding: 3rem 1rem;
+.quickstartGrid {
+  margin-top: 32px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.codeBlock {
+  border-radius: 10px;
+  border: 1px solid #1a1a1f;
+  background: #0f0f11;
+  overflow: hidden;
+}
+
+.codeHeader {
+  padding: 10px 16px;
+  border-bottom: 1px solid #1a1a1f;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.codeFilename {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: #4a4a52;
+}
+
+.codeStep {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #ca9a04;
+}
+
+.codeBody {
+  padding: 16px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12.5px;
+  line-height: 1.8;
+  overflow-x: auto;
+}
+
+.codeLine {
+  white-space: pre;
+  display: block;
+}
+
+.tokKw { color: #c084fc; }
+.tokStr { color: #34d399; }
+.tokFn { color: #60a5fa; }
+.tokNum { color: #facc15; }
+.tokProp { color: #e8e8ec; }
+.tokPunc { color: #4a4a52; }
+
+/* Bottom CTA */
+.bottomCta {
+  max-width: 1152px;
+  margin: 0 auto;
+  padding: 0 24px 96px;
+}
+
+.bottomCtaInner {
+  padding: 48px;
+  border-radius: 12px;
+  border: 1px solid #1a1a1f;
+  background: #0f0f11;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+}
+
+.bottomCtaTitle {
+  font-family: 'Manrope', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: #e8e8ec;
+}
+
+.bottomCtaDesc {
+  margin-top: 6px;
+  font-size: 14px;
+  color: #9898a0;
+}
+
+.bottomCtaButtons {
+  display: flex;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.btnAccent {
+  display: inline-flex;
+  align-items: center;
+  padding: 10px 20px;
+  border-radius: 8px;
+  background: #ca9a04;
+  color: #0a0a0b !important;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none !important;
+  transition: background 0.15s;
+}
+
+.btnAccent:hover {
+  background: #b88d03;
+  color: #0a0a0b !important;
+}
+
+.btnGhost {
+  display: inline-flex;
+  align-items: center;
+  padding: 10px 20px;
+  border-radius: 8px;
+  background: transparent;
+  color: #9898a0 !important;
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none !important;
+  border: 1px solid #1a1a1f;
+  transition: all 0.15s;
+}
+
+.btnGhost:hover {
+  border-color: #4a4a52;
+  color: #e8e8ec !important;
+}
+
+/* Responsive */
+@media screen and (max-width: 768px) {
+  .hero {
+    padding: 100px 24px 48px;
   }
 
-  .heroTitle {
-    font-size: 2.5rem;
+  .whatIsGrid {
+    grid-template-columns: 1fr;
   }
 
-  .heroSubtitle {
-    font-size: 1rem;
+  .docsCards {
+    grid-template-columns: 1fr;
   }
 
-  .features,
-  .providers,
-  .cta {
-    padding: 2rem 0;
+  .providerRow {
+    grid-template-columns: 1fr;
+  }
+
+  .quickstartGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .bottomCtaInner {
+    flex-direction: column;
+    text-align: center;
   }
 }

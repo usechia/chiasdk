@@ -1,162 +1,305 @@
-import type {ReactNode} from 'react';
-import clsx from 'clsx';
-import Link from '@docusaurus/Link';
-import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
-import Layout from '@theme/Layout';
-import Heading from '@theme/Heading';
+import type { ReactNode } from "react";
+import Link from "@docusaurus/Link";
+import Layout from "@theme/Layout";
+import styles from "./index.module.css";
 
-import styles from './index.module.css';
-
-function HomepageHeader() {
-  const {siteConfig} = useDocusaurusContext();
-  return (
-    <header className={clsx('hero', styles.heroBanner)}>
-      <div className="container">
-        <Heading as="h1" className={styles.heroTitle}>
-          Unified African<br />
-          <span className={styles.highlight}>Payment Integration</span>
-        </Heading>
-        <p className={styles.heroSubtitle}>
-          A powerful SDK and MCP server for seamless integration with African payment providers.
-          Type-safe, AI-ready, and built for developers.
-        </p>
-        <div className={styles.buttons}>
-          <Link
-            className="button button--primary button--lg"
-            to="/docs/sdk/overview">
-            Get Started with SDK
-          </Link>
-          <Link
-            className="button button--outline button--lg"
-            to="/docs/mcp/overview">
-            Try MCP Server
-          </Link>
-        </div>
-      </div>
-    </header>
-  );
-}
-
-interface FeatureItem {
-  title: string;
-  icon: string;
-  description: string;
-}
-
-const FeatureList: FeatureItem[] = [
+const WHAT_IS = [
   {
-    title: 'Multi-Provider Support',
-    icon: '🌍',
-    description: 'Support for PayChangu, PawaPay, and OneKhusa. One SDK for all African payment providers.',
+    label: "Platform",
+    title: "Subscription billing",
+    desc: "Create plans, collect mobile money payments on a schedule, manage subscribers, and handle retries automatically.",
   },
   {
-    title: 'Type-Safe & Reliable',
-    icon: '🔒',
-    description: 'Full TypeScript support with comprehensive type definitions and error handling.',
+    label: "SDK",
+    title: "Unified provider API",
+    desc: "One TypeScript SDK wrapping PayChangu, PawaPay, and OneKhusa. Type-safe, singleton pattern, published on npm.",
   },
   {
-    title: 'AI-Ready with MCP',
-    icon: '🤖',
-    description: '42 tools for AI assistants like Claude to handle payments through natural language.',
+    label: "MCP Server",
+    title: "AI-native payments",
+    desc: "42 tools for Claude and other AI assistants to collect payments, check balances, and manage wallets via natural language.",
   },
 ];
 
-function Feature({title, icon, description}: FeatureItem) {
-  return (
-    <div className={clsx('col col--4')}>
-      <div className={styles.featureCard}>
-        <div className={styles.featureIcon}>{icon}</div>
-        <Heading as="h3">{title}</Heading>
-        <p>{description}</p>
-      </div>
-    </div>
-  );
-}
-
-interface ProviderItem {
-  name: string;
-  region: string;
-  features: string[];
-}
-
-const ProviderList: ProviderItem[] = [
+const DOC_CARDS = [
   {
-    name: 'PayChangu',
-    region: 'Malawi',
-    features: ['Hosted checkout', 'Direct charge', 'Mobile money', 'Bank payouts'],
+    icon: "SDK",
+    iconClass: styles.docCardIconSdk,
+    title: "SDK Guide",
+    desc: "Install the SDK, configure providers, and start collecting payments in under 5 minutes. Covers deposits, payouts, and wallet operations across all three providers.",
+    href: "/docs/sdk/overview",
+    links: [
+      { label: "Installation", href: "/docs/sdk/installation" },
+      { label: "Quick start", href: "/docs/sdk/quick-start" },
+      { label: "Configuration", href: "/docs/sdk/configuration" },
+      { label: "Types", href: "/docs/sdk/types" },
+    ],
   },
   {
-    name: 'PawaPay',
-    region: 'Sub-Saharan Africa',
-    features: ['Deposits', 'Bulk payouts', 'Refunds', 'Wallet management'],
+    icon: "API",
+    iconClass: styles.docCardIconApi,
+    title: "Platform API",
+    desc: "REST API for plans, subscribers, payments, and webhooks. Create API keys, manage subscriptions, and handle billing programmatically.",
+    href: "/docs/platform/overview",
+    links: [
+      { label: "Getting started", href: "/docs/platform/getting-started" },
+      { label: "Authentication", href: "/docs/platform/api/authentication" },
+      { label: "Plans", href: "/docs/platform/api/plans" },
+      { label: "Webhooks", href: "/docs/platform/api/webhooks" },
+    ],
   },
   {
-    name: 'OneKhusa',
-    region: 'Malawi & Southern Africa',
-    features: ['Collections', 'Single disbursements', 'Batch payouts', 'Approval workflows'],
+    icon: "MCP",
+    iconClass: styles.docCardIconMcp,
+    title: "MCP Server",
+    desc: "Set up the Chia MCP server with Claude Desktop or any MCP-compatible AI assistant. 42 payment tools available out of the box.",
+    href: "/docs/mcp/overview",
+    links: [
+      { label: "Installation", href: "/docs/mcp/installation" },
+      { label: "Claude Desktop", href: "/docs/mcp/claude-desktop" },
+      { label: "PawaPay tools", href: "/docs/mcp/tools/pawapay" },
+      { label: "Troubleshooting", href: "/docs/mcp/troubleshooting" },
+    ],
   },
 ];
 
-function Provider({name, region, features}: ProviderItem) {
+const PROVIDERS = [
+  {
+    name: "PayChangu",
+    region: "Malawi",
+    features: ["Hosted checkout", "Direct charge", "Mobile money", "Bank payouts"],
+    href: "/docs/sdk/paychangu/payments",
+  },
+  {
+    name: "PawaPay",
+    region: "Sub-Saharan Africa",
+    features: ["Deposits", "Bulk payouts", "Refunds", "Wallet management"],
+    href: "/docs/sdk/pawapay/deposits",
+  },
+  {
+    name: "OneKhusa",
+    region: "Malawi & Southern Africa",
+    features: ["Collections", "Single disbursements", "Batch payouts", "Approval workflows"],
+    href: "/docs/sdk/onekhusa/collections",
+  },
+];
+
+function GuideIcon() {
   return (
-    <div className={clsx('col col--4')}>
-      <div className={styles.providerCard}>
-        <Heading as="h3">{name}</Heading>
-        <p className={styles.providerRegion}>{region}</p>
-        <ul>
-          {features.map((feature, idx) => (
-            <li key={idx}>{feature}</li>
-          ))}
-        </ul>
-      </div>
-    </div>
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+      <path d="M4 2h8v12H4z" stroke="currentColor" strokeWidth="1.2" />
+      <path d="M6.5 5.5h3M6.5 8h3M6.5 10.5h2" stroke="currentColor" strokeWidth="1" strokeLinecap="round" />
+    </svg>
   );
 }
 
 export default function Home(): ReactNode {
-  const {siteConfig} = useDocusaurusContext();
   return (
     <Layout
-      title="Unified African Payment Integration"
-      description="A powerful SDK and MCP server for seamless integration with African payment providers. Support for PayChangu, PawaPay, and OneKhusa.">
-      <HomepageHeader />
+      title="Recurring billing infrastructure for African mobile money"
+      description="Chia is a subscription billing platform and SDK for collecting recurring payments over PayChangu, PawaPay, and OneKhusa."
+    >
       <main>
-        <section className={styles.features}>
-          <div className="container">
-            <Heading as="h2" className={styles.sectionTitle}>Why Chia?</Heading>
-            <div className="row">
-              {FeatureList.map((props, idx) => (
-                <Feature key={idx} {...props} />
-              ))}
+        {/* Hero */}
+        <section className={styles.hero}>
+          <h1 className={styles.heroTitle}>
+            Recurring billing infrastructure{" "}
+            <span className={styles.heroAccent}>for African mobile money</span>
+          </h1>
+          <p className={styles.heroDesc}>
+            Chia is a subscription billing platform and SDK for collecting
+            recurring payments over PayChangu, PawaPay, and OneKhusa. One
+            integration, multiple providers.
+          </p>
+          <div
+            className={styles.installCmd}
+            onClick={() => navigator.clipboard.writeText("npm install @chiahq/sdk")}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                navigator.clipboard.writeText("npm install @chiahq/sdk");
+              }
+            }}
+          >
+            <span className={styles.installDollar}>$</span>
+            <span className={styles.installPkg}>npm install @chiahq/sdk</span>
+            <span className={styles.installCopy}>copy</span>
+          </div>
+        </section>
+
+        {/* What is Chia */}
+        <section className={styles.whatIs}>
+          <div className={styles.whatIsGrid}>
+            {WHAT_IS.map((item) => (
+              <div key={item.label} className={styles.whatIsCell}>
+                <div className={styles.whatIsCellLabel}>{item.label}</div>
+                <div className={styles.whatIsCellTitle}>{item.title}</div>
+                <p className={styles.whatIsCellDesc}>{item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Documentation */}
+        <section className={styles.docsSection}>
+          <div className={styles.sectionLabel}>documentation</div>
+          <h2 className={styles.docsSectionTitle}>Get started</h2>
+          <div className={styles.docsCards}>
+            {DOC_CARDS.map((card) => (
+              <div key={card.title} className={styles.docCard}>
+                <Link className={styles.docCardHead} to={card.href}>
+                  <div className={`${styles.docCardIcon} ${card.iconClass}`}>
+                    {card.icon ?? <GuideIcon />}
+                  </div>
+                  <span className={styles.docCardTitle}>{card.title}</span>
+                </Link>
+                <p className={styles.docCardDesc}>{card.desc}</p>
+                <div className={styles.docCardLinks}>
+                  {card.links.map((link) => (
+                    <Link key={link.href} className={styles.docCardLink} to={link.href}>
+                      {link.label}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Providers */}
+        <section className={styles.providersSection}>
+          <div className={styles.sectionLabel}>providers</div>
+          <h2 className={styles.docsSectionTitle}>Supported payment providers</h2>
+          <div className={styles.providerRow}>
+            {PROVIDERS.map((p) => (
+              <div key={p.name} className={styles.providerCard}>
+                <div className={styles.providerName}>{p.name}</div>
+                <div className={styles.providerRegion}>{p.region}</div>
+                <ul className={styles.providerFeatures}>
+                  {p.features.map((f) => (
+                    <li key={f} className={styles.providerFeature}>
+                      <span className={styles.providerDot} />
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+                <Link className={styles.providerDocLink} to={p.href}>
+                  View docs &rarr;
+                </Link>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Quick start */}
+        <section className={styles.quickstart}>
+          <div className={styles.sectionLabel}>quick start</div>
+          <h2 className={styles.docsSectionTitle}>Start in two steps</h2>
+          <div className={styles.quickstartGrid}>
+            <div className={styles.codeBlock}>
+              <div className={styles.codeHeader}>
+                <span className={styles.codeFilename}>.env</span>
+                <span className={styles.codeStep}>Step 1: Configure</span>
+              </div>
+              <div className={styles.codeBody}>
+                <span className={styles.codeLine}>
+                  <span className={styles.tokProp}>PAYCHANGU_SECRET_KEY</span>
+                  <span className={styles.tokPunc}>=</span>
+                  <span className={styles.tokStr}>sk_test_...</span>
+                </span>
+                <span className={styles.codeLine}>
+                  <span className={styles.tokProp}>PAWAPAY_API_TOKEN</span>
+                  <span className={styles.tokPunc}>=</span>
+                  <span className={styles.tokStr}>your_jwt_token</span>
+                </span>
+                <span className={styles.codeLine}>
+                  <span className={styles.tokProp}>ONEKHUSA_API_KEY</span>
+                  <span className={styles.tokPunc}>=</span>
+                  <span className={styles.tokStr}>your_api_key</span>
+                </span>
+              </div>
+            </div>
+            <div className={styles.codeBlock}>
+              <div className={styles.codeHeader}>
+                <span className={styles.codeFilename}>collect.ts</span>
+                <span className={styles.codeStep}>Step 2: Collect</span>
+              </div>
+              <div className={styles.codeBody}>
+                <span className={styles.codeLine}>
+                  <span className={styles.tokKw}>import</span>
+                  <span className={styles.tokPunc}>{" { "}</span>
+                  <span className={styles.tokProp}>ChiaSDK</span>
+                  <span className={styles.tokPunc}>{" } "}</span>
+                  <span className={styles.tokKw}>from</span>{" "}
+                  <span className={styles.tokStr}>"@chiahq/sdk"</span>
+                </span>
+                <span className={styles.codeLine}> </span>
+                <span className={styles.codeLine}>
+                  <span className={styles.tokKw}>const</span>{" "}
+                  <span className={styles.tokProp}>sdk</span>
+                  <span className={styles.tokPunc}> = </span>
+                  <span className={styles.tokFn}>ChiaSDK</span>
+                  <span className={styles.tokPunc}>.</span>
+                  <span className={styles.tokFn}>getInstance</span>
+                  <span className={styles.tokPunc}>()</span>
+                </span>
+                <span className={styles.codeLine}>
+                  <span className={styles.tokKw}>const</span>{" "}
+                  <span className={styles.tokProp}>payment</span>
+                  <span className={styles.tokPunc}> = </span>
+                  <span className={styles.tokKw}>await</span>{" "}
+                  <span className={styles.tokProp}>sdk</span>
+                  <span className={styles.tokPunc}>.</span>
+                  <span className={styles.tokProp}>collections</span>
+                  <span className={styles.tokPunc}>.</span>
+                  <span className={styles.tokFn}>create</span>
+                  <span className={styles.tokPunc}>{"({"}</span>
+                </span>
+                <span className={styles.codeLine}>
+                  {"  "}
+                  <span className={styles.tokProp}>amount</span>
+                  <span className={styles.tokPunc}>: </span>
+                  <span className={styles.tokNum}>4500</span>
+                  <span className={styles.tokPunc}>,</span>
+                </span>
+                <span className={styles.codeLine}>
+                  {"  "}
+                  <span className={styles.tokProp}>currency</span>
+                  <span className={styles.tokPunc}>: </span>
+                  <span className={styles.tokStr}>"MWK"</span>
+                  <span className={styles.tokPunc}>,</span>
+                </span>
+                <span className={styles.codeLine}>
+                  {"  "}
+                  <span className={styles.tokProp}>phone</span>
+                  <span className={styles.tokPunc}>: </span>
+                  <span className={styles.tokStr}>"+265884123456"</span>
+                </span>
+                <span className={styles.codeLine}>
+                  <span className={styles.tokPunc}>{"})"};</span>
+                </span>
+              </div>
             </div>
           </div>
         </section>
 
-        <section className={styles.providers}>
-          <div className="container">
-            <Heading as="h2" className={styles.sectionTitle}>Supported Providers</Heading>
-            <div className="row">
-              {ProviderList.map((props, idx) => (
-                <Provider key={idx} {...props} />
-              ))}
+        {/* Bottom CTA */}
+        <section className={styles.bottomCta}>
+          <div className={styles.bottomCtaInner}>
+            <div>
+              <h3 className={styles.bottomCtaTitle}>Ready to integrate?</h3>
+              <p className={styles.bottomCtaDesc}>
+                Start collecting mobile money payments in minutes. Free for your
+                first 5 subscribers.
+              </p>
             </div>
-          </div>
-        </section>
-
-        <section className={styles.cta}>
-          <div className="container">
-            <Heading as="h2">Ready to integrate?</Heading>
-            <p>Start accepting payments across Africa in minutes</p>
-            <div className={styles.buttons}>
-              <Link
-                className="button button--primary button--lg"
-                to="https://www.npmjs.com/package/chia-sdk">
-                Install SDK
+            <div className={styles.bottomCtaButtons}>
+              <Link className={styles.btnAccent} to="/docs/sdk/quick-start">
+                Quick start guide
               </Link>
-              <Link
-                className="button button--outline button--lg"
-                to="/docs/sdk/overview">
-                View Documentation
+              <Link className={styles.btnGhost} to="https://usechia.com/signup">
+                Sign up
               </Link>
             </div>
           </div>
