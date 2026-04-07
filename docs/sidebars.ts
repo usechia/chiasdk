@@ -48,6 +48,38 @@ const sidebars: SidebarsConfig = {
       label: 'Type Definitions',
     },
   ],
+  platformSidebar: [
+    {
+      type: 'doc',
+      id: 'platform/overview',
+      label: 'Overview',
+    },
+    {
+      type: 'doc',
+      id: 'platform/getting-started',
+      label: 'Getting Started',
+    },
+    {
+      type: 'category',
+      label: 'API Reference',
+      items: [
+        'platform/api/authentication',
+        'platform/api/plans',
+        'platform/api/subscribers',
+        'platform/api/subscription-intents',
+        'platform/api/payments',
+        'platform/api/webhooks',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Concepts',
+      items: [
+        'platform/concepts/subscriptions',
+        'platform/concepts/providers',
+      ],
+    },
+  ],
   mcpSidebar: [
     {
       type: 'doc',
