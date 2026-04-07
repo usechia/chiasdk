@@ -42,9 +42,9 @@ The SDK includes:
 ## Verify Installation
 
 ```typescript
-import { AfromomoSDK } from "chia-sdk";
+import { ChiaSDK } from "chia-sdk";
 
-const sdk = AfromomoSDK.initialize();
+const sdk = ChiaSDK.initialize();
 console.log("Chia SDK initialized:", !!sdk);
 ```
 

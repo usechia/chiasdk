@@ -12,7 +12,7 @@ import {
 } from "./config/env";
 
 /**
- * Configuration interface for the Afromomo SDK
+ * Configuration interface for the Chia SDK
  */
 export interface SDKConfig {
 	/**
@@ -77,8 +77,8 @@ export interface SDKConfig {
 /**
  * Main SDK class for interacting with African payment providers
  */
-export class AfromomoSDK {
-	private static instance?: AfromomoSDK;
+export class ChiaSDK {
+	private static instance?: ChiaSDK;
 	private _paychangu?: PayChangu;
 	private _pawapay?: PawaPay;
 	private _onekhusa?: OneKhusa;
@@ -101,13 +101,13 @@ export class AfromomoSDK {
 	 * @param config - SDK configuration options
 	 * @returns The SDK instance
 	 */
-	public static initialize(config: SDKConfig = {}): AfromomoSDK {
-		if (!AfromomoSDK.instance) {
-			AfromomoSDK.instance = new AfromomoSDK(config);
+	public static initialize(config: SDKConfig = {}): ChiaSDK {
+		if (!ChiaSDK.instance) {
+			ChiaSDK.instance = new ChiaSDK(config);
 
 			// Log initialization status
-			const services = AfromomoSDK.instance.getConfiguredServices();
-			const providers = Object.keys(AfromomoSDK.instance._providers);
+			const services = ChiaSDK.instance.getConfiguredServices();
+			const providers = Object.keys(ChiaSDK.instance._providers);
 
 			if (services.length === 0 && providers.length === 0) {
 				console.warn("⚠️ No payment services were configured");
@@ -119,7 +119,7 @@ export class AfromomoSDK {
 				);
 				console.log("- Custom providers (configure via providers option)");
 			} else {
-				console.log("✓ Initialized Afromomo SDK with services:");
+				console.log("✓ Initialized Chia SDK with services:");
 				for (const service of services) {
 					console.log(
 						`- ${service.charAt(0).toUpperCase() + service.slice(1)}`,
@@ -134,20 +134,20 @@ export class AfromomoSDK {
 				}
 			}
 		}
-		return AfromomoSDK.instance;
+		return ChiaSDK.instance;
 	}
 
 	/**
 	 * Get the SDK instance
 	 * @throws Error if SDK is not initialized
 	 */
-	public static getInstance(): AfromomoSDK {
-		if (!AfromomoSDK.instance) {
+	public static getInstance(): ChiaSDK {
+		if (!ChiaSDK.instance) {
 			throw new Error(
-				"SDK not initialized. Call AfromomoSDK.initialize() first",
+				"SDK not initialized. Call ChiaSDK.initialize() first",
 			);
 		}
-		return AfromomoSDK.instance;
+		return ChiaSDK.instance;
 	}
 
 	/**

@@ -74,9 +74,9 @@ See [chia-mcp documentation](./packages/mcp) for configuration details.
 ## Quick Start
 
 ```typescript
-import { AfromomoSDK } from "chia-sdk";
+import { ChiaSDK } from "chia-sdk";
 
-const sdk = new AfromomoSDK({
+const sdk = new ChiaSDK({
   environment: "sandbox", // Use "sandbox" for testing, "production" for live
   pawapay: {
     apiToken: "your-pawapay-api-token" // Get this from PawaPay dashboard
@@ -127,14 +127,14 @@ For a comprehensive guide on importing types, see [TYPE_IMPORTS.md](./packages/s
 ### PawaPay Integration
 
 ```typescript
-import { AfromomoSDK } from "chia-sdk";
+import { ChiaSDK } from "chia-sdk";
 import type { 
   ActiveConfigResponse, 
   PaymentTransaction,
   WalletBalance 
 } from "chia-sdk";
 
-const sdk = new AfromomoSDK({
+const sdk = new ChiaSDK({
   environment: "sandbox",
   pawapay: {
     apiToken: "your-pawapay-token"
@@ -169,7 +169,7 @@ import type {
   PayChanguTypes 
 } from "chia-sdk";
 
-const sdk = new AfromomoSDK({
+const sdk = new ChiaSDK({
   environment: "sandbox",
   paychangu: {
     secretKey: "your-paychangu-secret"
@@ -218,7 +218,7 @@ The SDK supports both sandbox and production environments:
 ```typescript
 import { Environment } from "chia-sdk";
 
-const sdk = new AfromomoSDK({
+const sdk = new ChiaSDK({
   environment: Environment.SANDBOX, // or Environment.PRODUCTION
   // ... provider configurations
 });

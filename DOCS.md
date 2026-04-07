@@ -1,9 +1,9 @@
-# Afromomo SDK Documentation
+# Chia SDK Documentation
 
-Afromomo is a unified SDK for integrating with various African payment providers. It provides a simple, consistent interface for working with different payment services while maintaining the flexibility and features of each provider.
+Chia is a unified SDK for integrating with various African payment providers. It provides a simple, consistent interface for working with different payment services while maintaining the flexibility and features of each provider.
 
 ## Table of Contents
-- [Afromomo SDK Documentation](#afromomo-sdk-documentation)
+- [Chia SDK Documentation](#chia-sdk-documentation)
   - [Table of Contents](#table-of-contents)
   - [Installation](#installation)
   - [Configuration](#configuration)
@@ -57,13 +57,13 @@ PAWAPAY_ENVIRONMENT=DEVELOPMENT # or PRODUCTION
 2. Initialize the SDK:
 
 ```typescript
-import { AfromomoSDK } from 'afromomo';
+import { ChiaSDK } from 'chia-sdk';
 
 // Initialize with default .env file
-const sdk = AfromomoSDK.initialize();
+const sdk = ChiaSDK.initialize();
 
 // Or specify a custom env file location
-const sdk = AfromomoSDK.initialize({
+const sdk = ChiaSDK.initialize({
   env: {
     envPath: './config/.env.local',
     silent: false, // Show initialization logs
@@ -77,7 +77,7 @@ const sdk = AfromomoSDK.initialize({
 You can also configure the SDK directly in your code:
 
 ```typescript
-const sdk = AfromomoSDK.initialize({
+const sdk = ChiaSDK.initialize({
   paychangu: {
     secretKey: 'your-paychangu-secret-key',
     returnUrl: 'https://your-return-url.com',
@@ -95,7 +95,7 @@ const sdk = AfromomoSDK.initialize({
 After initialization, you can access the SDK instance anywhere in your code:
 
 ```typescript
-const sdk = AfromomoSDK.getInstance();
+const sdk = ChiaSDK.getInstance();
 ```
 
 ### Checking Service Availability
@@ -116,10 +116,10 @@ When using the SDK in an Express.js application or similar framework, the initia
 
 ```typescript
 // 1. First, import the SDK
-import { AfromomoSDK } from 'chia-sdk';
+import { ChiaSDK } from 'chia-sdk';
 
 // 2. Initialize the SDK before importing routes that use it
-AfromomoSDK.initialize();
+ChiaSDK.initialize();
 
 // 3. Only after initialization, import route files that call getInstance()
 import { yourRoutes } from './routes/your-routes';
@@ -129,18 +129,18 @@ const app = express();
 app.use('/your-path', yourRoutes);
 ```
 
-This order is necessary because route files typically call `AfromomoSDK.getInstance()` during their import, which will throw an error if the SDK hasn't been initialized yet.
+This order is necessary because route files typically call `ChiaSDK.getInstance()` during their import, which will throw an error if the SDK hasn't been initialized yet.
 
 ## Getting Started
 
 1. Import the SDK:
 ```typescript
-import { AfromomoSDK } from 'afromomo';
+import { ChiaSDK } from 'chia-sdk';
 ```
 
 2. Initialize the SDK with your credentials:
 ```typescript
-const sdk = new AfromomoSDK({
+const sdk = new ChiaSDK({
   // Configure one or both providers
   paychangu: {
     secretKey: 'your-paychangu-secret-key'
@@ -283,7 +283,7 @@ import {
   PawaPayPayoutTransaction,
   MoMoCurrency,
   Correspondent
-} from 'afromomo';
+} from 'chia-sdk';
 
 // All types are properly documented and provide autocompletion
 const transaction: PawaPayPayoutTransaction = {

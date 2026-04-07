@@ -13,7 +13,7 @@ import {
 	CallToolRequestSchema,
 	ListToolsRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
-import { AfromomoSDK } from "chia-sdk";
+import { ChiaSDK } from "chia-sdk";
 
 // Import tool handlers
 import { registerPayChanguTools } from "./tools/paychangu/payments.js";
@@ -38,10 +38,10 @@ const ONEKHUSA_ORGANISATION_ID = process.env.ONEKHUSA_ORGANISATION_ID;
 const ENVIRONMENT = process.env.ENVIRONMENT || "DEVELOPMENT";
 
 // Initialize SDK
-let sdk: AfromomoSDK | null = null;
+let sdk: ChiaSDK | null = null;
 
 try {
-	sdk = AfromomoSDK.initialize({
+	sdk = ChiaSDK.initialize({
 		paychangu: PAYCHANGU_SECRET_KEY
 			? {
 					secretKey: PAYCHANGU_SECRET_KEY,

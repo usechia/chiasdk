@@ -33,9 +33,9 @@ yarn add chia-sdk
 ## Quick Start
 
 ```typescript
-import { AfromomoSDK } from "chia-sdk";
+import { ChiaSDK } from "chia-sdk";
 
-const sdk = new AfromomoSDK({
+const sdk = new ChiaSDK({
   environment: "sandbox", // or "production"
   pawapay: {
     apiToken: "your-pawapay-token"
@@ -190,9 +190,9 @@ await sdk.onekhusa.disbursements.transferBatchFunds(batch.id);
 Use environment variables for secure credential management:
 
 ```typescript
-import { AfromomoSDK, Environment } from "chia-sdk";
+import { ChiaSDK, Environment } from "chia-sdk";
 
-const sdk = new AfromomoSDK({
+const sdk = new ChiaSDK({
   environment: Environment.SANDBOX, // or Environment.PRODUCTION
   pawapay: {
     apiToken: process.env.PAWAPAY_TOKEN
@@ -213,7 +213,7 @@ const sdk = new AfromomoSDK({
 Override default provider endpoints for testing or regional deployments:
 
 ```typescript
-const sdk = new AfromomoSDK({
+const sdk = new ChiaSDK({
   pawapay: {
     apiToken: "your-token",
     environment: "sandbox",

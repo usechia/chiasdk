@@ -11,9 +11,9 @@ Get up and running with Chia SDK in minutes.
 ## Initialize the SDK
 
 ```typescript
-import { AfromomoSDK, ENVIRONMENTS } from "chia-sdk";
+import { ChiaSDK, ENVIRONMENTS } from "chia-sdk";
 
-const sdk = AfromomoSDK.initialize({
+const sdk = ChiaSDK.initialize({
   pawapay: {
     jwt: "your-pawapay-jwt",
     environment: ENVIRONMENTS.DEVELOPMENT
@@ -119,7 +119,7 @@ console.log("Disbursement created:", disbursement.id);
 For testing or when working with custom endpoints:
 
 ```typescript
-const sdk = AfromomoSDK.initialize({
+const sdk = ChiaSDK.initialize({
   pawapay: {
     jwt: "your-pawapay-jwt",
     environment: ENVIRONMENTS.DEVELOPMENT,

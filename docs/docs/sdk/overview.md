@@ -29,9 +29,9 @@ A unified TypeScript SDK for seamless integration with African payment providers
 ## Quick Example
 
 ```typescript
-import { AfromomoSDK, ENVIRONMENTS } from "chia-sdk";
+import { ChiaSDK, ENVIRONMENTS } from "chia-sdk";
 
-const sdk = AfromomoSDK.initialize({
+const sdk = ChiaSDK.initialize({
   pawapay: { jwt: "your-token", environment: ENVIRONMENTS.DEVELOPMENT },
   paychangu: { secretKey: "your-secret" },
   onekhusa: {

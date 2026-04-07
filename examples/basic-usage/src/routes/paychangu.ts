@@ -1,9 +1,9 @@
 import { Router } from "express";
 import type { Request, Response, NextFunction } from "express";
-import { AfromomoSDK } from "chia-sdk";
+import { ChiaSDK } from "chia-sdk";
 
 const router = Router();
-const sdk = AfromomoSDK.getInstance();
+const sdk = ChiaSDK.getInstance();
 
 // Initialize payment
 router.post(

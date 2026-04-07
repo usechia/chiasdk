@@ -16,7 +16,7 @@ export default function SDK() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <Link to="/" className="text-2xl font-bold">
-              Afri<span className="text-lime-400">momo</span>
+              Chi<span className="text-lime-400">a</span>
             </Link>
             <div className="flex gap-6">
               <Link to="/docs" className="hover:text-lime-400 transition-colors">Docs</Link>
@@ -71,10 +71,10 @@ yarn add chia-sdk`}
           <div className="bg-white/5 border border-white/10 rounded-lg p-6 overflow-x-auto mb-4">
             <pre className="text-sm">
               <code className="text-gray-300">
-{`import { AfromomoSDK } from "chia-sdk";
+{`import { ChiaSDK } from "chia-sdk";
 
 // Initialize the SDK
-const sdk = new AfromomoSDK({
+const sdk = new ChiaSDK({
   environment: "sandbox", // or "production"
   pawapay: {
     apiToken: "your-pawapay-token"
@@ -126,9 +126,9 @@ const collection = await sdk.onekhusa.collections.initiateRequestToPay({
           <div className="bg-white/5 border border-white/10 rounded-lg p-6 overflow-x-auto">
             <pre className="text-sm">
               <code className="text-gray-300">
-{`import { AfromomoSDK, Environment } from "chia-sdk";
+{`import { ChiaSDK, Environment } from "chia-sdk";
 
-const sdk = new AfromomoSDK({
+const sdk = new ChiaSDK({
   environment: Environment.SANDBOX, // or Environment.PRODUCTION
   pawapay: {
     apiToken: process.env.PAWAPAY_TOKEN

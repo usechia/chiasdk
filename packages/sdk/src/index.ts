@@ -1,9 +1,9 @@
 /**
- * Afromomo SDK - A unified interface for African payment providers
+ * Chia SDK - A unified interface for African payment providers
  * @module chia
  */
 
-export { AfromomoSDK } from "./sdk";
+export { ChiaSDK } from "./sdk";
 export type { SDKConfig } from "./sdk";
 
 // Export PayChangu types

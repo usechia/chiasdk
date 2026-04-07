@@ -106,9 +106,9 @@ const config: SDKConfig = {
 The SDK provides full type safety:
 
 ```typescript
-import { AfromomoSDK, isServiceError } from "chia-sdk";
+import { ChiaSDK, isServiceError } from "chia-sdk";
 
-const sdk = AfromomoSDK.initialize({});
+const sdk = ChiaSDK.initialize({});
 
 const deposit = await sdk.pawapay.payments.initiatePayment({
   depositId: "123",

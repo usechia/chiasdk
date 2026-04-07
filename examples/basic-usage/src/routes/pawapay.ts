@@ -1,9 +1,9 @@
 import { Router } from "express";
 import type { Request, Response, NextFunction } from "express";
-import { AfromomoSDK, logger } from "chia-sdk";
+import { ChiaSDK, logger } from "chia-sdk";
 
 const router = Router();
-const sdk = AfromomoSDK.getInstance();
+const sdk = ChiaSDK.getInstance();
 
 // Get wallet balances
 router.get(

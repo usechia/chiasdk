@@ -2,11 +2,11 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
-import { AfromomoSDK } from "chia-sdk";
+import { ChiaSDK } from "chia-sdk";
 import { errorHandler } from "./middleware/error";
 
 // Initialize the SDK first
-AfromomoSDK.initialize();
+ChiaSDK.initialize();
 
 // Import routes after SDK initialization
 import { paychanguRouter } from "./routes/paychangu";
@@ -27,7 +27,7 @@ app.use("/pawapay", pawapayRouter);
 
 // New route to get all configured services
 app.get("/services", (req, res) => {
-	const sdk = AfromomoSDK.getInstance();
+	const sdk = ChiaSDK.getInstance();
 	const services = sdk.getConfiguredServices();
 	res.json({
 		success: true,
