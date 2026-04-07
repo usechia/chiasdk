@@ -49,13 +49,13 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/joelfickson/chia.git",
+    "url": "https://github.com/usechia/chiasdk.git",
     "directory": "packages/mcp"
   },
   "bugs": {
-    "url": "https://github.com/joelfickson/chia/issues"
+    "url": "https://github.com/usechia/chiasdk/issues"
   },
-  "homepage": "https://github.com/joelfickson/chia/tree/master/packages/mcp#readme",
+  "homepage": "https://github.com/usechia/chiasdk/tree/master/packages/mcp#readme",
   "publishConfig": {
     "access": "public"
   }

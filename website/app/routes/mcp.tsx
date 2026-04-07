@@ -22,7 +22,7 @@ export default function MCP() {
               <Link to="/docs" className="hover:text-lime-400 transition-colors">Docs</Link>
               <Link to="/sdk" className="hover:text-lime-400 transition-colors">SDK</Link>
               <Link to="/mcp" className="text-lime-400">MCP</Link>
-              <a href="https://github.com/joelfickson/chia" target="_blank" rel="noopener noreferrer" className="hover:text-lime-400 transition-colors">GitHub</a>
+              <a href="https://github.com/usechia/chiasdk" target="_blank" rel="noopener noreferrer" className="hover:text-lime-400 transition-colors">GitHub</a>
             </div>
           </div>
         </div>
@@ -385,7 +385,7 @@ npx chia-mcp`}
           <h3 className="text-2xl font-bold mb-4">Additional Resources</h3>
           <ul className="space-y-3 text-gray-300">
             <li>
-              <a href="https://github.com/joelfickson/chia/tree/master/packages/mcp" target="_blank" rel="noopener noreferrer" className="text-lime-400 hover:underline">
+              <a href="https://github.com/usechia/chiasdk/tree/master/packages/mcp" target="_blank" rel="noopener noreferrer" className="text-lime-400 hover:underline">
                 MCP Server GitHub →
               </a>
             </li>

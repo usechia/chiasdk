@@ -23,7 +23,7 @@ export default function Home() {
               <Link to="/docs" className="hover:text-lime-400 transition-colors">Docs</Link>
               <Link to="/sdk" className="hover:text-lime-400 transition-colors">SDK</Link>
               <Link to="/mcp" className="hover:text-lime-400 transition-colors">MCP</Link>
-              <a href="https://github.com/joelfickson/chia" target="_blank" rel="noopener noreferrer" className="hover:text-lime-400 transition-colors">GitHub</a>
+              <a href="https://github.com/usechia/chiasdk" target="_blank" rel="noopener noreferrer" className="hover:text-lime-400 transition-colors">GitHub</a>
             </div>
           </div>
         </div>

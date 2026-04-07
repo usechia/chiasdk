@@ -1,61 +1,61 @@
-## [0.0.2](https://github.com/joelfickson/chia/compare/v0.3.2...v0.0.2) (2026-04-07)
+## [0.0.2](https://github.com/usechia/chiasdk/compare/v0.3.2...v0.0.2) (2026-04-07)
 
 
 ### Features
 
-* migrate PawaPay SDK to v2 API, rebrand afrimomo to chia ([ad48578](https://github.com/joelfickson/chia/commit/ad48578111a0a2ccaabeab6babdd7e02e9a910a0))
-## [0.3.2](https://github.com/joelfickson/chia/compare/v0.3.1...v0.3.2) (2026-02-14)
+* migrate PawaPay SDK to v2 API, rebrand afrimomo to chia ([ad48578](https://github.com/usechia/chiasdk/commit/ad48578111a0a2ccaabeab6babdd7e02e9a910a0))
+## [0.3.2](https://github.com/usechia/chiasdk/compare/v0.3.1...v0.3.2) (2026-02-14)
 
 
 
-## [0.3.1](https://github.com/joelfickson/chia/compare/v0.3.0...v0.3.1) (2026-02-14)
-
-
-### Bug Fixes
-
-* resolve 17 security vulnerabilities via dependency updates ([7d73059](https://github.com/joelfickson/chia/commit/7d73059a0ccbfa602bbbfe8399ba4cf156ce1667))
-* resolve 17 security vulnerabilities via dependency updates ([2130b7f](https://github.com/joelfickson/chia/commit/2130b7f9a886d573ca8dee64005bfaff4765b1ba))
-
-
-
-# [0.3.0](https://github.com/joelfickson/chia/compare/v0.0.1-beta.13...v0.3.0) (2026-02-02)
+## [0.3.1](https://github.com/usechia/chiasdk/compare/v0.3.0...v0.3.1) (2026-02-14)
 
 
 ### Bug Fixes
 
-* **ci:** add SDK build verification to prevent MCP build failures ([34f9dc8](https://github.com/joelfickson/chia/commit/34f9dc8af237a857e1ee679298932ea4ffef6c20))
-* **ci:** replace semver dependency with shell-based version incrementing ([d252f5a](https://github.com/joelfickson/chia/commit/d252f5ac2ec82d4593a5eceb7fb2c5b307f43780))
-* docs release ([8921c6b](https://github.com/joelfickson/chia/commit/8921c6b723113661d4d0d82940e8f526448b1933))
+* resolve 17 security vulnerabilities via dependency updates ([7d73059](https://github.com/usechia/chiasdk/commit/7d73059a0ccbfa602bbbfe8399ba4cf156ce1667))
+* resolve 17 security vulnerabilities via dependency updates ([2130b7f](https://github.com/usechia/chiasdk/commit/2130b7f9a886d573ca8dee64005bfaff4765b1ba))
+
+
+
+# [0.3.0](https://github.com/usechia/chiasdk/compare/v0.0.1-beta.13...v0.3.0) (2026-02-02)
+
+
+### Bug Fixes
+
+* **ci:** add SDK build verification to prevent MCP build failures ([34f9dc8](https://github.com/usechia/chiasdk/commit/34f9dc8af237a857e1ee679298932ea4ffef6c20))
+* **ci:** replace semver dependency with shell-based version incrementing ([d252f5a](https://github.com/usechia/chiasdk/commit/d252f5ac2ec82d4593a5eceb7fb2c5b307f43780))
+* docs release ([8921c6b](https://github.com/usechia/chiasdk/commit/8921c6b723113661d4d0d82940e8f526448b1933))
 
 
 ### Features
 
-* Add Chia MCP Server with PawaPay and PayChangu integration ([45123e3](https://github.com/joelfickson/chia/commit/45123e3586391e54b543c3286ddac1e20079b7af))
-* add dark and light logos, implement welcome component, and configure project structure ([63a0222](https://github.com/joelfickson/chia/commit/63a022289515975cde9a4432b38ade50a097f553))
-* add version labels to SDK and MCP sections for better visibility ([0c040a8](https://github.com/joelfickson/chia/commit/0c040a8ffa899e910008a842bbb796bb72e0adf0))
-* Enhance tool registration with type definitions and refactor handlers for PawaPay and PayChangu integrations ([23522d9](https://github.com/joelfickson/chia/commit/23522d90bdd73cf8a7a5467d29ce962fb0213c08))
-* **onekhusa:** add OneKhusa payment gateway integration ([f4d426a](https://github.com/joelfickson/chia/commit/f4d426a64fe1a3080abf1819541fcfc50b53e663))
-* Update type assertions for PawaPay and PayChangu tools to use 'unknown' for improved type safety ([8d39041](https://github.com/joelfickson/chia/commit/8d390419eeb10bdef02a57540ff15863f990b8b0))
+* Add Chia MCP Server with PawaPay and PayChangu integration ([45123e3](https://github.com/usechia/chiasdk/commit/45123e3586391e54b543c3286ddac1e20079b7af))
+* add dark and light logos, implement welcome component, and configure project structure ([63a0222](https://github.com/usechia/chiasdk/commit/63a022289515975cde9a4432b38ade50a097f553))
+* add version labels to SDK and MCP sections for better visibility ([0c040a8](https://github.com/usechia/chiasdk/commit/0c040a8ffa899e910008a842bbb796bb72e0adf0))
+* Enhance tool registration with type definitions and refactor handlers for PawaPay and PayChangu integrations ([23522d9](https://github.com/usechia/chiasdk/commit/23522d90bdd73cf8a7a5467d29ce962fb0213c08))
+* **onekhusa:** add OneKhusa payment gateway integration ([f4d426a](https://github.com/usechia/chiasdk/commit/f4d426a64fe1a3080abf1819541fcfc50b53e663))
+* Update type assertions for PawaPay and PayChangu tools to use 'unknown' for improved type safety ([8d39041](https://github.com/usechia/chiasdk/commit/8d390419eeb10bdef02a57540ff15863f990b8b0))
 
 
 
-# [0.2.0](https://github.com/joelfickson/chia/compare/v0.0.1-beta.13...v0.2.0) (2026-02-02)
+# [0.2.0](https://github.com/usechia/chiasdk/compare/v0.0.1-beta.13...v0.2.0) (2026-02-02)
 
 
 ### Bug Fixes
 
-* **ci:** replace semver dependency with shell-based version incrementing ([d252f5a](https://github.com/joelfickson/chia/commit/d252f5ac2ec82d4593a5eceb7fb2c5b307f43780))
-* docs release ([8921c6b](https://github.com/joelfickson/chia/commit/8921c6b723113661d4d0d82940e8f526448b1933))
+* **ci:** replace semver dependency with shell-based version incrementing ([d252f5a](https://github.com/usechia/chiasdk/commit/d252f5ac2ec82d4593a5eceb7fb2c5b307f43780))
+* docs release ([8921c6b](https://github.com/usechia/chiasdk/commit/8921c6b723113661d4d0d82940e8f526448b1933))
 
 
 ### Features
 
-* Add Chia MCP Server with PawaPay and PayChangu integration ([45123e3](https://github.com/joelfickson/chia/commit/45123e3586391e54b543c3286ddac1e20079b7af))
-* add dark and light logos, implement welcome component, and configure project structure ([63a0222](https://github.com/joelfickson/chia/commit/63a022289515975cde9a4432b38ade50a097f553))
-* add version labels to SDK and MCP sections for better visibility ([0c040a8](https://github.com/joelfickson/chia/commit/0c040a8ffa899e910008a842bbb796bb72e0adf0))
-* Enhance tool registration with type definitions and refactor handlers for PawaPay and PayChangu integrations ([23522d9](https://github.com/joelfickson/chia/commit/23522d90bdd73cf8a7a5467d29ce962fb0213c08))
-* **onekhusa:** add OneKhusa payment gateway integration ([f4d426a](https://github.com/joelfickson/chia/commit/f4d426a64fe1a3080abf1819541fcfc50b53e663))
-* Update type assertions for PawaPay and PayChangu tools to use 'unknown' for improved type safety ([8d39041](https://github.com/joelfickson/chia/commit/8d390419eeb10bdef02a57540ff15863f990b8b0))
+* Add Chia MCP Server with PawaPay and PayChangu integration ([45123e3](https://github.com/usechia/chiasdk/commit/45123e3586391e54b543c3286ddac1e20079b7af))
+* add dark and light logos, implement welcome component, and configure project structure ([63a0222](https://github.com/usechia/chiasdk/commit/63a022289515975cde9a4432b38ade50a097f553))
+* add version labels to SDK and MCP sections for better visibility ([0c040a8](https://github.com/usechia/chiasdk/commit/0c040a8ffa899e910008a842bbb796bb72e0adf0))
+* Enhance tool registration with type definitions and refactor handlers for PawaPay and PayChangu integrations ([23522d9](https://github.com/usechia/chiasdk/commit/23522d90bdd73cf8a7a5467d29ce962fb0213c08))
+* **onekhusa:** add OneKhusa payment gateway integration ([f4d426a](https://github.com/usechia/chiasdk/commit/f4d426a64fe1a3080abf1819541fcfc50b53e663))
+* Update type assertions for PawaPay and PayChangu tools to use 'unknown' for improved type safety ([8d39041](https://github.com/usechia/chiasdk/commit/8d390419eeb10bdef02a57540ff15863f990b8b0))
 
 
 

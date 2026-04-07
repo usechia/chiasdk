@@ -30,7 +30,7 @@ const config: Config = {
       {
         docs: {
           sidebarPath: './sidebars.ts',
-          editUrl: 'https://github.com/joelfickson/chia/tree/master/docs/',
+          editUrl: 'https://github.com/usechia/chiasdk/tree/master/docs/',
         },
         blog: false,
         theme: {
@@ -95,7 +95,7 @@ const config: Config = {
           position: 'right',
         },
         {
-          href: 'https://github.com/joelfickson/chia',
+          href: 'https://github.com/usechia/chiasdk',
           label: 'GitHub',
           position: 'right',
         },
@@ -139,7 +139,7 @@ const config: Config = {
           items: [
             {
               label: 'GitHub',
-              href: 'https://github.com/joelfickson/chia',
+              href: 'https://github.com/usechia/chiasdk',
             },
             {
               label: 'npm - SDK',

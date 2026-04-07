@@ -61,7 +61,7 @@ If you're developing or testing from the source:
 
 ```bash
 # Clone the repository
-git clone https://github.com/joelfickson/chia.git
+git clone https://github.com/usechia/chiasdk.git
 cd chia/packages/mcp
 
 # Install dependencies
@@ -78,7 +78,7 @@ npm run build
 Install directly from GitHub:
 
 ```bash
-npm install -g git+https://github.com/joelfickson/chia.git#main:packages/mcp
+npm install -g git+https://github.com/usechia/chiasdk.git#main:packages/mcp
 ```
 
 ## Getting API Credentials
@@ -472,7 +472,7 @@ If you only need PawaPay:
 If you encounter issues not covered here:
 
 1. **Check the main README**: See README.md for general usage
-2. **GitHub Issues**: https://github.com/joelfickson/chia/issues
+2. **GitHub Issues**: https://github.com/usechia/chiasdk/issues
 3. **PayChangu Support**: https://developer.paychangu.com/
 4. **PawaPay Support**: https://docs.pawapay.io/
 

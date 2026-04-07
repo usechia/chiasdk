@@ -22,7 +22,7 @@ export default function Docs() {
               <Link to="/docs" className="text-lime-400">Docs</Link>
               <Link to="/sdk" className="hover:text-lime-400 transition-colors">SDK</Link>
               <Link to="/mcp" className="hover:text-lime-400 transition-colors">MCP</Link>
-              <a href="https://github.com/joelfickson/chia" target="_blank" rel="noopener noreferrer" className="hover:text-lime-400 transition-colors">GitHub</a>
+              <a href="https://github.com/usechia/chiasdk" target="_blank" rel="noopener noreferrer" className="hover:text-lime-400 transition-colors">GitHub</a>
             </div>
           </div>
         </div>
@@ -143,7 +143,7 @@ export default function Docs() {
                 <li><a href="https://developer.paychangu.com/" target="_blank" rel="noopener noreferrer" className="hover:text-lime-400">PayChangu Docs</a></li>
                 <li><a href="https://docs.pawapay.io/" target="_blank" rel="noopener noreferrer" className="hover:text-lime-400">PawaPay Docs</a></li>
                 <li><a href="https://onekhusa.com/" target="_blank" rel="noopener noreferrer" className="hover:text-lime-400">OneKhusa</a></li>
-                <li><a href="https://github.com/joelfickson/chia" target="_blank" rel="noopener noreferrer" className="hover:text-lime-400">GitHub Repository</a></li>
+                <li><a href="https://github.com/usechia/chiasdk" target="_blank" rel="noopener noreferrer" className="hover:text-lime-400">GitHub Repository</a></li>
               </ul>
             </div>
           </div>

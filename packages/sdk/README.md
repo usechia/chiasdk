@@ -274,7 +274,7 @@ import type {
 
 ## Documentation
 
-For full documentation, visit [chia.dev](https://chia.dev) or see the [docs](https://github.com/joelfickson/chia/tree/master/docs).
+For full documentation, visit [chia.dev](https://chia.dev) or see the [docs](https://github.com/usechia/chiasdk/tree/master/docs).
 
 ## MCP Server
 

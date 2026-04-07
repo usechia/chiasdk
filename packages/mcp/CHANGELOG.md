@@ -114,4 +114,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - chia-sdk ^0.0.1-beta.13
 - Node.js >= 18.0.0
 
-[0.0.1]: https://github.com/joelfickson/chia/releases/tag/chia-mcp-v0.0.1
+[0.0.1]: https://github.com/usechia/chiasdk/releases/tag/chia-mcp-v0.0.1

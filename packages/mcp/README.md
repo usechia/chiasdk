@@ -259,7 +259,7 @@ For full documentation, visit [chia.dev](https://chia.dev).
 
 ## Support
 
-- [GitHub Issues](https://github.com/joelfickson/chia/issues)
+- [GitHub Issues](https://github.com/usechia/chiasdk/issues)
 - [PayChangu Documentation](https://developer.paychangu.com/)
 - [PawaPay Documentation](https://docs.pawapay.io/)
 - [OneKhusa](https://onekhusa.com/)
