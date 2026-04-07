@@ -6,7 +6,7 @@ description: AI-powered payment operations with Chia MCP
 
 # Chia MCP Server
 
-<span className="version-badge">v0.0.2</span>
+<span className="version-badge">v0.0.3</span>
 
 Model Context Protocol server enabling AI assistants like Claude to handle payment operations through natural language. **42 comprehensive tools** for PayChangu, PawaPay, and OneKhusa.
 
