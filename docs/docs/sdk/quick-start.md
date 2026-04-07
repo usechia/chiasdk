@@ -1,17 +1,17 @@
 ---
 sidebar_position: 3
 title: Quick Start
-description: Get started with the Afrimomo SDK
+description: Get started with the Chia SDK
 ---
 
 # Quick Start
 
-Get up and running with Afrimomo SDK in minutes.
+Get up and running with Chia SDK in minutes.
 
 ## Initialize the SDK
 
 ```typescript
-import { AfromomoSDK, ENVIRONMENTS } from "afrimomo-sdk";
+import { AfromomoSDK, ENVIRONMENTS } from "chia-sdk";
 
 const sdk = AfromomoSDK.initialize({
   pawapay: {
@@ -39,7 +39,7 @@ You only need to configure the providers you plan to use. Each provider is optio
 Request a mobile money deposit via the widget session API:
 
 ```typescript
-import { isServiceError } from "afrimomo-sdk";
+import { isServiceError } from "chia-sdk";
 
 const deposit = await sdk.pawapay.payments.initiatePayment({
   depositId: "order-123",

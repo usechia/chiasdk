@@ -1,4 +1,4 @@
-# Afrimomo
+# Chia
 
 A unified ecosystem for African payment providers, featuring both an SDK and MCP server for seamless integration.
 
@@ -6,10 +6,10 @@ A unified ecosystem for African payment providers, featuring both an SDK and MCP
 
 This monorepo contains two main packages:
 
-- **[afrimomo-sdk](./packages/sdk)** - TypeScript SDK for African payment providers
-- **[afrimomo-mcp](./packages/afrimomo-mcp)** - Model Context Protocol server for AI assistants
+- **[chia-sdk](./packages/sdk)** - TypeScript SDK for African payment providers
+- **[chia-mcp](./packages/mcp)** - Model Context Protocol server for AI assistants
 
-## Afrimomo SDK Features
+## Chia SDK Features
 
 - 🌍 Support for multiple African payment providers
 - 🔒 Type-safe API with full TypeScript support
@@ -18,7 +18,7 @@ This monorepo contains two main packages:
 - 🔄 Consistent error handling
 - 🎯 Clean imports - no deep imports required
 
-## Afrimomo MCP Features
+## Chia MCP Features
 
 - 🤖 AI-powered payment operations via Claude Desktop
 - 🛠️ 23 tools for comprehensive payment management
@@ -33,7 +33,7 @@ This monorepo contains two main packages:
 
 ## Prerequisites
 
-Before using the Afrimomo SDK, you'll need to create accounts with the payment providers:
+Before using the Chia SDK, you'll need to create accounts with the payment providers:
 
 ### PawaPay Account Setup
 1. Visit [PawaPay](https://www.pawapay.io/) and create a developer account
@@ -52,29 +52,29 @@ Before using the Afrimomo SDK, you'll need to create accounts with the payment p
 ### SDK Installation
 
 ```bash
-npm install afrimomo-sdk
+npm install chia-sdk
 # or
-pnpm add afrimomo-sdk
+pnpm add chia-sdk
 # or
-yarn add afrimomo-sdk
+yarn add chia-sdk
 ```
 
 ### MCP Server Installation
 
 ```bash
 # Global installation
-npm install -g afrimomo-mcp
+npm install -g chia-mcp
 
 # Or use with npx (no installation required)
-npx afrimomo-mcp
+npx chia-mcp
 ```
 
-See [afrimomo-mcp documentation](./packages/afrimomo-mcp) for configuration details.
+See [chia-mcp documentation](./packages/mcp) for configuration details.
 
 ## Quick Start
 
 ```typescript
-import { AfromomoSDK } from "afrimomo-sdk";
+import { AfromomoSDK } from "chia-sdk";
 
 const sdk = new AfromomoSDK({
   environment: "sandbox", // Use "sandbox" for testing, "production" for live
@@ -114,10 +114,10 @@ import type {
   ActiveConfigResponse, 
   PayChanguOperatorsResponse,
   PayChanguTypes 
-} from "afrimomo-sdk";
+} from "chia-sdk";
 
 // ❌ Avoid deep imports (old way)
-import type { ActiveConfigResponse } from "afrimomo-sdk/dist/services/pawapay/types/network";
+import type { ActiveConfigResponse } from "chia-sdk/dist/services/pawapay/types/network";
 ```
 
 For a comprehensive guide on importing types, see [TYPE_IMPORTS.md](./packages/sdk/TYPE_IMPORTS.md).
@@ -127,12 +127,12 @@ For a comprehensive guide on importing types, see [TYPE_IMPORTS.md](./packages/s
 ### PawaPay Integration
 
 ```typescript
-import { AfromomoSDK } from "afrimomo-sdk";
+import { AfromomoSDK } from "chia-sdk";
 import type { 
   ActiveConfigResponse, 
   PaymentTransaction,
   WalletBalance 
-} from "afrimomo-sdk";
+} from "chia-sdk";
 
 const sdk = new AfromomoSDK({
   environment: "sandbox",
@@ -167,7 +167,7 @@ import type {
   PayChanguOperatorsResponse,
   PayChanguDirectChargePaymentResponse,
   PayChanguTypes 
-} from "afrimomo-sdk";
+} from "chia-sdk";
 
 const sdk = new AfromomoSDK({
   environment: "sandbox",
@@ -216,7 +216,7 @@ Both providers offer sandbox environments for testing:
 The SDK supports both sandbox and production environments:
 
 ```typescript
-import { Environment } from "afrimomo-sdk";
+import { Environment } from "chia-sdk";
 
 const sdk = new AfromomoSDK({
   environment: Environment.SANDBOX, // or Environment.PRODUCTION
@@ -248,8 +248,8 @@ const sdk = new AfromomoSDK({
 
 This is a monorepo containing:
 
-- `packages/sdk/` - The Afrimomo SDK package
-- `packages/afrimomo-mcp/` - The Afrimomo MCP Server package
+- `packages/sdk/` - The Chia SDK package
+- `packages/mcp/` - The Chia MCP Server package
 - `examples/` - Usage examples and demos
 - `tests/` - Test suites
 - `.github/workflows/` - GitHub Actions for CI/CD
@@ -281,13 +281,13 @@ The project uses automated releases via GitHub Actions with separate workflows f
 
 ### SDK Releases
 Workflow: `.github/workflows/release.yml`
-- Publish to npm as `afrimomo-sdk`
+- Publish to npm as `chia-sdk`
 - Tags: `v{version}` (e.g., `v1.0.0`)
 
 ### MCP Server Releases
 Workflow: `.github/workflows/release-mcp.yml`
-- Publish to npm as `afrimomo-mcp`
-- Tags: `afrimomo-mcp-v{version}` (e.g., `afrimomo-mcp-v1.0.0`)
+- Publish to npm as `chia-mcp`
+- Tags: `chia-mcp-v{version}` (e.g., `chia-mcp-v1.0.0`)
 
 ### Release Types
 - `patch` - Bug fixes and small improvements (0.0.1 → 0.0.2)
@@ -305,9 +305,9 @@ See [Workflows README](./.github/workflows/README.md) for detailed release instr
 - [Examples](./examples/) - Usage examples and demos
 
 ### MCP Server Documentation
-- [MCP README](./packages/afrimomo-mcp/README.md) - Overview and usage guide
-- [Installation Guide](./packages/afrimomo-mcp/INSTALLATION.md) - Detailed setup instructions
-- [Changelog](./packages/afrimomo-mcp/CHANGELOG.md) - Version history
+- [MCP README](./packages/mcp/README.md) - Overview and usage guide
+- [Installation Guide](./packages/mcp/INSTALLATION.md) - Detailed setup instructions
+- [Changelog](./packages/mcp/CHANGELOG.md) - Version history
 
 ### Development Documentation
 - [Workflows Guide](./.github/workflows/README.md) - CI/CD and release process

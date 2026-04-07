@@ -1,6 +1,6 @@
 export const URLS = {
-	PRODUCTION: "https://api.pawapay.cloud",
-	SANDBOX: "https://api.sandbox.pawapay.cloud",
+	PRODUCTION: "https://api.pawapay.io/v2",
+	SANDBOX: "https://api.sandbox.pawapay.io/v2",
 } as const;
 
 export const ENVIRONMENTS = {

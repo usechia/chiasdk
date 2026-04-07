@@ -1,246 +1,240 @@
-import type { MoMoCurrency, Correspondent } from "../../../types";
-
-// Consolidated PawaPay Types Namespace
 export namespace PawaPayTypes {
-	// =====================
-	// PAYMENT TYPES
-	// =====================
-
-	export interface PaymentData {
-		depositId: string; // UUIDv4 based ID that uniquely identifies the deposit
-		returnUrl: string; // URL for redirection after completion
-		statementDescription: string; // 4-22 chars description for transaction
-		amount: string; // Amount with 0-2 decimal places
-		msisdn: string; // Phone number in international format without + or spaces
-		language: "EN" | "FR"; // Language for payment page
-		country: string; // ISO 3166-1 alpha-3 country code
-		reason: string; // 1-50 chars reason shown to customer
-		metadata?: Array<{
-			fieldName: string;
-			fieldValue: string;
-			isPII?: boolean;
-		}>;
-	}
-
-	export interface InitiatePaymentResponse {
-		redirectUrl: string;
-		error: boolean;
-		message?: string;
-	}
-
-	export interface PaymentTransaction {
-		depositId: string;
-		status: PaymentStatus;
-		requestedAmount: string;
-		depositedAmount: string;
-		currency: MoMoCurrency;
-		country: string;
-		payer: Payer;
-		correspondent: Correspondent;
-		statementDescription: string;
-		customerTimestamp: string;
-		created: string;
-		respondedByPayer: string;
-		correspondentIds: { [key: string]: string };
-		suspiciousActivityReport?: SuspiciousActivityReport[];
+	export interface AccountDetails {
+		phoneNumber: string;
+		provider: string;
 	}
 
 	export interface Payer {
-		type: string;
-		address: {
-			value: string;
-		};
+		type: "MMO";
+		accountDetails: AccountDetails;
 	}
 
-	export interface SuspiciousActivityReport {
-		activityType: string;
-		comment: string;
+	export interface Recipient {
+		type: "MMO";
+		accountDetails: AccountDetails;
 	}
 
-	export type PaymentStatus = "PENDING" | "COMPLETED" | "FAILED" | "CANCELLED";
+	export interface FailureReason {
+		failureCode: string;
+		failureMessage: string;
+	}
 
-	// =====================
-	// PAYOUT TYPES
-	// =====================
+	export interface RejectionReason {
+		rejectionCode: string;
+		rejectionMessage: string;
+	}
 
-	export interface PayoutTransaction {
+	export type Metadata = Record<string, string>;
+
+	export interface DepositRequest {
+		depositId: string;
+		amount: string;
+		currency: string;
+		payer: Payer;
+		preAuthorisationCode?: string;
+		successfulUrl?: string;
+		failedUrl?: string;
+	}
+
+	export type DepositNextStep = "FINAL_STATUS" | "GET_AUTH_URL" | "REDIRECT_TO_AUTH_URL";
+
+	export interface DepositInitiationResponse {
+		depositId: string;
+		status: "ACCEPTED" | "REJECTED" | "DUPLICATE_IGNORED";
+		nextStep?: DepositNextStep;
+		created?: string;
+		failureReason?: FailureReason;
+	}
+
+	export type DepositStatus = "COMPLETED" | "FAILED" | "PROCESSING" | "IN_RECONCILIATION" | "NOT_FOUND";
+
+	export interface DepositStatusResponse {
+		depositId: string;
+		status: DepositStatus;
+		nextStep?: DepositNextStep;
+		amount?: string;
+		currency?: string;
+		country?: string;
+		payer?: Payer;
+		customerMessage?: string;
+		created?: string;
+		providerTransactionId?: string;
+		authorizationUrl?: string;
+		failureReason?: FailureReason;
+	}
+
+	export interface PaymentPageRequest {
+		depositId: string;
+		returnUrl: string;
+		msisdn?: string;
+		amount?: string;
+		country?: string;
+		reason?: string;
+		language?: string;
+	}
+
+	export interface PaymentPageResponse {
+		redirectUrl: string;
+		depositId: string;
+		returnUrl: string;
+	}
+
+	export interface PayoutRequest {
 		payoutId: string;
 		amount: string;
 		currency: string;
-		correspondent: string;
-		recipient: {
-			type: "MSISDN";
-			address: {
-				value: string;
-			};
-		};
-		customerTimestamp: string;
-		statementDescription: string;
-		country?: string;
-		metadata?: Array<{
-			fieldName: string;
-			fieldValue: string;
-			isPII?: boolean;
-		}>;
+		recipient: Recipient;
 	}
 
-	export interface PayoutStatusTransaction {
+	export interface PayoutInitiationResponse {
+		payoutId: string;
+		status: "ACCEPTED" | "REJECTED" | "DUPLICATE_IGNORED";
+		created?: string;
+		failureReason?: FailureReason;
+	}
+
+	export type PayoutStatus = "COMPLETED" | "FAILED" | "PROCESSING" | "ENQUEUED" | "IN_RECONCILIATION";
+
+	export interface PayoutStatusData {
 		payoutId: string;
 		status: PayoutStatus;
-		created: string;
+		amount?: string;
+		currency?: string;
+		country?: string;
+		recipient?: Recipient;
+		customerMessage?: string;
+		created?: string;
+		providerTransactionId?: string;
+		failureReason?: FailureReason;
+	}
+
+	export interface PayoutStatusResponse {
+		status: "FOUND" | "NOT_FOUND";
+		data?: PayoutStatusData;
+	}
+
+	export interface CancelPayoutResponse {
+		payoutId: string;
+		status: "ACCEPTED";
 	}
 
 	export interface BulkPayoutResponse {
-		transactions: Array<{
-			payoutId: string;
-			status: PayoutStatus;
-			created: string;
-			rejectionReason?: {
-				rejectionCode: string;
-				rejectionMessage: string;
-			};
-		}>;
+		transactions: PayoutInitiationResponse[];
 	}
 
-	export enum PayoutStatus {
-		ACCEPTED = "ACCEPTED",
-		ENQUEUED = "ENQUEUED",
-		REJECTED = "REJECTED",
-		DUPLICATE_IGNORED = "DUPLICATE_IGNORED",
+	export interface RefundRequest {
+		refundId: string;
+		depositId: string;
+		amount?: string;
+		currency?: string;
 	}
 
-	export type ResendCallbackResponseStatus = "ACCEPTED" | "REJECTED" | "FAILED";
-
-	export interface ResendCallbackResponse {
-		payoutId: string;
-		status: ResendCallbackResponseStatus;
-		rejectionReason?: string;
-	}
-
-	// =====================
-	// REFUND TYPES
-	// =====================
-
-	export interface RefundResponse {
+	export interface RefundInitiationResponse {
 		refundId: string;
 		status: "ACCEPTED" | "REJECTED" | "DUPLICATE_IGNORED";
-		created?: Date;
-		rejectionReason?: {
-			rejectionCode: RefundRejectionCode;
-			rejectionMessage: string;
-		};
+		created?: string;
+		rejectionReason?: RejectionReason;
+		failureReason?: FailureReason;
 	}
 
-	export type RefundRejectionCode =
-		| "DEPOSIT_NOT_FOUND"
-		| "DEPOSIT_NOT_COMPLETED"
-		| "ALREADY_REFUNDED"
-		| "IN_PROGRESS"
-		| "INVALID_AMOUNT"
-		| "AMOUNT_TOO_SMALL"
-		| "AMOUNT_TOO_LARGE"
-		| "PARAMETER_INVALID"
-		| "INVALID_INPUT"
-		| "REFUNDS_NOT_ALLOWED"
-		| "CORRESPONDENT_TEMPORARILY_UNAVAILABLE";
+	export type RefundStatus = "COMPLETED" | "FAILED" | "PROCESSING" | "ENQUEUED" | "IN_RECONCILIATION";
 
-	export interface RefundTransaction {
+	export interface RefundStatusData {
 		refundId: string;
-		status: "ACCEPTED" | "SUBMITTED" | "ENQUEUED" | "COMPLETED" | "FAILED";
-		amount: string;
-		currency: MoMoCurrency;
-		country: string;
-		correspondent: Correspondent;
-		recipient: Payer;
-		customerTimestamp: string;
-		statementDescription?: string;
-		created: string;
-		receivedByRecipient?: string;
-		correspondentIds?: { [key: string]: string };
-		failureReason?: {
-			failureCode: RefundFailureCode;
-			failureMessage: string;
-		};
+		status: RefundStatus;
+		amount?: string;
+		currency?: string;
+		country?: string;
+		recipient?: Recipient;
+		customerMessage?: string;
+		created?: string;
+		failureReason?: FailureReason;
 	}
 
-	export type RefundFailureCode =
-		| "BALANCE_INSUFFICIENT"
-		| "RECIPIENT_NOT_FOUND"
-		| "RECIPIENT_NOT_ALLOWED_TO_RECEIVE"
-		| "OTHER_ERROR";
-
-	// =====================
-	// WALLET TYPES
-	// =====================
+	export interface RefundStatusResponse {
+		status: "FOUND" | "NOT_FOUND";
+		data?: RefundStatusData;
+	}
 
 	export interface WalletBalance {
-		/** ISO country code (e.g., 'ZMB', 'UGA') */
 		country: string;
-		/** Balance amount as string to preserve decimal precision */
 		balance: string;
-		/** Currency code (e.g., 'ZMW', 'UGX') */
 		currency: string;
-		/** Mobile Network Operator (if applicable) */
-		mno: string;
+		provider: string;
 	}
 
 	export interface WalletBalancesResponse {
 		balances: WalletBalance[];
 	}
 
-	// =====================
-	// NETWORK TYPES
-	// =====================
-
 	export type OperationStatus = "OPERATIONAL" | "DELAYED" | "CLOSED";
 	export type OperationType = "DEPOSIT" | "PAYOUT" | "REFUND";
+	export type AuthType = "PROVIDER_AUTH" | "PREAUTH" | "REDIRECT";
+	export type DecimalsInAmount = "NONE" | "TWO_PLACES";
+	export type PinPrompt = "AUTOMATIC" | "MANUAL";
 
-	export interface CorrespondentOperation {
-		operationType: OperationType;
+	export interface ProviderOperation {
 		status: OperationStatus;
+		authType?: AuthType;
+		pinPrompt?: PinPrompt;
+		pinPromptRevivable?: boolean;
+		decimalsInAmount?: DecimalsInAmount;
+		minAmount?: string;
+		maxAmount?: string;
 	}
 
-	export interface NetworkCorrespondent {
-		correspondent: string;
-		operationTypes: CorrespondentOperation[];
-	}
-
-	export interface CountryCorrespondents {
-		country: string;
-		correspondents: NetworkCorrespondent[];
-	}
-
-	export type AvailabilityResponse = CountryCorrespondents[];
-
-	export interface OperationConfig {
-		operationType: OperationType;
-		minTransactionLimit: string;
-		maxTransactionLimit: string;
-	}
-
-	export interface CorrespondentConfig {
-		correspondent: string;
+	export interface ProviderCurrency {
 		currency: string;
-		ownerName: string;
-		operationTypes: OperationConfig[];
+		displayName?: string;
+		operationTypes: Partial<Record<OperationType, ProviderOperation>>;
+	}
+
+	export interface ProviderConfig {
+		provider: string;
+		displayName?: string;
+		nameDisplayedToCustomer?: string;
+		logo?: string;
+		currencies: ProviderCurrency[];
 	}
 
 	export interface CountryConfig {
 		country: string;
-		correspondents: CorrespondentConfig[];
+		prefix?: string;
+		flag?: string;
+		displayName?: Record<string, string>;
+		providers: ProviderConfig[];
 	}
 
 	export interface ActiveConfigResponse {
-		merchantId: string;
-		merchantName: string;
+		companyName: string;
 		countries: CountryConfig[];
 	}
 
-	export interface PaymentApiResponse {
-		redirectUrl: string;
-		[key: string]: unknown;
+	export interface AvailabilityProvider {
+		provider: string;
+		operationTypes: Partial<Record<OperationType, OperationStatus>>;
+	}
+
+	export interface CountryAvailability {
+		country: string;
+		providers: AvailabilityProvider[];
+	}
+
+	export type AvailabilityResponse = CountryAvailability[];
+
+	export interface PredictProviderRequest {
+		phoneNumber: string;
+	}
+
+	export interface PredictProviderResponse {
+		country: string;
+		provider: string;
+		phoneNumber: string;
+	}
+
+	export interface ResendCallbackResponse {
+		status: "ACCEPTED" | "REJECTED" | "FAILED";
 	}
 }
 
-// Export the namespace as default
 export default PawaPayTypes;

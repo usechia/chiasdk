@@ -61,17 +61,17 @@ jobs:
 
       - name: Build SDK (dependency)
         run: |
-          pnpm --filter afrimomo-sdk build
+          pnpm --filter chia-sdk build
           test -f packages/sdk/dist/index.d.ts || (echo "SDK build failed - dist/index.d.ts not found" && exit 1)
 
       - name: Setup Release Environment
         id: setup
         run: |
-          cd packages/afrimomo-mcp
+          cd packages/mcp
           RELEASE_TYPE="${{ github.event.inputs.release_type }}"
 
           # Get all published versions from npm
-          ALL_VERSIONS=$(npm view afrimomo-mcp versions --json 2>/dev/null || echo "[]")
+          ALL_VERSIONS=$(npm view chia-mcp versions --json 2>/dev/null || echo "[]")
           CURRENT_VERSION=$(node -p "require('./package.json').version")
 
           echo "Current version from package.json: $CURRENT_VERSION"
@@ -145,7 +145,7 @@ jobs:
           # Update package.json with new version
           npm version $NEXT_VERSION --no-git-tag-version --allow-same-version
           git add package.json
-          git commit -m "chore: bump afrimomo-mcp to $NEXT_VERSION" || true
+          git commit -m "chore: bump chia-mcp to $NEXT_VERSION" || true
 
       - name: Update docs version badge (MCP)
         run: |
@@ -161,17 +161,17 @@ jobs:
         run: |
           if [ ! -f packages/sdk/dist/index.d.ts ]; then
             echo "Error: SDK dist not found. Rebuilding..."
-            pnpm --filter afrimomo-sdk build
+            pnpm --filter chia-sdk build
           fi
           ls -la packages/sdk/dist/index.d.ts
 
       - name: Build MCP Server
-        run: pnpm --filter afrimomo-mcp build
+        run: pnpm --filter chia-mcp build
 
       - name: Update Changelog
         if: success()
         run: |
-          cd packages/afrimomo-mcp
+          cd packages/mcp
           VERSION=${{ steps.setup.outputs.VERSION }}
           IS_BETA=${{ steps.setup.outputs.IS_BETA }}
 
@@ -188,7 +188,7 @@ jobs:
           cat > CHANGELOG_NEW.md << EOF
           # Changelog
 
-          All notable changes to the Afrimomo MCP Server will be documented in this file.
+          All notable changes to the Chia MCP Server will be documented in this file.
 
           The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
           and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
@@ -212,7 +212,7 @@ jobs:
           # Commit if there are changes
           if [[ -n "$(git status --porcelain CHANGELOG.md)" ]]; then
             git add CHANGELOG.md
-            git commit -m "docs: update changelog for afrimomo-mcp version ${VERSION}"
+            git commit -m "docs: update changelog for chia-mcp version ${VERSION}"
             git push origin ${{ github.ref_name }}
           fi
 
@@ -224,7 +224,7 @@ jobs:
 
       - name: Publish to npm
         run: |
-          cd packages/afrimomo-mcp
+          cd packages/mcp
           if [[ "${{ steps.setup.outputs.IS_BETA }}" == "true" ]]; then
             npm publish --tag beta --access public
           else
@@ -238,18 +238,18 @@ jobs:
         if: success()
         run: |
           VERSION=${{ steps.setup.outputs.VERSION }}
-          git tag afrimomo-mcp-v${VERSION}
-          git push origin afrimomo-mcp-v${VERSION}
+          git tag chia-mcp-v${VERSION}
+          git push origin chia-mcp-v${VERSION}
 
           if [[ "${{ steps.setup.outputs.IS_BETA }}" == "true" ]]; then
-            gh release create afrimomo-mcp-v${VERSION} \
+            gh release create chia-mcp-v${VERSION} \
               --prerelease \
-              --title "Afrimomo MCP v${VERSION}" \
-              --notes "$(cat packages/afrimomo-mcp/CHANGELOG.md | head -50)"
+              --title "Chia MCP v${VERSION}" \
+              --notes "$(cat packages/mcp/CHANGELOG.md | head -50)"
           else
-            gh release create afrimomo-mcp-v${VERSION} \
-              --title "Afrimomo MCP v${VERSION}" \
-              --notes "$(cat packages/afrimomo-mcp/CHANGELOG.md | head -50)"
+            gh release create chia-mcp-v${VERSION} \
+              --title "Chia MCP v${VERSION}" \
+              --notes "$(cat packages/mcp/CHANGELOG.md | head -50)"
           fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -257,6 +257,6 @@ jobs:
       - name: Notify Success
         if: success()
         run: |
-          echo "✅ Successfully released afrimomo-mcp@${{ steps.setup.outputs.VERSION }}"
-          echo "📦 Package: https://www.npmjs.com/package/afrimomo-mcp/v/${{ steps.setup.outputs.VERSION }}"
-          echo "🏷️ Tag: afrimomo-mcp-v${{ steps.setup.outputs.VERSION }}"
+          echo "✅ Successfully released chia-mcp@${{ steps.setup.outputs.VERSION }}"
+          echo "📦 Package: https://www.npmjs.com/package/chia-mcp/v/${{ steps.setup.outputs.VERSION }}"
+          echo "🏷️ Tag: chia-mcp-v${{ steps.setup.outputs.VERSION }}"

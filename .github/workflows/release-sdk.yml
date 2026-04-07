@@ -53,7 +53,7 @@ jobs:
           RELEASE_TYPE="${{ github.event.inputs.release_type }}"
 
           # Get all published versions from npm
-          ALL_VERSIONS=$(npm view afrimomo-sdk versions --json || echo "[]")
+          ALL_VERSIONS=$(npm view chia-sdk versions --json || echo "[]")
           CURRENT_VERSION=$(node -p "require('./package.json').version")
 
           echo "Current version from package.json: $CURRENT_VERSION"

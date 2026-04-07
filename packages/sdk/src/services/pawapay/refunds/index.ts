@@ -11,17 +11,19 @@ export class PawapayRefunds {
 
 	constructor(private readonly networkHandler: HttpClient) {}
 
-	async createRefundRequest(refundData: {
-		refundId: string;
-		depositId: string;
-	}): Promise<ServiceResult<PawaPayTypes.RefundResponse>> {
-		logger.info("PawaPay: Creating refund request", refundData);
+	async createRefundRequest(
+		request: PawaPayTypes.RefundRequest,
+	): Promise<ServiceResult<PawaPayTypes.RefundInitiationResponse>> {
+		logger.info("PawaPay: Creating refund request", {
+			refundId: request.refundId,
+			depositId: request.depositId,
+		});
 
 		return wrapServiceCall(
 			() =>
-				this.networkHandler.post<PawaPayTypes.RefundResponse>(
+				this.networkHandler.post<PawaPayTypes.RefundInitiationResponse>(
 					this.baseEndpoint,
-					refundData,
+					request,
 					"creating refund request",
 				),
 			this.networkHandler.handleApiError.bind(this.networkHandler),
@@ -31,13 +33,13 @@ export class PawapayRefunds {
 
 	async getRefundStatus(
 		refundId: string,
-	): Promise<ServiceResult<PawaPayTypes.RefundTransaction>> {
+	): Promise<ServiceResult<PawaPayTypes.RefundStatusResponse>> {
 		logger.info("PawaPay: Getting refund status", { refundId });
 
 		return wrapServiceCall(
 			() =>
-				this.networkHandler.get<PawaPayTypes.RefundTransaction>(
-					`${this.baseEndpoint}/${refundId}`,
+				this.networkHandler.get<PawaPayTypes.RefundStatusResponse>(
+					`/payouts/${refundId}`,
 					"getting refund status",
 				),
 			this.networkHandler.handleApiError.bind(this.networkHandler),

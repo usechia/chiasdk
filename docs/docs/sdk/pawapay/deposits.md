@@ -17,7 +17,7 @@ Request mobile money deposits from customers across Sub-Saharan Africa.
 ## Create a Deposit Session
 
 ```typescript
-import { isServiceError } from "afrimomo-sdk";
+import { isServiceError } from "chia-sdk";
 
 const deposit = await sdk.pawapay.payments.initiatePayment({
   depositId: "unique-deposit-id",
@@ -53,7 +53,7 @@ if (isServiceError(deposit)) {
 ## Get Deposit Details
 
 ```typescript
-import { isServiceError } from "afrimomo-sdk";
+import { isServiceError } from "chia-sdk";
 
 const details = await sdk.pawapay.deposits.getDeposit(depositId);
 
@@ -70,7 +70,7 @@ if (!isServiceError(details)) {
 If your webhook didn't receive the callback:
 
 ```typescript
-import { isServiceError } from "afrimomo-sdk";
+import { isServiceError } from "chia-sdk";
 
 const response = await sdk.pawapay.deposits.resendCallback(depositId);
 
@@ -101,7 +101,7 @@ if (!isServiceError(response)) {
 ## Response Types
 
 ```typescript
-import type { PawaPayTypes } from "afrimomo-sdk";
+import type { PawaPayTypes } from "chia-sdk";
 
 // Deposit session request
 type DepositRequest = PawaPayTypes.PaymentData;

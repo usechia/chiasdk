@@ -1,10 +1,10 @@
 ---
 sidebar_position: 1
 title: MCP Server Overview
-description: AI-powered payment operations with Afrimomo MCP
+description: AI-powered payment operations with Chia MCP
 ---
 
-# Afrimomo MCP Server
+# Chia MCP Server
 
 <span className="version-badge">v0.2.0</span>
 
@@ -12,7 +12,7 @@ Model Context Protocol server enabling AI assistants like Claude to handle payme
 
 ## What is MCP?
 
-MCP (Model Context Protocol) is an open protocol that enables AI assistants to connect with external tools and data sources. The Afrimomo MCP server allows Claude Desktop to interact with African payment providers using natural language.
+MCP (Model Context Protocol) is an open protocol that enables AI assistants to connect with external tools and data sources. The Chia MCP server allows Claude Desktop to interact with African payment providers using natural language.
 
 Instead of writing code, you can simply ask:
 

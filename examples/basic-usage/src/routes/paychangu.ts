@@ -1,6 +1,6 @@
 import { Router } from "express";
 import type { Request, Response, NextFunction } from "express";
-import { AfromomoSDK } from "afrimomo-sdk";
+import { AfromomoSDK } from "chia-sdk";
 
 const router = Router();
 const sdk = AfromomoSDK.getInstance();

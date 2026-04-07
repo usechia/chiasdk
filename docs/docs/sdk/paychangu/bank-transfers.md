@@ -108,5 +108,5 @@ import type {
   PayChanguBankTransferResponse,
   PayChanguBankPayoutDetailsResponse,
   PayChanguBankPayoutsListResponse
-} from "afrimomo-sdk";
+} from "chia-sdk";
 ```

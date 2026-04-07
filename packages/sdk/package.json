@@ -1,5 +1,5 @@
 {
-  "name": "afrimomo-sdk",
+  "name": "chia-sdk",
   "version": "0.3.2",
   "description": "A unified SDK for African payment providers",
   "main": "dist/index.js",
@@ -66,11 +66,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/joelfickson/afrimomo.git",
+    "url": "https://github.com/joelfickson/chia.git",
     "directory": "packages/sdk"
   },
   "bugs": {
-    "url": "https://github.com/joelfickson/afrimomo/issues"
+    "url": "https://github.com/joelfickson/chia/issues"
   },
-  "homepage": "https://github.com/joelfickson/afrimomo#readme"
+  "homepage": "https://github.com/joelfickson/chia#readme"
 }

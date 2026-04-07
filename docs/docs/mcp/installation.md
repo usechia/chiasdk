@@ -1,17 +1,17 @@
 ---
 sidebar_position: 2
 title: Installation
-description: Install the Afrimomo MCP server
+description: Install the Chia MCP server
 ---
 
 # Installation
 
-Install the Afrimomo MCP server for use with Claude Desktop.
+Install the Chia MCP server for use with Claude Desktop.
 
 ## Global Installation
 
 ```bash
-npm install -g afrimomo-mcp
+npm install -g chia-mcp
 ```
 
 ## Using npx (No Installation)
@@ -19,7 +19,7 @@ npm install -g afrimomo-mcp
 You can run the MCP server without installing it globally:
 
 ```bash
-npx afrimomo-mcp
+npx chia-mcp
 ```
 
 This is the recommended approach for Claude Desktop configuration.
@@ -27,7 +27,7 @@ This is the recommended approach for Claude Desktop configuration.
 ## Verify Installation
 
 ```bash
-afrimomo-mcp --version
+chia-mcp --version
 ```
 
 ## Requirements

@@ -123,7 +123,7 @@ export default function Home(): ReactNode {
       <main>
         <section className={styles.features}>
           <div className="container">
-            <Heading as="h2" className={styles.sectionTitle}>Why Afrimomo?</Heading>
+            <Heading as="h2" className={styles.sectionTitle}>Why Chia?</Heading>
             <div className="row">
               {FeatureList.map((props, idx) => (
                 <Feature key={idx} {...props} />
@@ -150,7 +150,7 @@ export default function Home(): ReactNode {
             <div className={styles.buttons}>
               <Link
                 className="button button--primary button--lg"
-                to="https://www.npmjs.com/package/afrimomo-sdk">
+                to="https://www.npmjs.com/package/chia-sdk">
                 Install SDK
               </Link>
               <Link

@@ -1,7 +1,7 @@
 ---
 sidebar_position: 4
 title: Configuration
-description: Configure the Afrimomo SDK
+description: Configure the Chia SDK
 ---
 
 # Configuration
@@ -13,7 +13,7 @@ The SDK supports flexible configuration for multiple payment providers.
 By default, the SDK loads `.env` from your project root. You can override the path if needed:
 
 ```typescript
-import { AfromomoSDK } from "afrimomo-sdk";
+import { AfromomoSDK } from "chia-sdk";
 
 const sdk = AfromomoSDK.initialize({
   env: { envPath: ".env.local" }
@@ -48,7 +48,7 @@ Use `DEVELOPMENT` for sandbox endpoints and `PRODUCTION` for live endpoints. Paw
 You can pass credentials directly to the SDK to override environment variables:
 
 ```typescript
-import { AfromomoSDK, ENVIRONMENTS } from "afrimomo-sdk";
+import { AfromomoSDK, ENVIRONMENTS } from "chia-sdk";
 
 const sdk = AfromomoSDK.initialize({
   pawapay: {
@@ -75,7 +75,7 @@ Override the default provider API URLs with custom endpoints. This is useful for
 - Connecting to self-hosted or regional endpoints
 
 ```typescript
-import { AfromomoSDK, ENVIRONMENTS } from "afrimomo-sdk";
+import { AfromomoSDK, ENVIRONMENTS } from "chia-sdk";
 
 const sdk = AfromomoSDK.initialize({
   pawapay: {
@@ -114,7 +114,7 @@ For OneKhusa, the SDK automatically appends `/oauth/token` to custom URLs for au
 Only configure the providers you need:
 
 ```typescript
-import { AfromomoSDK, ENVIRONMENTS } from "afrimomo-sdk";
+import { AfromomoSDK, ENVIRONMENTS } from "chia-sdk";
 
 // Only PawaPay
 const pawapayOnly = AfromomoSDK.initialize({
@@ -143,7 +143,7 @@ const multiProvider = AfromomoSDK.initialize({
 Bring your own PSP with the generic provider adapter:
 
 ```typescript
-import { AfromomoSDK } from "afrimomo-sdk";
+import { AfromomoSDK } from "chia-sdk";
 
 const sdk = AfromomoSDK.initialize({
   providers: {

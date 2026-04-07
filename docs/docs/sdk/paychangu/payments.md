@@ -98,5 +98,5 @@ import type {
   PayChanguVerifyTransactionResponse,
   PayChanguDirectChargePaymentResponse,
   PayChanguTransactionDetailsResponse
-} from "afrimomo-sdk";
+} from "chia-sdk";
 ```

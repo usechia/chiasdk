@@ -1,12 +1,12 @@
 ---
 sidebar_position: 3
 title: Claude Desktop Setup
-description: Configure Claude Desktop to use Afrimomo MCP
+description: Configure Claude Desktop to use Chia MCP
 ---
 
 # Claude Desktop Setup
 
-Configure Claude Desktop to use the Afrimomo MCP server.
+Configure Claude Desktop to use the Chia MCP server.
 
 ## Configuration File Location
 
@@ -20,9 +20,9 @@ Add the following to your Claude Desktop config file:
 ```json
 {
   "mcpServers": {
-    "afrimomo": {
+    "chia": {
       "command": "npx",
-      "args": ["-y", "afrimomo-mcp"],
+      "args": ["-y", "chia-mcp"],
       "env": {
         "PAYCHANGU_SECRET_KEY": "your-paychangu-secret-key",
         "PAWAPAY_JWT": "your-pawapay-jwt-token",
@@ -58,9 +58,9 @@ You only need to configure the providers you plan to use. Leave out the environm
 ```json
 {
   "mcpServers": {
-    "afrimomo": {
+    "chia": {
       "command": "npx",
-      "args": ["-y", "afrimomo-mcp"],
+      "args": ["-y", "chia-mcp"],
       "env": {
         "PAYCHANGU_SECRET_KEY": "your-secret-key",
         "ENVIRONMENT": "DEVELOPMENT"
@@ -75,9 +75,9 @@ You only need to configure the providers you plan to use. Leave out the environm
 ```json
 {
   "mcpServers": {
-    "afrimomo": {
+    "chia": {
       "command": "npx",
-      "args": ["-y", "afrimomo-mcp"],
+      "args": ["-y", "chia-mcp"],
       "env": {
         "PAWAPAY_JWT": "your-jwt-token",
         "ENVIRONMENT": "DEVELOPMENT"
@@ -92,9 +92,9 @@ You only need to configure the providers you plan to use. Leave out the environm
 ```json
 {
   "mcpServers": {
-    "afrimomo": {
+    "chia": {
       "command": "npx",
-      "args": ["-y", "afrimomo-mcp"],
+      "args": ["-y", "chia-mcp"],
       "env": {
         "ONEKHUSA_API_KEY": "your-api-key",
         "ONEKHUSA_API_SECRET": "your-api-secret",
@@ -112,13 +112,13 @@ After updating the config:
 
 1. **Fully quit** Claude Desktop (not just close the window)
 2. **Restart** Claude Desktop
-3. The Afrimomo tools should now be available
+3. The Chia tools should now be available
 
 ## Verify Setup
 
 Ask Claude:
 
-> *"What Afrimomo tools are available?"*
+> *"What Chia tools are available?"*
 
 Claude should list the available payment tools based on your configured providers.
 

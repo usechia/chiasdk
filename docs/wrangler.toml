@@ -1,5 +1,5 @@
-# Cloudflare Workers Configuration for Afrimomo Documentation
-name = "afrimomo"
+# Cloudflare Workers Configuration for Chia Documentation
+name = "chia"
 main = "worker.ts"
 compatibility_date = "2026-02-02"
 

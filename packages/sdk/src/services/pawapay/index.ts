@@ -39,91 +39,61 @@ export class PawaPay {
 		this._wallets = new PawapayWallets(this.network);
 	}
 
-	/**
-	 * Access deposit-related operations
-	 */
-	get deposits(): PawapayDeposits {
-		return this._deposits;
-	}
+	get deposits(): PawapayDeposits { return this._deposits; }
+	get payments(): PawapayPayments { return this._payments; }
+	get payouts(): PawapayPayouts { return this._payouts; }
+	get refunds(): PawapayRefunds { return this._refunds; }
+	get wallets(): PawapayWallets { return this._wallets; }
 
-	/**
-	 * Access payment-related operations
-	 */
-	get payments(): PawapayPayments {
-		return this._payments;
-	}
-
-	/**
-	 * Access payout-related operations
-	 */
-	get payouts(): PawapayPayouts {
-		return this._payouts;
-	}
-
-	/**
-	 * Access refund-related operations
-	 */
-	get refunds(): PawapayRefunds {
-		return this._refunds;
-	}
-
-	/**
-	 * Access wallet-related operations
-	 */
-	get wallets(): PawapayWallets {
-		return this._wallets;
-	}
-
-	/**
-	 * Get the availability status of all correspondents
-	 * @returns Promise resolving to the availability status of all correspondents
-	 */
-	async getAvailability(): Promise<
-		PawaPayTypes.AvailabilityResponse | PawaPayNetworkResponse
-	> {
+	async getAvailability(
+		country?: string,
+		operationType?: string,
+	): Promise<PawaPayTypes.AvailabilityResponse | PawaPayNetworkResponse> {
 		try {
-			logger.info("Getting PawaPay correspondent availability");
-			return await this.network.get<PawaPayTypes.AvailabilityResponse>(
-				"/availability",
-				"retrieving correspondent availability",
-			);
+			const params = new URLSearchParams();
+			if (country) params.set("country", country);
+			if (operationType) params.set("operationType", operationType);
+			const query = params.toString();
+			const url = `/availability${query ? `?${query}` : ""}`;
+			logger.info("Getting PawaPay provider availability");
+			return await this.network.get<PawaPayTypes.AvailabilityResponse>(url, "retrieving provider availability");
 		} catch (error: unknown) {
-			// The error is already handled by the network layer and properly formatted
-			if ((error as PawaPayNetworkResponse).errorMessage) {
-				return error as PawaPayNetworkResponse;
-			}
-
-			// Fallback for unexpected errors
-			return this.network.handleApiError(
-				error,
-				"retrieving correspondent availability",
-			);
+			if ((error as PawaPayNetworkResponse).errorMessage) return error as PawaPayNetworkResponse;
+			return this.network.handleApiError(error, "retrieving provider availability");
 		}
 	}
 
-	/**
-	 * Get the active configuration for the merchant
-	 * @returns Promise resolving to the active configuration
-	 */
-	async getActiveConfiguration(): Promise<
-		PawaPayTypes.ActiveConfigResponse | PawaPayNetworkResponse
-	> {
+	async getActiveConfiguration(
+		country?: string,
+		operationType?: string,
+	): Promise<PawaPayTypes.ActiveConfigResponse | PawaPayNetworkResponse> {
 		try {
+			const params = new URLSearchParams();
+			if (country) params.set("country", country);
+			if (operationType) params.set("operationType", operationType);
+			const query = params.toString();
+			const url = `/active-conf${query ? `?${query}` : ""}`;
 			logger.info("Getting PawaPay active configuration");
-			return await this.network.get<PawaPayTypes.ActiveConfigResponse>(
-				"/active-conf",
-				"retrieving active configuration",
+			return await this.network.get<PawaPayTypes.ActiveConfigResponse>(url, "retrieving active configuration");
+		} catch (error: unknown) {
+			if ((error as PawaPayNetworkResponse).errorMessage) return error as PawaPayNetworkResponse;
+			return this.network.handleApiError(error, "retrieving active configuration");
+		}
+	}
+
+	async predictProvider(
+		phoneNumber: string,
+	): Promise<PawaPayTypes.PredictProviderResponse | PawaPayNetworkResponse> {
+		try {
+			logger.info("PawaPay: Predicting provider", { phoneNumber });
+			return await this.network.post<PawaPayTypes.PredictProviderResponse>(
+				"/predict-provider",
+				{ phoneNumber },
+				"predicting provider",
 			);
 		} catch (error: unknown) {
-			if ((error as PawaPayNetworkResponse).errorMessage) {
-				return error as PawaPayNetworkResponse;
-			}
-
-			// Fallback for unexpected errors
-			return this.network.handleApiError(
-				error,
-				"retrieving active configuration",
-			);
+			if ((error as PawaPayNetworkResponse).errorMessage) return error as PawaPayNetworkResponse;
+			return this.network.handleApiError(error, "predicting provider");
 		}
 	}
 }

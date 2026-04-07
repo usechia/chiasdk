@@ -26,13 +26,13 @@ We recommend using pnpm for installing the SDK to benefit from its efficient sto
 
 ```bash
 # Recommended: using pnpm
-pnpm add afrimomo-sdk
+pnpm add chia-sdk
 
 # Alternative: using yarn
-yarn add afrimomo-sdk
+yarn add chia-sdk
 
 # Alternative: using npm
-npm install afrimomo-sdk
+npm install chia-sdk
 ```
 
 ## Configuration
@@ -116,7 +116,7 @@ When using the SDK in an Express.js application or similar framework, the initia
 
 ```typescript
 // 1. First, import the SDK
-import { AfromomoSDK } from 'afrimomo-sdk';
+import { AfromomoSDK } from 'chia-sdk';
 
 // 2. Initialize the SDK before importing routes that use it
 AfromomoSDK.initialize();

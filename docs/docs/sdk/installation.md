@@ -1,29 +1,29 @@
 ---
 sidebar_position: 2
 title: Installation
-description: Install the Afrimomo SDK
+description: Install the Chia SDK
 ---
 
 # Installation
 
-Install the Afrimomo SDK using your preferred package manager.
+Install the Chia SDK using your preferred package manager.
 
 ## npm
 
 ```bash
-npm install afrimomo-sdk
+npm install chia-sdk
 ```
 
 ## pnpm
 
 ```bash
-pnpm add afrimomo-sdk
+pnpm add chia-sdk
 ```
 
 ## yarn
 
 ```bash
-yarn add afrimomo-sdk
+yarn add chia-sdk
 ```
 
 ## Requirements
@@ -42,10 +42,10 @@ The SDK includes:
 ## Verify Installation
 
 ```typescript
-import { AfromomoSDK } from "afrimomo-sdk";
+import { AfromomoSDK } from "chia-sdk";
 
 const sdk = AfromomoSDK.initialize();
-console.log("Afrimomo SDK initialized:", !!sdk);
+console.log("Chia SDK initialized:", !!sdk);
 ```
 
 ## Next Steps

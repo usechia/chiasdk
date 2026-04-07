@@ -12,20 +12,20 @@ export class PawapayDeposits {
 	constructor(private readonly networkHandler: HttpClient) {}
 
 	async sendDeposit(
-		transaction: PawaPayTypes.PayoutTransaction,
-	): Promise<ServiceResult<PawaPayTypes.PayoutTransaction>> {
+		request: PawaPayTypes.DepositRequest,
+	): Promise<ServiceResult<PawaPayTypes.DepositInitiationResponse>> {
 		logger.info("PawaPay: Sending deposit", {
-			phone: transaction.recipient.address.value,
-			amount: transaction.amount,
-			payoutId: transaction.payoutId,
-			currency: transaction.currency,
+			phone: request.payer.accountDetails.phoneNumber,
+			amount: request.amount,
+			depositId: request.depositId,
+			currency: request.currency,
 		});
 
 		return wrapServiceCall(
 			() =>
-				this.networkHandler.post<PawaPayTypes.PayoutTransaction>(
+				this.networkHandler.post<PawaPayTypes.DepositInitiationResponse>(
 					this.baseEndpoint,
-					transaction,
+					request,
 					"sending deposit",
 				),
 			this.networkHandler.handleApiError.bind(this.networkHandler),
@@ -35,12 +35,12 @@ export class PawapayDeposits {
 
 	async getDeposit(
 		depositId: string,
-	): Promise<ServiceResult<PawaPayTypes.PaymentTransaction[]>> {
+	): Promise<ServiceResult<PawaPayTypes.DepositStatusResponse>> {
 		logger.info("PawaPay: Getting deposit", { depositId });
 
 		return wrapServiceCall(
 			() =>
-				this.networkHandler.get<PawaPayTypes.PaymentTransaction[]>(
+				this.networkHandler.get<PawaPayTypes.DepositStatusResponse>(
 					`${this.baseEndpoint}/${depositId}`,
 					"getting deposit",
 				),
@@ -56,9 +56,8 @@ export class PawapayDeposits {
 
 		return wrapServiceCall(
 			() =>
-				this.networkHandler.post<PawaPayTypes.ResendCallbackResponse>(
-					`${this.baseEndpoint}/resend-callback`,
-					{ depositId },
+				this.networkHandler.get<PawaPayTypes.ResendCallbackResponse>(
+					`${this.baseEndpoint}/resend-callback/${depositId}`,
 					"resending callback",
 				),
 			this.networkHandler.handleApiError.bind(this.networkHandler),

@@ -76,5 +76,5 @@ import type {
   PayChanguOperatorsResponse,
   PayChanguPayoutResponse,
   PayChanguPayoutDetailsResponse
-} from "afrimomo-sdk";
+} from "chia-sdk";
 ```

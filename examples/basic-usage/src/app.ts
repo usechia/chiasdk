@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
-import { AfromomoSDK } from "afrimomo-sdk";
+import { AfromomoSDK } from "chia-sdk";
 import { errorHandler } from "./middleware/error";
 
 // Initialize the SDK first

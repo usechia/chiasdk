@@ -8,8 +8,8 @@ import type { Environment } from "../config/constants";
 
 const PROVIDER_URLS = {
 	pawapay: {
-		production: "https://api.pawapay.io/v1",
-		sandbox: "https://api.sandbox.pawapay.io/v1",
+		production: "https://api.pawapay.io/v2",
+		sandbox: "https://api.sandbox.pawapay.io/v2",
 	},
 	paychangu: {
 		production: "https://api.paychangu.com",

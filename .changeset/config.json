@@ -3,19 +3,19 @@
     "changelog": [
         "@changesets/cli/changelog",
         {
-            "repo": "joelfickson/afrimomo"
+            "repo": "joelfickson/chia"
         }
     ],
     "commit": false,
     "fixed": [],
     "linked": [
-        ["afrimomo-sdk", "afrimomo-mcp"]
+        ["chia-sdk", "chia-mcp"]
     ],
     "access": "public",
     "baseBranch": "master",
     "updateInternalDependencies": "patch",
     "ignore": [
-        "afrimomo-example-*"
+        "chia-example-*"
     ],
     "___experimentalUnsafeOptions_WILL_CHANGE_IN_PATCH": {
         "onlyUpdatePeerDependentsWhenOutOfRange": true,

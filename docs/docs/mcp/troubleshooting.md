@@ -6,7 +6,7 @@ description: Common issues and solutions
 
 # Troubleshooting
 
-Solutions for common issues with the Afrimomo MCP server.
+Solutions for common issues with the Chia MCP server.
 
 ## Tools Not Appearing in Claude
 
@@ -82,7 +82,7 @@ If you're making many requests:
 
 ## Common Error Messages
 
-### "Unknown tool: afrimomo_*"
+### "Unknown tool: chia_*"
 
 The MCP server isn't loaded. Check your config and restart Claude Desktop.
 
@@ -114,7 +114,7 @@ Check internet connectivity and provider status.
 
 If you're still having issues:
 
-1. Check the [GitHub Issues](https://github.com/joelfickson/afrimomo/issues)
+1. Check the [GitHub Issues](https://github.com/joelfickson/chia/issues)
 2. Open a new issue with:
    - Error message
    - Claude Desktop version

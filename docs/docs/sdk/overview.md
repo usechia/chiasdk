@@ -4,7 +4,7 @@ title: SDK Overview
 description: A unified TypeScript SDK for African payment providers
 ---
 
-# Afrimomo SDK
+# Chia SDK
 
 <span className="version-badge">v0.3.2</span>
 
@@ -29,7 +29,7 @@ A unified TypeScript SDK for seamless integration with African payment providers
 ## Quick Example
 
 ```typescript
-import { AfromomoSDK, ENVIRONMENTS } from "afrimomo-sdk";
+import { AfromomoSDK, ENVIRONMENTS } from "chia-sdk";
 
 const sdk = AfromomoSDK.initialize({
   pawapay: { jwt: "your-token", environment: ENVIRONMENTS.DEVELOPMENT },

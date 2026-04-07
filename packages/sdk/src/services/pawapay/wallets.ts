@@ -33,7 +33,7 @@ export class PawapayWallets {
 		return wrapServiceCall(
 			() =>
 				this.network.get<PawaPayTypes.WalletBalancesResponse>(
-					`/wallet-balances/${country}`,
+					`/wallet-balances?country=${country}`,
 					`retrieving wallet balance for ${country}`,
 				),
 			this.network.handleApiError.bind(this.network),

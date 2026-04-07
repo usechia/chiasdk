@@ -96,7 +96,7 @@ console.log("Completed at:", details.completedAt);
 ## Response Types
 
 ```typescript
-import type { OneKhusaTypes } from "afrimomo-sdk";
+import type { OneKhusaTypes } from "chia-sdk";
 
 type CollectionResponse = OneKhusaTypes.CollectionResponse;
 type TransactionsResponse = OneKhusaTypes.TransactionsResponse;

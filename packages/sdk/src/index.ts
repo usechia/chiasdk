@@ -1,6 +1,6 @@
 /**
  * Afromomo SDK - A unified interface for African payment providers
- * @module afrimomo
+ * @module chia
  */
 
 export { AfromomoSDK } from "./sdk";

@@ -12,20 +12,20 @@ export class PawapayPayouts {
 	constructor(private readonly networkHandler: HttpClient) {}
 
 	async sendPayout(
-		transaction: PawaPayTypes.PayoutTransaction,
-	): Promise<ServiceResult<PawaPayTypes.PayoutTransaction>> {
+		request: PawaPayTypes.PayoutRequest,
+	): Promise<ServiceResult<PawaPayTypes.PayoutInitiationResponse>> {
 		logger.info("PawaPay: Sending payout", {
-			phone: transaction.recipient.address.value,
-			amount: transaction.amount,
-			payoutId: transaction.payoutId,
-			currency: transaction.currency,
+			phone: request.recipient.accountDetails.phoneNumber,
+			amount: request.amount,
+			payoutId: request.payoutId,
+			currency: request.currency,
 		});
 
 		return wrapServiceCall(
 			() =>
-				this.networkHandler.post<PawaPayTypes.PayoutTransaction>(
+				this.networkHandler.post<PawaPayTypes.PayoutInitiationResponse>(
 					this.baseEndpoint,
-					transaction,
+					request,
 					"sending payout",
 				),
 			this.networkHandler.handleApiError.bind(this.networkHandler),
@@ -34,15 +34,15 @@ export class PawapayPayouts {
 	}
 
 	async sendBulkPayout(
-		transactions: PawaPayTypes.PayoutTransaction[],
+		requests: PawaPayTypes.PayoutRequest[],
 	): Promise<ServiceResult<PawaPayTypes.BulkPayoutResponse>> {
-		logger.info("PawaPay: Sending bulk payout", { count: transactions.length });
+		logger.info("PawaPay: Sending bulk payout", { count: requests.length });
 
 		return wrapServiceCall(
 			() =>
 				this.networkHandler.post<PawaPayTypes.BulkPayoutResponse>(
 					`${this.baseEndpoint}/bulk`,
-					transactions,
+					requests,
 					"sending bulk payout",
 				),
 			this.networkHandler.handleApiError.bind(this.networkHandler),
@@ -52,17 +52,33 @@ export class PawapayPayouts {
 
 	async getPayout(
 		payoutId: string,
-	): Promise<ServiceResult<PawaPayTypes.PayoutTransaction>> {
+	): Promise<ServiceResult<PawaPayTypes.PayoutStatusResponse>> {
 		logger.info("PawaPay: Getting payout", { payoutId });
 
 		return wrapServiceCall(
 			() =>
-				this.networkHandler.get<PawaPayTypes.PayoutTransaction>(
+				this.networkHandler.get<PawaPayTypes.PayoutStatusResponse>(
 					`${this.baseEndpoint}/${payoutId}`,
 					"getting payout",
 				),
 			this.networkHandler.handleApiError.bind(this.networkHandler),
 			"getting payout",
+		);
+	}
+
+	async cancelEnqueuedPayout(
+		payoutId: string,
+	): Promise<ServiceResult<PawaPayTypes.CancelPayoutResponse>> {
+		logger.info("PawaPay: Cancelling enqueued payout", { payoutId });
+
+		return wrapServiceCall(
+			() =>
+				this.networkHandler.get<PawaPayTypes.CancelPayoutResponse>(
+					`${this.baseEndpoint}/fail-enqueued/${payoutId}`,
+					"cancelling enqueued payout",
+				),
+			this.networkHandler.handleApiError.bind(this.networkHandler),
+			"cancelling enqueued payout",
 		);
 	}
 }

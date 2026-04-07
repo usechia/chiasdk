@@ -3,7 +3,7 @@ import type { Config } from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
 
 const config: Config = {
-  title: 'Afrimomo',
+  title: 'Chia',
   tagline: 'Unified African Payment Integration',
   favicon: 'img/logo.png',
 
@@ -11,11 +11,11 @@ const config: Config = {
     v4: true,
   },
 
-  url: 'https://afrimomo.fickson.com',
+  url: 'https://chia.fickson.com',
   baseUrl: '/',
 
   organizationName: 'joelfickson',
-  projectName: 'afrimomo',
+  projectName: 'chia',
 
   onBrokenLinks: 'throw',
 
@@ -30,7 +30,7 @@ const config: Config = {
       {
         docs: {
           sidebarPath: './sidebars.ts',
-          editUrl: 'https://github.com/joelfickson/afrimomo/tree/master/docs/',
+          editUrl: 'https://github.com/joelfickson/chia/tree/master/docs/',
         },
         blog: false,
         theme: {
@@ -46,17 +46,17 @@ const config: Config = {
       {
         name: 'description',
         content:
-          'Afrimomo documentation for the SDK and MCP server. Integrate PayChangu, PawaPay, and OneKhusa with a unified TypeScript SDK.',
+          'Chia documentation for the SDK and MCP server. Integrate PayChangu, PawaPay, and OneKhusa with a unified TypeScript SDK.',
       },
       {
         name: 'keywords',
         content:
-          'Afrimomo, African payments, PayChangu, PawaPay, OneKhusa, SDK, MCP, TypeScript, mobile money, bank transfer',
+          'Chia, African payments, PayChangu, PawaPay, OneKhusa, SDK, MCP, TypeScript, mobile money, bank transfer',
       },
-      { property: 'og:site_name', content: 'Afrimomo' },
+      { property: 'og:site_name', content: 'Chia' },
       { property: 'og:type', content: 'website' },
       { name: 'twitter:card', content: 'summary' },
-      { name: 'twitter:title', content: 'Afrimomo Documentation' },
+      { name: 'twitter:title', content: 'Chia Documentation' },
       {
         name: 'twitter:description',
         content:
@@ -70,9 +70,9 @@ const config: Config = {
       respectPrefersColorScheme: false,
     },
     navbar: {
-      title: 'Afrimomo',
+      title: 'Chia',
       logo: {
-        alt: 'Afrimomo Logo',
+        alt: 'Chia Logo',
         src: 'img/logo.png',
         srcDark: 'img/logo.png',
       },
@@ -90,12 +90,12 @@ const config: Config = {
           label: 'MCP Server',
         },
         {
-          href: 'https://www.npmjs.com/package/afrimomo-sdk',
+          href: 'https://www.npmjs.com/package/chia-sdk',
           label: 'npm',
           position: 'right',
         },
         {
-          href: 'https://github.com/joelfickson/afrimomo',
+          href: 'https://github.com/joelfickson/chia',
           label: 'GitHub',
           position: 'right',
         },
@@ -139,15 +139,15 @@ const config: Config = {
           items: [
             {
               label: 'GitHub',
-              href: 'https://github.com/joelfickson/afrimomo',
+              href: 'https://github.com/joelfickson/chia',
             },
             {
               label: 'npm - SDK',
-              href: 'https://www.npmjs.com/package/afrimomo-sdk',
+              href: 'https://www.npmjs.com/package/chia-sdk',
             },
             {
               label: 'npm - MCP',
-              href: 'https://www.npmjs.com/package/afrimomo-mcp',
+              href: 'https://www.npmjs.com/package/chia-mcp',
             },
           ],
         },

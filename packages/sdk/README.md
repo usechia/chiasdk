@@ -1,8 +1,8 @@
-# Afrimomo SDK
+# Chia SDK
 
 A unified TypeScript SDK for seamless integration with African payment providers. Type-safe, reliable, and built for production.
 
-[![npm version](https://img.shields.io/npm/v/afrimomo-sdk.svg)](https://www.npmjs.com/package/afrimomo-sdk)
+[![npm version](https://img.shields.io/npm/v/chia-sdk.svg)](https://www.npmjs.com/package/chia-sdk)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## Features
@@ -23,17 +23,17 @@ A unified TypeScript SDK for seamless integration with African payment providers
 ## Installation
 
 ```bash
-npm install afrimomo-sdk
+npm install chia-sdk
 # or
-pnpm add afrimomo-sdk
+pnpm add chia-sdk
 # or
-yarn add afrimomo-sdk
+yarn add chia-sdk
 ```
 
 ## Quick Start
 
 ```typescript
-import { AfromomoSDK } from "afrimomo-sdk";
+import { AfromomoSDK } from "chia-sdk";
 
 const sdk = new AfromomoSDK({
   environment: "sandbox", // or "production"
@@ -190,7 +190,7 @@ await sdk.onekhusa.disbursements.transferBatchFunds(batch.id);
 Use environment variables for secure credential management:
 
 ```typescript
-import { AfromomoSDK, Environment } from "afrimomo-sdk";
+import { AfromomoSDK, Environment } from "chia-sdk";
 
 const sdk = new AfromomoSDK({
   environment: Environment.SANDBOX, // or Environment.PRODUCTION
@@ -244,7 +244,7 @@ import type {
   PayChanguTypes,
   PawaPayTypes,
   OneKhusaTypes
-} from "afrimomo-sdk";
+} from "chia-sdk";
 ```
 
 ## Requirements
@@ -274,11 +274,11 @@ import type {
 
 ## Documentation
 
-For full documentation, visit [afrimomo.dev](https://afrimomo.dev) or see the [docs](https://github.com/joelfickson/afrimomo/tree/master/docs).
+For full documentation, visit [chia.dev](https://chia.dev) or see the [docs](https://github.com/joelfickson/chia/tree/master/docs).
 
 ## MCP Server
 
-For AI-powered payment operations with Claude, check out [afrimomo-mcp](https://www.npmjs.com/package/afrimomo-mcp).
+For AI-powered payment operations with Claude, check out [chia-mcp](https://www.npmjs.com/package/chia-mcp).
 
 ## License
 
