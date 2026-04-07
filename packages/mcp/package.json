@@ -1,6 +1,6 @@
 {
   "name": "@chiahq/mcp",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Model Context Protocol server for Chia SDK - enabling AI assistants to interact with African payment providers (PayChangu & PawaPay)",
   "main": "dist/index.js",
   "type": "module",
