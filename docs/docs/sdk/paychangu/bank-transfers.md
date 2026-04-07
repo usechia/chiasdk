@@ -108,5 +108,5 @@ import type {
   PayChanguBankTransferResponse,
   PayChanguBankPayoutDetailsResponse,
   PayChanguBankPayoutsListResponse
-} from "chia-sdk";
+} from "@chiahq/sdk";
 ```

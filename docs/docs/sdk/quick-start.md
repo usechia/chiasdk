@@ -11,7 +11,7 @@ Get up and running with Chia SDK in minutes.
 ## Initialize the SDK
 
 ```typescript
-import { ChiaSDK, ENVIRONMENTS } from "chia-sdk";
+import { ChiaSDK, ENVIRONMENTS } from "@chiahq/sdk";
 
 const sdk = ChiaSDK.initialize({
   pawapay: {
@@ -39,7 +39,7 @@ You only need to configure the providers you plan to use. Each provider is optio
 Request a mobile money deposit via the widget session API:
 
 ```typescript
-import { isServiceError } from "chia-sdk";
+import { isServiceError } from "@chiahq/sdk";
 
 const deposit = await sdk.pawapay.payments.initiatePayment({
   depositId: "order-123",

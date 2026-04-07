@@ -11,7 +11,7 @@ Query wallet balances and manage your funds.
 ## Get All Balances
 
 ```typescript
-import { isServiceError } from "chia-sdk";
+import { isServiceError } from "@chiahq/sdk";
 
 const balances = await sdk.pawapay.wallets.getAllBalances();
 
@@ -25,7 +25,7 @@ if (!isServiceError(balances)) {
 ## Get Country Balance
 
 ```typescript
-import { isServiceError } from "chia-sdk";
+import { isServiceError } from "@chiahq/sdk";
 
 const zambiaBalance = await sdk.pawapay.wallets.getCountryBalance("ZMB");
 
@@ -50,7 +50,7 @@ interface WalletBalance {
 ## Response Types
 
 ```typescript
-import type { PawaPayTypes } from "chia-sdk";
+import type { PawaPayTypes } from "@chiahq/sdk";
 
 type WalletBalancesResponse = PawaPayTypes.WalletBalancesResponse;
 type WalletBalance = PawaPayTypes.WalletBalance;

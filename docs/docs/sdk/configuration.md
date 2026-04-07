@@ -13,7 +13,7 @@ The SDK supports flexible configuration for multiple payment providers.
 By default, the SDK loads `.env` from your project root. You can override the path if needed:
 
 ```typescript
-import { ChiaSDK } from "chia-sdk";
+import { ChiaSDK } from "@chiahq/sdk";
 
 const sdk = ChiaSDK.initialize({
   env: { envPath: ".env.local" }
@@ -48,7 +48,7 @@ Use `DEVELOPMENT` for sandbox endpoints and `PRODUCTION` for live endpoints. Paw
 You can pass credentials directly to the SDK to override environment variables:
 
 ```typescript
-import { ChiaSDK, ENVIRONMENTS } from "chia-sdk";
+import { ChiaSDK, ENVIRONMENTS } from "@chiahq/sdk";
 
 const sdk = ChiaSDK.initialize({
   pawapay: {
@@ -75,7 +75,7 @@ Override the default provider API URLs with custom endpoints. This is useful for
 - Connecting to self-hosted or regional endpoints
 
 ```typescript
-import { ChiaSDK, ENVIRONMENTS } from "chia-sdk";
+import { ChiaSDK, ENVIRONMENTS } from "@chiahq/sdk";
 
 const sdk = ChiaSDK.initialize({
   pawapay: {
@@ -114,7 +114,7 @@ For OneKhusa, the SDK automatically appends `/oauth/token` to custom URLs for au
 Only configure the providers you need:
 
 ```typescript
-import { ChiaSDK, ENVIRONMENTS } from "chia-sdk";
+import { ChiaSDK, ENVIRONMENTS } from "@chiahq/sdk";
 
 // Only PawaPay
 const pawapayOnly = ChiaSDK.initialize({
@@ -143,7 +143,7 @@ const multiProvider = ChiaSDK.initialize({
 Bring your own PSP with the generic provider adapter:
 
 ```typescript
-import { ChiaSDK } from "chia-sdk";
+import { ChiaSDK } from "@chiahq/sdk";
 
 const sdk = ChiaSDK.initialize({
   providers: {

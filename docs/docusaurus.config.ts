@@ -79,6 +79,12 @@ const config: Config = {
       items: [
         {
           type: 'docSidebar',
+          sidebarId: 'platformSidebar',
+          position: 'left',
+          label: 'Platform',
+        },
+        {
+          type: 'docSidebar',
           sidebarId: 'sdkSidebar',
           position: 'left',
           label: 'SDK',
@@ -90,7 +96,7 @@ const config: Config = {
           label: 'MCP Server',
         },
         {
-          href: 'https://www.npmjs.com/package/chia-sdk',
+          href: 'https://www.npmjs.com/package/@chiahq/sdk',
           label: 'npm',
           position: 'right',
         },
@@ -143,11 +149,11 @@ const config: Config = {
             },
             {
               label: 'npm - SDK',
-              href: 'https://www.npmjs.com/package/chia-sdk',
+              href: 'https://www.npmjs.com/package/@chiahq/sdk',
             },
             {
               label: 'npm - MCP',
-              href: 'https://www.npmjs.com/package/chia-mcp',
+              href: 'https://www.npmjs.com/package/@chiahq/mcp',
             },
           ],
         },

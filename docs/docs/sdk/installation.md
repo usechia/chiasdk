@@ -11,19 +11,19 @@ Install the Chia SDK using your preferred package manager.
 ## npm
 
 ```bash
-npm install chia-sdk
+npm install @chiahq/sdk
 ```
 
 ## pnpm
 
 ```bash
-pnpm add chia-sdk
+pnpm add @chiahq/sdk
 ```
 
 ## yarn
 
 ```bash
-yarn add chia-sdk
+yarn add @chiahq/sdk
 ```
 
 ## Requirements
@@ -42,7 +42,7 @@ The SDK includes:
 ## Verify Installation
 
 ```typescript
-import { ChiaSDK } from "chia-sdk";
+import { ChiaSDK } from "@chiahq/sdk";
 
 const sdk = ChiaSDK.initialize();
 console.log("Chia SDK initialized:", !!sdk);

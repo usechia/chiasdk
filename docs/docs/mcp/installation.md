@@ -11,7 +11,7 @@ Install the Chia MCP server for use with Claude Desktop.
 ## Global Installation
 
 ```bash
-npm install -g chia-mcp
+npm install -g @chiahq/mcp
 ```
 
 ## Using npx (No Installation)
@@ -19,7 +19,7 @@ npm install -g chia-mcp
 You can run the MCP server without installing it globally:
 
 ```bash
-npx chia-mcp
+npx @chiahq/mcp
 ```
 
 This is the recommended approach for Claude Desktop configuration.
@@ -27,7 +27,7 @@ This is the recommended approach for Claude Desktop configuration.
 ## Verify Installation
 
 ```bash
-chia-mcp --version
+@chiahq/mcp --version
 ```
 
 ## Requirements

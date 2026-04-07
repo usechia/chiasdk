@@ -98,5 +98,5 @@ import type {
   PayChanguVerifyTransactionResponse,
   PayChanguDirectChargePaymentResponse,
   PayChanguTransactionDetailsResponse
-} from "chia-sdk";
+} from "@chiahq/sdk";
 ```

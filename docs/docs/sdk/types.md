@@ -18,10 +18,10 @@ import type {
   PayChanguOperatorsResponse,
   PawaPayTypes,
   OneKhusaTypes
-} from "chia-sdk";
+} from "@chiahq/sdk";
 
 // Avoid deep imports
-// import type { ... } from "chia-sdk/dist/..."; // Don't do this
+// import type { ... } from "@chiahq/sdk/dist/..."; // Don't do this
 ```
 
 ## Provider-Specific Types
@@ -29,7 +29,7 @@ import type {
 ### PawaPay Types
 
 ```typescript
-import type { PawaPayTypes } from "chia-sdk";
+import type { PawaPayTypes } from "@chiahq/sdk";
 
 // Access nested types
 type DepositRequest = PawaPayTypes.PaymentData;
@@ -46,13 +46,13 @@ import type {
   PayChanguVerifyTransactionResponse,
   PayChanguOperatorsResponse,
   PayChanguBankTransferPaymentResponse
-} from "chia-sdk";
+} from "@chiahq/sdk";
 ```
 
 ### OneKhusa Types
 
 ```typescript
-import type { OneKhusaTypes } from "chia-sdk";
+import type { OneKhusaTypes } from "@chiahq/sdk";
 
 type CollectionRequest = OneKhusaTypes.InitiateCollectionRequest;
 type CollectionResponse = OneKhusaTypes.CollectionResponse;
@@ -66,7 +66,7 @@ type Recipient = OneKhusaTypes.Recipient;
 ### Environment
 
 ```typescript
-import { ENVIRONMENTS, type Environment } from "chia-sdk";
+import { ENVIRONMENTS, type Environment } from "@chiahq/sdk";
 
 const env: Environment = ENVIRONMENTS.DEVELOPMENT; // or ENVIRONMENTS.PRODUCTION
 ```
@@ -74,7 +74,7 @@ const env: Environment = ENVIRONMENTS.DEVELOPMENT; // or ENVIRONMENTS.PRODUCTION
 ### SDK Configuration
 
 ```typescript
-import type { SDKConfig } from "chia-sdk";
+import type { SDKConfig } from "@chiahq/sdk";
 
 const config: SDKConfig = {
   env: { envPath: ".env" },
@@ -106,7 +106,7 @@ const config: SDKConfig = {
 The SDK provides full type safety:
 
 ```typescript
-import { ChiaSDK, isServiceError } from "chia-sdk";
+import { ChiaSDK, isServiceError } from "@chiahq/sdk";
 
 const sdk = ChiaSDK.initialize({});
 

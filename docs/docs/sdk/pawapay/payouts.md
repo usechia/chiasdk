@@ -11,7 +11,7 @@ Send money to customers via mobile money.
 ## Send a Single Payout
 
 ```typescript
-import { isServiceError } from "chia-sdk";
+import { isServiceError } from "@chiahq/sdk";
 
 const payout = await sdk.pawapay.payouts.sendPayout({
   payoutId: "payout-123",
@@ -75,7 +75,7 @@ const bulkPayout = await sdk.pawapay.payouts.sendBulkPayout([
 ## Get Payout Status
 
 ```typescript
-import { isServiceError } from "chia-sdk";
+import { isServiceError } from "@chiahq/sdk";
 
 const status = await sdk.pawapay.payouts.getPayout(payoutId);
 
@@ -97,7 +97,7 @@ if (!isServiceError(status)) {
 ## Response Types
 
 ```typescript
-import type { PawaPayTypes } from "chia-sdk";
+import type { PawaPayTypes } from "@chiahq/sdk";
 
 type PayoutTransaction = PawaPayTypes.PayoutTransaction;
 type BulkPayoutResponse = PawaPayTypes.BulkPayoutResponse;

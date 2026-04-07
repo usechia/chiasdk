@@ -22,7 +22,7 @@ Add the following to your Claude Desktop config file:
   "mcpServers": {
     "chia": {
       "command": "npx",
-      "args": ["-y", "chia-mcp"],
+      "args": ["-y", "@chiahq/mcp"],
       "env": {
         "PAYCHANGU_SECRET_KEY": "your-paychangu-secret-key",
         "PAWAPAY_JWT": "your-pawapay-jwt-token",
@@ -60,7 +60,7 @@ You only need to configure the providers you plan to use. Leave out the environm
   "mcpServers": {
     "chia": {
       "command": "npx",
-      "args": ["-y", "chia-mcp"],
+      "args": ["-y", "@chiahq/mcp"],
       "env": {
         "PAYCHANGU_SECRET_KEY": "your-secret-key",
         "ENVIRONMENT": "DEVELOPMENT"
@@ -77,7 +77,7 @@ You only need to configure the providers you plan to use. Leave out the environm
   "mcpServers": {
     "chia": {
       "command": "npx",
-      "args": ["-y", "chia-mcp"],
+      "args": ["-y", "@chiahq/mcp"],
       "env": {
         "PAWAPAY_JWT": "your-jwt-token",
         "ENVIRONMENT": "DEVELOPMENT"
@@ -94,7 +94,7 @@ You only need to configure the providers you plan to use. Leave out the environm
   "mcpServers": {
     "chia": {
       "command": "npx",
-      "args": ["-y", "chia-mcp"],
+      "args": ["-y", "@chiahq/mcp"],
       "env": {
         "ONEKHUSA_API_KEY": "your-api-key",
         "ONEKHUSA_API_SECRET": "your-api-secret",

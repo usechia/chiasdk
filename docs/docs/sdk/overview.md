@@ -29,7 +29,7 @@ A unified TypeScript SDK for seamless integration with African payment providers
 ## Quick Example
 
 ```typescript
-import { ChiaSDK, ENVIRONMENTS } from "chia-sdk";
+import { ChiaSDK, ENVIRONMENTS } from "@chiahq/sdk";
 
 const sdk = ChiaSDK.initialize({
   pawapay: { jwt: "your-token", environment: ENVIRONMENTS.DEVELOPMENT },
@@ -44,6 +44,30 @@ const sdk = ChiaSDK.initialize({
 
 // Now use sdk.pawapay, sdk.paychangu, or sdk.onekhusa
 ```
+
+## Platform API
+
+The SDK also wraps the Chia Platform API for managing plans, subscribers, payments, and webhooks:
+
+```typescript
+const sdk = ChiaSDK.initialize({
+  platform: { apiKey: "sk_test_..." }
+});
+
+const plan = await sdk.platform.plans.create({
+  name: "Pro", amount: 10000, currency: "MWK",
+  interval: "monthly", provider: "paychangu"
+});
+
+const intent = await sdk.platform.subscriptions.create({
+  planId: plan.id, phone: "+265884123456"
+});
+
+const subscribers = await sdk.platform.subscribers.list();
+const payments = await sdk.platform.payments.list();
+```
+
+Available services: `sdk.platform.plans`, `sdk.platform.subscribers`, `sdk.platform.subscriptions`, `sdk.platform.payments`, `sdk.platform.webhooks`, `sdk.platform.apiKeys`.
 
 ## Next Steps
 

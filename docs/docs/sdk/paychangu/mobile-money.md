@@ -76,5 +76,5 @@ import type {
   PayChanguOperatorsResponse,
   PayChanguPayoutResponse,
   PayChanguPayoutDetailsResponse
-} from "chia-sdk";
+} from "@chiahq/sdk";
 ```
