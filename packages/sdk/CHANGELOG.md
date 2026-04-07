@@ -1,3 +1,9 @@
+## [0.0.2](https://github.com/joelfickson/chia/compare/v0.3.2...v0.0.2) (2026-04-07)
+
+
+### Features
+
+* migrate PawaPay SDK to v2 API, rebrand afrimomo to chia ([ad48578](https://github.com/joelfickson/chia/commit/ad48578111a0a2ccaabeab6babdd7e02e9a910a0))
 ## [0.3.2](https://github.com/joelfickson/chia/compare/v0.3.1...v0.3.2) (2026-02-14)
 
 
