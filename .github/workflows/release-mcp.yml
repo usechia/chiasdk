@@ -70,7 +70,13 @@ jobs:
           cd packages/mcp
           RELEASE_TYPE="${{ github.event.inputs.release_type }}"
 
-          ALL_VERSIONS=$(npm view @chiahq/mcp versions --json 2>/dev/null || echo "[]")
+          RAW_VERSIONS=$(npm view @chiahq/mcp versions --json 2>/dev/null || true)
+          ALL_VERSIONS=$(echo "$RAW_VERSIONS" | node -e "
+            try {
+              const d = JSON.parse(require('fs').readFileSync(0,'utf-8'));
+              console.log(JSON.stringify(Array.isArray(d) ? d : typeof d === 'string' ? [d] : []));
+            } catch { console.log('[]'); }
+          ")
           CURRENT_VERSION=$(node -p "require('./package.json').version")
 
           echo "Current version from package.json: $CURRENT_VERSION"
