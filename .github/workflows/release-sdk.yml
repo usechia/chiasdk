@@ -32,7 +32,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 22
           registry-url: 'https://registry.npmjs.org'
 
       - name: Install pnpm
@@ -52,8 +52,7 @@ jobs:
           cd packages/sdk
           RELEASE_TYPE="${{ github.event.inputs.release_type }}"
 
-          # Get all published versions from npm
-          ALL_VERSIONS=$(npm view chia-sdk versions --json || echo "[]")
+          ALL_VERSIONS=$(npm view @chiahq/sdk versions --json 2>/dev/null || echo "[]")
           CURRENT_VERSION=$(node -p "require('./package.json').version")
 
           echo "Current version from package.json: $CURRENT_VERSION"
@@ -119,10 +118,9 @@ jobs:
           echo "Will publish version: $NEXT_VERSION"
           echo "VERSION=$NEXT_VERSION" >> $GITHUB_OUTPUT
 
-          # Update package.json with new version
           npm version $NEXT_VERSION --no-git-tag-version --allow-same-version
           git add package.json
-          git commit -m "chore: bump version to $NEXT_VERSION" || true
+          git commit -m "chore: bump @chiahq/sdk to $NEXT_VERSION" || true
 
       - name: Update docs version badge (SDK)
         run: |
@@ -143,11 +141,8 @@ jobs:
         if: success()
         run: |
           cd packages/sdk
-          # Ensure CHANGELOG.md exists
           touch CHANGELOG.md
-          # Generate changelog
           pnpm dlx conventional-changelog-cli -p angular -i CHANGELOG.md -s
-          # Only commit if there are changes
           if [[ -n "$(git status --porcelain CHANGELOG.md)" ]]; then
             git add CHANGELOG.md
             git commit -m "docs: update changelog for version ${{ steps.setup.outputs.VERSION }}"
@@ -164,9 +159,9 @@ jobs:
         run: |
           cd packages/sdk
           if [[ "${{ steps.setup.outputs.IS_BETA }}" == "true" ]]; then
-            npm publish --tag beta
+            npm publish --tag beta --access public
           else
-            npm publish --tag latest
+            npm publish --tag latest --access public
           fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -176,18 +171,18 @@ jobs:
         if: success()
         run: |
           VERSION=${{ steps.setup.outputs.VERSION }}
-          git tag v${VERSION}
-          git push origin v${VERSION}
+          git tag sdk-v${VERSION}
+          git push origin sdk-v${VERSION}
 
           if [[ "${{ steps.setup.outputs.IS_BETA }}" == "true" ]]; then
-            gh release create v${VERSION} \
+            gh release create sdk-v${VERSION} \
               --prerelease \
-              --title "Release v${VERSION}" \
-              --notes "$(cat packages/sdk/CHANGELOG.md)"
+              --title "Chia SDK v${VERSION}" \
+              --notes "$(cat packages/sdk/CHANGELOG.md | head -50)"
           else
-            gh release create v${VERSION} \
-              --title "Release v${VERSION}" \
-              --notes "$(cat packages/sdk/CHANGELOG.md)"
+            gh release create sdk-v${VERSION} \
+              --title "Chia SDK v${VERSION}" \
+              --notes "$(cat packages/sdk/CHANGELOG.md | head -50)"
           fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

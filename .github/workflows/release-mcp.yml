@@ -32,7 +32,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 22
           registry-url: 'https://registry.npmjs.org'
 
       - name: Setup pnpm
@@ -61,7 +61,7 @@ jobs:
 
       - name: Build SDK (dependency)
         run: |
-          pnpm --filter chia-sdk build
+          pnpm --filter @chiahq/sdk build
           test -f packages/sdk/dist/index.d.ts || (echo "SDK build failed - dist/index.d.ts not found" && exit 1)
 
       - name: Setup Release Environment
@@ -70,8 +70,7 @@ jobs:
           cd packages/mcp
           RELEASE_TYPE="${{ github.event.inputs.release_type }}"
 
-          # Get all published versions from npm
-          ALL_VERSIONS=$(npm view chia-mcp versions --json 2>/dev/null || echo "[]")
+          ALL_VERSIONS=$(npm view @chiahq/mcp versions --json 2>/dev/null || echo "[]")
           CURRENT_VERSION=$(node -p "require('./package.json').version")
 
           echo "Current version from package.json: $CURRENT_VERSION"
@@ -81,7 +80,6 @@ jobs:
             echo "IS_BETA=true" >> $GITHUB_OUTPUT
             echo "TAG_NAME=beta" >> $GITHUB_OUTPUT
 
-            # Find latest beta version
             LATEST_BETA=$(echo "$ALL_VERSIONS" | node -e "
               try {
                 const versions = JSON.parse(require('fs').readFileSync(0, 'utf-8'));
@@ -95,17 +93,14 @@ jobs:
             echo "Latest published beta: $LATEST_BETA"
 
             if [[ -n "$LATEST_BETA" ]]; then
-              # Extract base version and beta number
               BASE_VERSION=$(echo $LATEST_BETA | cut -d'-' -f1)
               BETA_NUM=$(echo $LATEST_BETA | cut -d'.' -f4)
               NEXT_BETA=$((BETA_NUM + 1))
               NEXT_VERSION="${BASE_VERSION}-beta.${NEXT_BETA}"
             else
-              # No existing beta, start from current version
               if [[ $CURRENT_VERSION == *"-beta."* ]]; then
                 BASE_VERSION=$(echo $CURRENT_VERSION | cut -d'-' -f1)
               else
-                # Install semver if not available
                 npm install -g semver
                 BASE_VERSION=$(semver -i patch ${CURRENT_VERSION})
               fi
@@ -115,7 +110,6 @@ jobs:
             echo "IS_BETA=false" >> $GITHUB_OUTPUT
             echo "TAG_NAME=latest" >> $GITHUB_OUTPUT
 
-            # Find latest non-beta version
             LATEST_VERSION=$(echo "$ALL_VERSIONS" | node -e "
               try {
                 const versions = JSON.parse(require('fs').readFileSync(0, 'utf-8'));
@@ -128,13 +122,11 @@ jobs:
 
             echo "Latest published version: $LATEST_VERSION"
 
-            # Install semver if not available
             npm install -g semver
 
             if [[ -n "$LATEST_VERSION" ]]; then
               NEXT_VERSION=$(semver -i ${RELEASE_TYPE} ${LATEST_VERSION})
             else
-              # No existing version, use current version as base
               NEXT_VERSION=$(semver -i ${RELEASE_TYPE} ${CURRENT_VERSION})
             fi
           fi
@@ -142,10 +134,9 @@ jobs:
           echo "Will publish version: $NEXT_VERSION"
           echo "VERSION=$NEXT_VERSION" >> $GITHUB_OUTPUT
 
-          # Update package.json with new version
           npm version $NEXT_VERSION --no-git-tag-version --allow-same-version
           git add package.json
-          git commit -m "chore: bump chia-mcp to $NEXT_VERSION" || true
+          git commit -m "chore: bump @chiahq/mcp to $NEXT_VERSION" || true
 
       - name: Update docs version badge (MCP)
         run: |
@@ -161,12 +152,12 @@ jobs:
         run: |
           if [ ! -f packages/sdk/dist/index.d.ts ]; then
             echo "Error: SDK dist not found. Rebuilding..."
-            pnpm --filter chia-sdk build
+            pnpm --filter @chiahq/sdk build
           fi
           ls -la packages/sdk/dist/index.d.ts
 
       - name: Build MCP Server
-        run: pnpm --filter chia-mcp build
+        run: pnpm --filter @chiahq/mcp build
 
       - name: Update Changelog
         if: success()
@@ -175,16 +166,13 @@ jobs:
           VERSION=${{ steps.setup.outputs.VERSION }}
           IS_BETA=${{ steps.setup.outputs.IS_BETA }}
 
-          # Backup existing changelog
           if [ -f CHANGELOG.md ]; then
             cp CHANGELOG.md CHANGELOG.md.backup
           fi
 
-          # Prepare new changelog entry
           DATE=$(date +%Y-%m-%d)
           RELEASE_TYPE="${{ github.event.inputs.release_type }}"
 
-          # Create temporary changelog entry
           cat > CHANGELOG_NEW.md << EOF
           # Changelog
 
@@ -201,18 +189,15 @@ jobs:
 
           EOF
 
-          # Append old changelog content (skip header)
           if [ -f CHANGELOG.md ]; then
             sed '1,7d' CHANGELOG.md >> CHANGELOG_NEW.md
           fi
 
-          # Replace changelog
           mv CHANGELOG_NEW.md CHANGELOG.md
 
-          # Commit if there are changes
           if [[ -n "$(git status --porcelain CHANGELOG.md)" ]]; then
             git add CHANGELOG.md
-            git commit -m "docs: update changelog for chia-mcp version ${VERSION}"
+            git commit -m "docs: update changelog for @chiahq/mcp version ${VERSION}"
             git push origin ${{ github.ref_name }}
           fi
 
@@ -238,25 +223,18 @@ jobs:
         if: success()
         run: |
           VERSION=${{ steps.setup.outputs.VERSION }}
-          git tag chia-mcp-v${VERSION}
-          git push origin chia-mcp-v${VERSION}
+          git tag mcp-v${VERSION}
+          git push origin mcp-v${VERSION}
 
           if [[ "${{ steps.setup.outputs.IS_BETA }}" == "true" ]]; then
-            gh release create chia-mcp-v${VERSION} \
+            gh release create mcp-v${VERSION} \
               --prerelease \
               --title "Chia MCP v${VERSION}" \
               --notes "$(cat packages/mcp/CHANGELOG.md | head -50)"
           else
-            gh release create chia-mcp-v${VERSION} \
+            gh release create mcp-v${VERSION} \
               --title "Chia MCP v${VERSION}" \
               --notes "$(cat packages/mcp/CHANGELOG.md | head -50)"
           fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Notify Success
-        if: success()
-        run: |
-          echo "✅ Successfully released chia-mcp@${{ steps.setup.outputs.VERSION }}"
-          echo "📦 Package: https://www.npmjs.com/package/chia-mcp/v/${{ steps.setup.outputs.VERSION }}"
-          echo "🏷️ Tag: chia-mcp-v${{ steps.setup.outputs.VERSION }}"
