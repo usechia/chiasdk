@@ -1,0 +1,222 @@
+{
+	"info": {
+		"name": "Chia SDK - Basic Usage",
+		"description": "Collection for the Chia SDK basic-usage example server. Covers PayChangu, PawaPay, and OneKhusa collection methods.\n\nSet the `baseUrl` variable to point at your running server (defaults to http://localhost:9999).",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:9999"
+		},
+		{
+			"key": "txRef",
+			"value": "TX_example"
+		},
+		{
+			"key": "depositId",
+			"value": ""
+		},
+		{
+			"key": "transactionId",
+			"value": ""
+		}
+	],
+	"item": [
+		{
+			"name": "Services",
+			"item": [
+				{
+					"name": "List Configured Services",
+					"request": {
+						"method": "GET",
+						"url": "{{baseUrl}}/services"
+					}
+				}
+			]
+		},
+		{
+			"name": "PayChangu",
+			"item": [
+				{
+					"name": "Initiate Payment",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const res = pm.response.json();",
+									"if (res.data && res.data.tx_ref) {",
+									"    pm.collectionVariables.set('txRef', res.data.tx_ref);",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"url": "{{baseUrl}}/paychangu/payments/initiate",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"amount\": \"1000\",\n\t\"currency\": \"MWK\",\n\t\"first_name\": \"John\",\n\t\"last_name\": \"Doe\",\n\t\"email\": \"john@example.com\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Direct Charge",
+					"request": {
+						"method": "POST",
+						"url": "{{baseUrl}}/paychangu/payments/direct-charge",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"amount\": \"500\",\n\t\"currency\": \"MWK\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Verify Transaction",
+					"request": {
+						"method": "GET",
+						"url": "{{baseUrl}}/paychangu/verify/{{txRef}}"
+					}
+				},
+				{
+					"name": "Get Mobile Money Operators",
+					"request": {
+						"method": "GET",
+						"url": "{{baseUrl}}/paychangu/mobile-money/operators"
+					}
+				},
+				{
+					"name": "Get Supported Banks",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/paychangu/banks?currency=MWK",
+							"host": ["{{baseUrl}}"],
+							"path": ["paychangu", "banks"],
+							"query": [
+								{ "key": "currency", "value": "MWK" }
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "PawaPay",
+			"item": [
+				{
+					"name": "Send Deposit",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"if (!pm.collectionVariables.get('depositId')) {",
+									"    pm.collectionVariables.set('depositId', pm.variables.replaceIn('{{$guid}}'));",
+									"}"
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const res = pm.response.json();",
+									"if (res.depositId) {",
+									"    pm.collectionVariables.set('depositId', res.depositId);",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"url": "{{baseUrl}}/pawapay/deposits",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"amount\": \"1000\",\n\t\"currency\": \"MWK\",\n\t\"payer\": {\n\t\t\"type\": \"MMO\",\n\t\t\"accountDetails\": {\n\t\t\t\"phoneNumber\": \"265888123456\",\n\t\t\t\"provider\": \"TNM_MWI\"\n\t\t}\n\t}\n}"
+						}
+					}
+				},
+				{
+					"name": "Get Deposit Status",
+					"request": {
+						"method": "GET",
+						"url": "{{baseUrl}}/pawapay/deposits/{{depositId}}"
+					}
+				},
+				{
+					"name": "Initiate Payment Page",
+					"request": {
+						"method": "POST",
+						"url": "{{baseUrl}}/pawapay/payments",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"amount\": \"500\",\n\t\"country\": \"MWI\",\n\t\"reason\": \"Test payment\",\n\t\"returnUrl\": \"https://example.com/return\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Check Availability",
+					"request": {
+						"method": "GET",
+						"url": "{{baseUrl}}/pawapay/availability"
+					}
+				}
+			]
+		},
+		{
+			"name": "OneKhusa",
+			"item": [
+				{
+					"name": "Request to Pay",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const res = pm.response.json();",
+									"if (res.id) {",
+									"    pm.collectionVariables.set('transactionId', res.id);",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"url": "{{baseUrl}}/onekhusa/collections",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"amount\": 1000,\n\t\"currency\": \"MWK\",\n\t\"phone\": \"265888123456\",\n\t\"paymentMethod\": \"MOBILE_MONEY\",\n\t\"reference\": \"TEST_001\",\n\t\"description\": \"Test collection\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Get Transaction",
+					"request": {
+						"method": "GET",
+						"url": "{{baseUrl}}/onekhusa/collections/{{transactionId}}"
+					}
+				}
+			]
+		}
+	]
+}
