@@ -5,7 +5,7 @@ import type * as Preset from '@docusaurus/preset-classic';
 const config: Config = {
   title: 'Chia',
   tagline: 'Unified African Payment Integration',
-  favicon: 'img/logo.png',
+  favicon: 'img/logo.svg',
 
   future: {
     v4: true,
@@ -73,8 +73,8 @@ const config: Config = {
       title: 'Chia',
       logo: {
         alt: 'Chia Logo',
-        src: 'img/logo.png',
-        srcDark: 'img/logo.png',
+        src: 'img/logo.svg',
+        srcDark: 'img/logo-dark.svg',
       },
       items: [
         {

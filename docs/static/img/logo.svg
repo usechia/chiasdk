@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 50" role="img" aria-label="Chia logo">
+  <title>Chia</title>
+  <g id="wordmark">
+    <text x="0" y="38" font-family="Manrope, sans-serif" font-size="42" font-weight="800" fill="#fafafa" letter-spacing="-2">Chia</text>
+    <circle cx="128" cy="35" r="4" fill="#ea580c"/>
+  </g>
+</svg>
