@@ -17,7 +17,7 @@ export * from "./response";
  * Common interfaces and types used across multiple PayChangu features
  */
 export namespace PayChangu {
-	export type Currency = "MWK";
+	export type Currency = "MWK" | "USD";
 
 	export interface TransactionCharges {
 		currency: string;

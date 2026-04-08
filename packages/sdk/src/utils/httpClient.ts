@@ -116,17 +116,37 @@ export class HttpClient {
 				return response;
 			},
 			(error) => {
-				logger.error(`${this.serviceName} API Response Error:`, {
-					message: error.message,
-					response: error.response?.data,
-				});
+				if (axios.isAxiosError(error)) {
+					logger.error({
+						msg: `${this.serviceName} API Response Error`,
+						statusCode: error.response?.status,
+						url: error.config?.url,
+						method: error.config?.method?.toUpperCase(),
+						responseBody: error.response?.data,
+						errorMessage: error.message,
+					});
+				} else {
+					logger.error(`${this.serviceName} API Response Error:`, {
+						message: error instanceof Error ? error.message : String(error),
+					});
+				}
 				return Promise.reject(error);
 			},
 		);
 	}
 
 	handleApiError(error: unknown, context: string): NetworkErrorResponse {
-		logger.error(`${this.serviceName} API Error - ${context}:`, error);
+		if (axios.isAxiosError(error)) {
+			logger.error({
+				msg: `${this.serviceName} API Error - ${context}`,
+				statusCode: error.response?.status,
+				url: error.config?.url,
+				method: error.config?.method?.toUpperCase(),
+				responseBody: error.response?.data,
+			});
+		} else {
+			logger.error(`${this.serviceName} API Error - ${context}:`, error instanceof Error ? error.message : error);
+		}
 
 		let errorMessage = `An error occurred during ${context}`;
 		let statusCode = 500;

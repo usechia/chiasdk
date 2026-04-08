@@ -621,6 +621,34 @@ export interface PayChanguPayoutDetailsResponse
 		StackTraceError?: unknown;
 	}> {}
 
+export interface PayChanguMobileMoneyPaymentResponse
+	extends PayChangu.ServiceResponse<{
+		PaymentDetails: {
+			charge_id: string;
+			mobile: string;
+			amount: string;
+			status: string;
+			created_at: string;
+			completed_at: string | null;
+		};
+		HasError: boolean;
+		StackTraceError?: unknown;
+	}> {}
+
+export interface PayChanguMobileMoneyPaymentVerifyResponse
+	extends PayChangu.ServiceResponse<{
+		PaymentDetails: {
+			charge_id: string;
+			mobile: string;
+			amount: string;
+			status: string;
+			created_at: string;
+			completed_at: string | null;
+		};
+		HasError: boolean;
+		StackTraceError?: unknown;
+	}> {}
+
 /**
  * Standard API response for supported banks
  */

@@ -19,6 +19,7 @@ import type {
 	PayChanguInitialPayment,
 	PayChanguDirectChargePayment,
 	PayChanguMobileMoneyPayout,
+	PayChanguMobileMoneyPayment,
 	PayChanguBankPayout,
 	PayChanguDirectChargeBankTransfer,
 	PayChanguCustomization,
@@ -49,6 +50,8 @@ import type {
 	PayChanguVerifyTransactionResponse,
 	PayChanguPaymentInitiationResponse,
 	PayChanguPaymentInitiationErrorResponse,
+	PayChanguMobileMoneyPaymentResponse,
+	PayChanguMobileMoneyPaymentVerifyResponse,
 } from "./types/response";
 
 export * from "./types";
@@ -474,6 +477,102 @@ export class PayChangu extends BaseService {
 			return this.createErrorResponse(response, context, defaultPayload);
 		}
 		return this.createSuccessResponse({ PayoutDetails: response.data });
+	}
+
+	// Mobile Money Payment Collection (money in)
+
+	private async initializeMobileMoneyPaymentDirect(
+		data: PayChanguMobileMoneyPayment,
+	): Promise<PayChanguMobileMoneyPayoutResponse | PayChanguErrorResponse> {
+		logger.info("Initializing PayChangu mobile money payment:", data);
+		return this.wrapApiCall(
+			() =>
+				this.network.post<PayChanguMobileMoneyPayoutResponse>(
+					"/mobile-money/payments/initialize",
+					data,
+					"mobile money payment initialization",
+				),
+			"mobile money payment initialization",
+		);
+	}
+
+	async initializeMobileMoneyCollection(
+		mobile: string,
+		operatorRefId: string,
+		amount: string | number,
+		chargeId: string,
+		options?: {
+			email?: string;
+			firstName?: string;
+			lastName?: string;
+			transactionStatus?: "failed" | "successful";
+		},
+	): Promise<PayChanguMobileMoneyPaymentResponse> {
+		const defaultPayload = {
+			PaymentDetails: {
+				charge_id: "",
+				mobile: "",
+				amount: "",
+				status: "",
+				created_at: "",
+				completed_at: null,
+			},
+			HasError: true,
+		};
+		const context = "mobile money payment initialization";
+
+		const paymentData: PayChanguMobileMoneyPayment = {
+			mobile,
+			mobile_money_operator_ref_id: operatorRefId,
+			amount: amount.toString(),
+			charge_id: chargeId,
+			...(options?.email && { email: options.email }),
+			...(options?.firstName && { first_name: options.firstName }),
+			...(options?.lastName && { last_name: options.lastName }),
+			...(options?.transactionStatus && {
+				transaction_status: options.transactionStatus,
+			}),
+		};
+
+		logger.info("PayChangu: initializing mobile money collection", { paymentData });
+
+		const response = await this.initializeMobileMoneyPaymentDirect(paymentData);
+		if (!response || response.status !== "success") {
+			return this.createErrorResponse(response, context, defaultPayload);
+		}
+		return this.createSuccessResponse({ PaymentDetails: response.data });
+	}
+
+	async verifyMobileMoneyPayment(
+		chargeId: string,
+	): Promise<PayChanguMobileMoneyPaymentVerifyResponse> {
+		const defaultPayload = {
+			PaymentDetails: {
+				charge_id: "",
+				mobile: "",
+				amount: "",
+				status: "",
+				created_at: "",
+				completed_at: null,
+			},
+			HasError: true,
+		};
+		const context = "mobile money payment verification";
+
+		logger.info("PayChangu: verifying mobile money payment", { chargeId });
+
+		const response = await this.wrapApiCall(
+			() =>
+				this.network.get<PayChanguSinglePayoutResponse>(
+					`/mobile-money/payments/${chargeId}/verify`,
+					`mobile money payment verification for ${chargeId}`,
+				),
+			context,
+		);
+		if (!response || response.status !== "success") {
+			return this.createErrorResponse(response, context, defaultPayload);
+		}
+		return this.createSuccessResponse({ PaymentDetails: response.data });
 	}
 
 	// #endregion

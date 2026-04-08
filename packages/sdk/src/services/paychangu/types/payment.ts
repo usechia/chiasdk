@@ -62,6 +62,17 @@ export interface PayChanguMobileMoneyPayout {
 	transaction_status?: "failed" | "successful";
 }
 
+export interface PayChanguMobileMoneyPayment {
+	mobile: string;
+	mobile_money_operator_ref_id: string;
+	amount: string;
+	charge_id: string;
+	email?: string;
+	first_name?: string;
+	last_name?: string;
+	transaction_status?: "failed" | "successful";
+}
+
 /**
  * Bank payout request parameters
  *

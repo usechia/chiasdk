@@ -13,6 +13,7 @@ export type {
 	PayChanguInitialPayment,
 	PayChanguDirectChargePayment,
 	PayChanguMobileMoneyPayout,
+	PayChanguMobileMoneyPayment,
 	PayChanguBankPayout,
 	PayChanguDirectChargeBankTransfer,
 	PayChanguCustomization,
