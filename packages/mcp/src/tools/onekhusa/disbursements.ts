@@ -1,5 +1,10 @@
 import type { OneKhusa } from "@chiahq/sdk";
 import type { ToolRegistrationFunction } from "../../types/index.js";
+import { validateEnum, validateEnumOptional, validatePhone, validateUrlOptional, validateArrayLength } from "../../utils/validation.js";
+
+const CURRENCIES = ["MWK", "USD", "ZAR", "ZMW", "TZS", "KES", "UGX"] as const;
+const PAYMENT_METHODS = ["MOBILE_MONEY", "BANK_TRANSFER"] as const;
+const BATCH_STATUSES = ["PENDING", "APPROVED", "REVIEWED", "REJECTED", "CANCELLED", "PROCESSING", "COMPLETED", "FAILED"] as const;
 
 export function registerOneKhusaDisbursementTools(
 	registerTool: ToolRegistrationFunction,
@@ -53,18 +58,20 @@ export function registerOneKhusaDisbursementTools(
 			required: ["amount", "currency", "recipientName", "recipientPhone", "paymentMethod"],
 		},
 		async (args) => {
+			validatePhone(args.recipientPhone, "recipientPhone");
+			const callbackUrl = validateUrlOptional(args.callbackUrl, "callbackUrl");
 			return await onekhusa.disbursements.addSingle({
 				amount: args.amount as number,
-				currency: args.currency as any,
+				currency: validateEnum(args.currency, CURRENCIES, "currency"),
 				recipient: {
 					name: args.recipientName as string,
 					phone: args.recipientPhone as string,
 					email: args.recipientEmail as string | undefined,
 				},
-				paymentMethod: args.paymentMethod as any,
+				paymentMethod: validateEnum(args.paymentMethod, PAYMENT_METHODS, "paymentMethod"),
 				reference: args.reference as string | undefined,
 				description: args.description as string | undefined,
-				callbackUrl: args.callbackUrl as string | undefined,
+				callbackUrl,
 			});
 		}
 	);
@@ -200,23 +207,28 @@ export function registerOneKhusaDisbursementTools(
 			required: ["name", "items"],
 		},
 		async (args) => {
-			const items = (args.items as any[]).map((item) => ({
-				amount: item.amount,
-				currency: item.currency,
-				recipient: {
-					name: item.recipientName,
-					phone: item.recipientPhone,
-				},
-				paymentMethod: item.paymentMethod,
-				reference: item.reference,
-				description: item.description,
-			}));
+			const rawItems = validateArrayLength(args.items, "items", 100) as Record<string, unknown>[];
+			const callbackUrl = validateUrlOptional(args.callbackUrl, "callbackUrl");
+			const items = rawItems.map((item) => {
+				validatePhone(item.recipientPhone, "recipientPhone");
+				return {
+					amount: item.amount as number,
+					currency: validateEnum(item.currency, CURRENCIES, "currency"),
+					recipient: {
+						name: item.recipientName as string,
+						phone: item.recipientPhone as string,
+					},
+					paymentMethod: validateEnum(item.paymentMethod, PAYMENT_METHODS, "paymentMethod"),
+					reference: item.reference as string | undefined,
+					description: item.description as string | undefined,
+				};
+			});
 
 			return await onekhusa.disbursements.addBatch({
 				name: args.name as string,
 				description: args.description as string | undefined,
 				items,
-				callbackUrl: args.callbackUrl as string | undefined,
+				callbackUrl,
 			});
 		}
 	);
@@ -378,7 +390,7 @@ export function registerOneKhusaDisbursementTools(
 			return await onekhusa.disbursements.getBatches({
 				page: args.page as number | undefined,
 				size: args.size as number | undefined,
-				status: args.status as any,
+				status: validateEnumOptional(args.status, BATCH_STATUSES, "status"),
 				startDate: args.startDate as string | undefined,
 				endDate: args.endDate as string | undefined,
 			});
@@ -433,7 +445,7 @@ export function registerOneKhusaDisbursementTools(
 			return await onekhusa.disbursements.getBatchTransactions(args.batchId as string, {
 				page: args.page as number | undefined,
 				size: args.size as number | undefined,
-				status: args.status as any,
+				status: validateEnumOptional(args.status, BATCH_STATUSES, "status"),
 			});
 		}
 	);

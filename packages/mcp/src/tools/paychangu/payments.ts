@@ -6,6 +6,7 @@
 
 import type { PayChangu } from "@chiahq/sdk";
 import type { ToolRegistrationFunction, PayChanguToolArgs } from "../../types/index.js";
+import { validateUrl, validateEmail } from "../../utils/validation.js";
 
 export function registerPayChanguTools(
   registerTool: ToolRegistrationFunction,
@@ -56,7 +57,9 @@ export function registerPayChanguTools(
     },
     async (args) => {
       const paymentArgs = args as unknown as PayChanguToolArgs.InitiatePayment;
-      // Ensure currency has a default value if not provided
+      validateUrl(paymentArgs.callback_url, "callback_url");
+      validateUrl(paymentArgs.return_url, "return_url");
+      validateEmail(paymentArgs.email, "email");
       const paymentData = {
         ...paymentArgs,
         currency: paymentArgs.currency || "MWK",

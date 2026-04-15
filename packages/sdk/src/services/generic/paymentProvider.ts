@@ -127,7 +127,7 @@ export class PaymentProviderAdapter {
 
 			const endpoint = this.config.endpoints.getTransaction.replace(
 				"{id}",
-				transactionId,
+				encodeURIComponent(transactionId),
 			);
 			const response = await this.network.get(
 				endpoint,

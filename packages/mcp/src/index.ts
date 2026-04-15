@@ -29,13 +29,22 @@ import { registerOneKhusaCollectionTools } from "./tools/onekhusa/collections.js
 import { registerOneKhusaDisbursementTools } from "./tools/onekhusa/disbursements.js";
 import { registerOneKhusaConfigTools } from "./tools/onekhusa/config.js";
 
+import { validateEnvironment, sanitizeErrorMessage } from "./utils/validation.js";
+
 // Environment configuration
 const PAYCHANGU_SECRET_KEY = process.env.PAYCHANGU_SECRET_KEY;
 const PAWAPAY_JWT = process.env.PAWAPAY_JWT;
 const ONEKHUSA_API_KEY = process.env.ONEKHUSA_API_KEY;
 const ONEKHUSA_API_SECRET = process.env.ONEKHUSA_API_SECRET;
 const ONEKHUSA_ORGANISATION_ID = process.env.ONEKHUSA_ORGANISATION_ID;
-const ENVIRONMENT = process.env.ENVIRONMENT || "DEVELOPMENT";
+
+let ENVIRONMENT: "PRODUCTION" | "DEVELOPMENT";
+try {
+	ENVIRONMENT = validateEnvironment(process.env.ENVIRONMENT || "DEVELOPMENT");
+} catch {
+	console.error("Invalid ENVIRONMENT value. Must be PRODUCTION or DEVELOPMENT.");
+	process.exit(1);
+}
 
 // Initialize SDK
 let sdk: ChiaSDK | null = null;
@@ -45,13 +54,13 @@ try {
 		paychangu: PAYCHANGU_SECRET_KEY
 			? {
 					secretKey: PAYCHANGU_SECRET_KEY,
-					environment: ENVIRONMENT as any,
+					environment: ENVIRONMENT,
 			  }
 			: undefined,
 		pawapay: PAWAPAY_JWT
 			? {
 					jwt: PAWAPAY_JWT,
-					environment: ENVIRONMENT as any,
+					environment: ENVIRONMENT,
 			  }
 			: undefined,
 		onekhusa: ONEKHUSA_API_KEY && ONEKHUSA_API_SECRET && ONEKHUSA_ORGANISATION_ID
@@ -59,12 +68,12 @@ try {
 					apiKey: ONEKHUSA_API_KEY,
 					apiSecret: ONEKHUSA_API_SECRET,
 					organisationId: ONEKHUSA_ORGANISATION_ID,
-					environment: ENVIRONMENT as any,
+					environment: ENVIRONMENT,
 			  }
 			: undefined,
 	});
 } catch (error) {
-	console.error("Failed to initialize Chia SDK:", error);
+	console.error("Failed to initialize Chia SDK:", sanitizeErrorMessage(error));
 	process.exit(1);
 }
 
@@ -162,14 +171,13 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 			],
 		};
 	} catch (error) {
-		const errorMessage = error instanceof Error ? error.message : String(error);
 		return {
 			content: [
 				{
 					type: "text",
 					text: JSON.stringify(
 						{
-							error: errorMessage,
+							error: sanitizeErrorMessage(error),
 							tool: name,
 						},
 						null,
@@ -190,6 +198,6 @@ async function main() {
 }
 
 main().catch((error) => {
-	console.error("Fatal error:", error);
+	console.error("Fatal error:", sanitizeErrorMessage(error));
 	process.exit(1);
 });

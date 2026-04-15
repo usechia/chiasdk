@@ -24,6 +24,7 @@ export class NetworkManager {
 		this.axiosInstance = axios.create({
 			baseURL,
 			headers,
+			timeout: 30000,
 		});
 
 		this.setupInterceptors();
@@ -34,7 +35,7 @@ export class NetworkManager {
 	}
 
 	public handleErrors(error: unknown): PawaPayNetworkResponse {
-		logger.error("Error occurred", error);
+		logger.error("Error occurred", error instanceof Error ? error.message : "Unknown error");
 
 		let errorMessage = "An unknown error occurred";
 		let statusCode = 500;

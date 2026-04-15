@@ -1,4 +1,5 @@
 import type { HttpClient } from "../../utils/httpClient";
+import { appendQueryString } from "../../utils/queryBuilder";
 import {
 	wrapServiceCall,
 	type ServiceResult,
@@ -9,11 +10,7 @@ export class PaymentsService {
 	constructor(private readonly client: HttpClient) {}
 
 	async list(filters?: { subscriberId?: string; status?: string }): Promise<ServiceResult<Payment[]>> {
-		let endpoint = "/payments";
-		const params: string[] = [];
-		if (filters?.subscriberId) params.push(`subscriberId=${filters.subscriberId}`);
-		if (filters?.status) params.push(`status=${filters.status}`);
-		if (params.length > 0) endpoint += `?${params.join("&")}`;
+		const endpoint = appendQueryString("/payments", filters);
 
 		return wrapServiceCall(
 			() => this.client.get<Payment[]>(endpoint, "listing payments"),
@@ -24,7 +21,7 @@ export class PaymentsService {
 
 	async get(paymentId: string): Promise<ServiceResult<Payment>> {
 		return wrapServiceCall(
-			() => this.client.get<Payment>(`/payments/${paymentId}`, "getting payment"),
+			() => this.client.get<Payment>(`/payments/${encodeURIComponent(paymentId)}`, "getting payment"),
 			this.client.handleApiError.bind(this.client),
 			"getting payment",
 		);

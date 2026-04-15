@@ -111,7 +111,6 @@ export class HttpClient {
 				logger.debug(`${this.serviceName} API Response:`, {
 					status: response.status,
 					statusText: response.statusText,
-					data: response.data,
 				});
 				return response;
 			},
@@ -122,7 +121,6 @@ export class HttpClient {
 						statusCode: error.response?.status,
 						url: error.config?.url,
 						method: error.config?.method?.toUpperCase(),
-						responseBody: error.response?.data,
 						errorMessage: error.message,
 					});
 				} else {
@@ -142,10 +140,10 @@ export class HttpClient {
 				statusCode: error.response?.status,
 				url: error.config?.url,
 				method: error.config?.method?.toUpperCase(),
-				responseBody: error.response?.data,
+				errorMessage: error.message,
 			});
 		} else {
-			logger.error(`${this.serviceName} API Error - ${context}:`, error instanceof Error ? error.message : error);
+			logger.error(`${this.serviceName} API Error - ${context}:`, error instanceof Error ? error.message : "Unknown error");
 		}
 
 		let errorMessage = `An error occurred during ${context}`;

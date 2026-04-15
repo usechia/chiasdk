@@ -6,6 +6,7 @@
 
 import type { PawaPay, PawaPayTypes } from "@chiahq/sdk";
 import type { ToolRegistrationFunction, PawapayToolArgs } from "../../types/index.js";
+import { validatePhone, validateArrayLength } from "../../utils/validation.js";
 
 export function registerPawapayPayoutTools(
   registerTool: ToolRegistrationFunction,
@@ -48,6 +49,7 @@ export function registerPawapayPayoutTools(
     },
     async (args) => {
       const typedArgs = args as unknown as PawapayToolArgs.SendPayout;
+      validatePhone(typedArgs.phoneNumber, "phoneNumber");
 
       const request: PawaPayTypes.PayoutRequest = {
         payoutId: typedArgs.payoutId,
@@ -112,19 +114,23 @@ export function registerPawapayPayoutTools(
     },
     async (args) => {
       const { payouts } = args as unknown as PawapayToolArgs.SendBulkPayout;
+      validateArrayLength(payouts, "payouts", 100);
 
-      const requests: PawaPayTypes.PayoutRequest[] = payouts.map((payout) => ({
-        payoutId: payout.payoutId,
-        amount: payout.amount,
-        currency: payout.currency,
-        recipient: {
-          type: "MMO" as const,
-          accountDetails: {
-            phoneNumber: payout.phoneNumber,
-            provider: payout.provider,
+      const requests: PawaPayTypes.PayoutRequest[] = payouts.map((payout) => {
+        validatePhone(payout.phoneNumber, "phoneNumber");
+        return {
+          payoutId: payout.payoutId,
+          amount: payout.amount,
+          currency: payout.currency,
+          recipient: {
+            type: "MMO" as const,
+            accountDetails: {
+              phoneNumber: payout.phoneNumber,
+              provider: payout.provider,
+            },
           },
-        },
-      }));
+        };
+      });
       return await pawapay.payouts.sendBulkPayout(requests);
     }
   );

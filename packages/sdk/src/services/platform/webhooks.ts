@@ -1,4 +1,5 @@
 import type { HttpClient } from "../../utils/httpClient";
+import { appendQueryString } from "../../utils/queryBuilder";
 import {
 	wrapServiceCall,
 	type ServiceResult,
@@ -33,7 +34,7 @@ export class WebhooksService {
 
 	async update(webhookId: string, data: UpdateWebhookRequest): Promise<ServiceResult<WebhookConfig>> {
 		return wrapServiceCall(
-			() => this.client.patch<WebhookConfig>(`/orgs/webhooks/${webhookId}`, data, "updating webhook"),
+			() => this.client.patch<WebhookConfig>(`/orgs/webhooks/${encodeURIComponent(webhookId)}`, data, "updating webhook"),
 			this.client.handleApiError.bind(this.client),
 			"updating webhook",
 		);
@@ -41,7 +42,7 @@ export class WebhooksService {
 
 	async delete(webhookId: string): Promise<ServiceResult<DeleteResult>> {
 		return wrapServiceCall(
-			() => this.client.delete<DeleteResult>(`/orgs/webhooks/${webhookId}`, "deleting webhook"),
+			() => this.client.delete<DeleteResult>(`/orgs/webhooks/${encodeURIComponent(webhookId)}`, "deleting webhook"),
 			this.client.handleApiError.bind(this.client),
 			"deleting webhook",
 		);
@@ -49,18 +50,14 @@ export class WebhooksService {
 
 	async test(webhookId: string): Promise<ServiceResult<WebhookTestResult>> {
 		return wrapServiceCall(
-			() => this.client.post<WebhookTestResult>(`/orgs/webhooks/${webhookId}/test`, {}, "testing webhook"),
+			() => this.client.post<WebhookTestResult>(`/orgs/webhooks/${encodeURIComponent(webhookId)}/test`, {}, "testing webhook"),
 			this.client.handleApiError.bind(this.client),
 			"testing webhook",
 		);
 	}
 
 	async deliveries(webhookId: string, filters?: { status?: string; eventType?: string }): Promise<ServiceResult<WebhookDelivery[]>> {
-		let endpoint = `/orgs/webhooks/${webhookId}/deliveries`;
-		const params: string[] = [];
-		if (filters?.status) params.push(`status=${filters.status}`);
-		if (filters?.eventType) params.push(`eventType=${filters.eventType}`);
-		if (params.length > 0) endpoint += `?${params.join("&")}`;
+		const endpoint = appendQueryString(`/orgs/webhooks/${encodeURIComponent(webhookId)}/deliveries`, filters);
 
 		return wrapServiceCall(
 			() => this.client.get<WebhookDelivery[]>(endpoint, "listing webhook deliveries"),
@@ -71,7 +68,7 @@ export class WebhooksService {
 
 	async retryDelivery(webhookId: string, deliveryId: string): Promise<ServiceResult<DeleteResult>> {
 		return wrapServiceCall(
-			() => this.client.post<DeleteResult>(`/orgs/webhooks/${webhookId}/deliveries/${deliveryId}/retry`, {}, "retrying webhook delivery"),
+			() => this.client.post<DeleteResult>(`/orgs/webhooks/${encodeURIComponent(webhookId)}/deliveries/${encodeURIComponent(deliveryId)}/retry`, {}, "retrying webhook delivery"),
 			this.client.handleApiError.bind(this.client),
 			"retrying webhook delivery",
 		);

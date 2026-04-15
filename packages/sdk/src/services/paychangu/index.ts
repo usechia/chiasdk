@@ -127,12 +127,18 @@ export class PayChangu extends BaseService {
 		defaultPayload: T,
 	): {
 		type: "error";
-		payload: T & { HasError: true; StackTraceError: unknown };
+		payload: T & { HasError: true; ErrorMessage: string };
 	} {
-		logger.error(`PayChangu Service Error - ${context}:`, error);
+		const safeMessage =
+			error instanceof Error
+				? error.message
+				: typeof error === "object" && error !== null && "message" in error
+					? String((error as { message: unknown }).message)
+					: `An error occurred during ${context}`;
+		logger.error(`PayChangu Service Error - ${context}:`, safeMessage);
 		return {
 			type: "error",
-			payload: { ...defaultPayload, HasError: true, StackTraceError: error },
+			payload: { ...defaultPayload, HasError: true, ErrorMessage: safeMessage },
 		};
 	}
 

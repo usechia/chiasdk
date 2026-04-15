@@ -6,6 +6,7 @@
 
 import type { PayChangu } from "@chiahq/sdk";
 import type { ToolRegistrationFunction, PayChanguToolArgs } from "../../types/index.js";
+import { validatePhone } from "../../utils/validation.js";
 
 export function registerPayChanguPayoutTools(
   registerTool: ToolRegistrationFunction,
@@ -66,6 +67,7 @@ export function registerPayChanguPayoutTools(
         last_name,
         transaction_status,
       } = args as unknown as PayChanguToolArgs.MobileMoneyPayout;
+      validatePhone(mobile, "mobile");
 
       return await paychangu.initializeMobileMoneyPayout(
         mobile,

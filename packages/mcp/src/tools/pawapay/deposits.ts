@@ -6,6 +6,7 @@
 
 import type { PawaPay, PawaPayTypes } from "@chiahq/sdk";
 import type { ToolRegistrationFunction, PawapayToolArgs } from "../../types/index.js";
+import { validateUrlOptional, validatePhone } from "../../utils/validation.js";
 
 export function registerPawapayDepositTools(
   registerTool: ToolRegistrationFunction,
@@ -60,6 +61,9 @@ export function registerPawapayDepositTools(
     },
     async (args) => {
       const typedArgs = args as unknown as PawapayToolArgs.RequestDeposit;
+      validatePhone(typedArgs.phoneNumber, "phoneNumber");
+      const successfulUrl = validateUrlOptional(typedArgs.successfulUrl, "successfulUrl");
+      const failedUrl = validateUrlOptional(typedArgs.failedUrl, "failedUrl");
 
       const request: PawaPayTypes.DepositRequest = {
         depositId: typedArgs.depositId,
@@ -73,8 +77,8 @@ export function registerPawapayDepositTools(
           },
         },
         preAuthorisationCode: typedArgs.preAuthorisationCode,
-        successfulUrl: typedArgs.successfulUrl,
-        failedUrl: typedArgs.failedUrl,
+        successfulUrl,
+        failedUrl,
       };
       return await pawapay.deposits.sendDeposit(request);
     }

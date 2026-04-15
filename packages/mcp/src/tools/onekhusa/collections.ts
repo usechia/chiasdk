@@ -1,5 +1,10 @@
 import type { OneKhusa } from "@chiahq/sdk";
 import type { ToolRegistrationFunction } from "../../types/index.js";
+import { validateEnum, validateEnumOptional, validatePhone, validateUrlOptional } from "../../utils/validation.js";
+
+const CURRENCIES = ["MWK", "USD", "ZAR", "ZMW", "TZS", "KES", "UGX"] as const;
+const PAYMENT_METHODS = ["MOBILE_MONEY", "BANK_TRANSFER"] as const;
+const COLLECTION_STATUSES = ["PENDING", "COMPLETED", "FAILED", "CANCELLED", "EXPIRED"] as const;
 
 export function registerOneKhusaCollectionTools(
 	registerTool: ToolRegistrationFunction,
@@ -45,14 +50,16 @@ export function registerOneKhusaCollectionTools(
 			required: ["amount", "currency", "phone", "paymentMethod"],
 		},
 		async (args) => {
+			validatePhone(args.phone, "phone");
+			const callbackUrl = validateUrlOptional(args.callbackUrl, "callbackUrl");
 			return await onekhusa.collections.initiateRequestToPay({
 				amount: args.amount as number,
-				currency: args.currency as any,
+				currency: validateEnum(args.currency, CURRENCIES, "currency"),
 				phone: args.phone as string,
-				paymentMethod: args.paymentMethod as any,
+				paymentMethod: validateEnum(args.paymentMethod, PAYMENT_METHODS, "paymentMethod"),
 				reference: args.reference as string | undefined,
 				description: args.description as string | undefined,
-				callbackUrl: args.callbackUrl as string | undefined,
+				callbackUrl,
 			});
 		}
 	);
@@ -90,7 +97,7 @@ export function registerOneKhusaCollectionTools(
 			return await onekhusa.collections.getTransactions({
 				page: args.page as number | undefined,
 				size: args.size as number | undefined,
-				status: args.status as any,
+				status: validateEnumOptional(args.status, COLLECTION_STATUSES, "status"),
 				startDate: args.startDate as string | undefined,
 				endDate: args.endDate as string | undefined,
 			});
