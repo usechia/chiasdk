@@ -31,12 +31,12 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.26.0",
-    "@chiahq/sdk": "workspace:*"
+    "@chiahq/sdk": "workspace:*",
+    "@modelcontextprotocol/sdk": "^1.29.0"
   },
   "devDependencies": {
-    "@types/node": "^25.2.3",
-    "rimraf": "^6.1.2",
+    "@types/node": "^25.6.0",
+    "rimraf": "^6.1.3",
     "typescript": "^5.9.3"
   },
   "engines": {

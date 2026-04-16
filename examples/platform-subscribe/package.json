@@ -8,11 +8,11 @@
 	},
 	"dependencies": {
 		"@chiahq/sdk": "workspace:*",
-		"hono": "^4.7.0",
-		"@hono/node-server": "^1.13.0"
+		"@hono/node-server": "^1.19.14",
+		"hono": "^4.12.14"
 	},
 	"devDependencies": {
-		"tsx": "^4.19.0",
-		"typescript": "^5.8.0"
+		"tsx": "^4.21.0",
+		"typescript": "^5.9.3"
 	}
 }
