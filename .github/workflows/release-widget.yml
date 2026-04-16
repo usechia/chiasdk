@@ -1,0 +1,190 @@
+name: Release Widget Package
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: 'Release Type'
+        required: true
+        type: choice
+        options:
+          - major
+          - minor
+          - patch
+          - beta
+
+permissions:
+  contents: write
+  packages: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 25
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install Dependencies
+        run: |
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+          pnpm install --frozen-lockfile
+
+      - name: Setup Release Environment
+        id: setup
+        run: |
+          cd packages/widget
+          RELEASE_TYPE="${{ github.event.inputs.release_type }}"
+
+          RAW_VERSIONS=$(npm view @chiahq/widget versions --json 2>/dev/null || true)
+          ALL_VERSIONS=$(echo "$RAW_VERSIONS" | node -e "
+            try {
+              const d = JSON.parse(require('fs').readFileSync(0,'utf-8'));
+              console.log(JSON.stringify(Array.isArray(d) ? d : typeof d === 'string' ? [d] : []));
+            } catch { console.log('[]'); }
+          ")
+          CURRENT_VERSION=$(node -p "require('./package.json').version")
+
+          echo "Current version from package.json: $CURRENT_VERSION"
+          echo "All published versions: $ALL_VERSIONS"
+
+          increment_version() {
+            local version=$1
+            local type=$2
+            local major minor patch
+            IFS='.' read -r major minor patch <<< "$version"
+            patch=${patch%%-*}
+            case $type in
+              major) echo "$((major + 1)).0.0" ;;
+              minor) echo "${major}.$((minor + 1)).0" ;;
+              patch) echo "${major}.${minor}.$((patch + 1))" ;;
+            esac
+          }
+
+          if [[ "$RELEASE_TYPE" == "beta" ]]; then
+            echo "IS_BETA=true" >> $GITHUB_OUTPUT
+            echo "TAG_NAME=beta" >> $GITHUB_OUTPUT
+
+            LATEST_BETA=$(echo "$ALL_VERSIONS" | node -e "
+              const versions = JSON.parse(require('fs').readFileSync(0, 'utf-8'));
+              const betas = versions.filter(v => v.includes('-beta.'));
+              console.log(betas.length > 0 ? betas[betas.length - 1] : '');
+            ")
+
+            echo "Latest published beta: $LATEST_BETA"
+
+            if [[ -n "$LATEST_BETA" ]]; then
+              BASE_VERSION=$(echo $LATEST_BETA | cut -d'-' -f1)
+              BETA_NUM=$(echo $LATEST_BETA | cut -d'.' -f4)
+              NEXT_BETA=$((BETA_NUM + 1))
+              NEXT_VERSION="${BASE_VERSION}-beta.${NEXT_BETA}"
+            else
+              if [[ $CURRENT_VERSION == *"-beta."* ]]; then
+                BASE_VERSION=$(echo $CURRENT_VERSION | cut -d'-' -f1)
+              else
+                BASE_VERSION=$(increment_version "$CURRENT_VERSION" "patch")
+              fi
+              NEXT_VERSION="${BASE_VERSION}-beta.1"
+            fi
+          else
+            echo "IS_BETA=false" >> $GITHUB_OUTPUT
+            echo "TAG_NAME=latest" >> $GITHUB_OUTPUT
+
+            LATEST_VERSION=$(echo "$ALL_VERSIONS" | node -e "
+              const versions = JSON.parse(require('fs').readFileSync(0, 'utf-8'));
+              const releases = versions.filter(v => !v.includes('-beta.'));
+              console.log(releases.length > 0 ? releases[releases.length - 1] : '');
+            ")
+
+            echo "Latest published version: $LATEST_VERSION"
+
+            if [[ -n "$LATEST_VERSION" ]]; then
+              NEXT_VERSION=$(increment_version "$LATEST_VERSION" "$RELEASE_TYPE")
+            else
+              NEXT_VERSION=$(increment_version "$CURRENT_VERSION" "$RELEASE_TYPE")
+            fi
+          fi
+
+          echo "Will publish version: $NEXT_VERSION"
+          echo "VERSION=$NEXT_VERSION" >> $GITHUB_OUTPUT
+
+          npm version $NEXT_VERSION --no-git-tag-version --allow-same-version
+          git add package.json
+          git commit -m "chore: bump @chiahq/widget to $NEXT_VERSION" || true
+
+      - name: Build Widget
+        run: |
+          cd packages/widget
+          pnpm build
+
+      - name: Generate Changelog
+        if: success()
+        run: |
+          cd packages/widget
+          touch CHANGELOG.md
+          pnpm dlx conventional-changelog-cli -p angular -i CHANGELOG.md -s
+          if [[ -n "$(git status --porcelain CHANGELOG.md)" ]]; then
+            git add CHANGELOG.md
+            git commit -m "docs: update changelog for widget version ${{ steps.setup.outputs.VERSION }}"
+            git pull --rebase origin ${{ github.ref_name }}
+            git push origin ${{ github.ref_name }}
+          fi
+
+      - name: Setup npm
+        run: |
+          echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish to npm
+        run: |
+          cd packages/widget
+          if [[ "${{ steps.setup.outputs.IS_BETA }}" == "true" ]]; then
+            npm publish --tag beta --access public
+          else
+            npm publish --tag latest --access public
+          fi
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Tag and Release
+        if: success()
+        run: |
+          VERSION=${{ steps.setup.outputs.VERSION }}
+          git tag widget-v${VERSION}
+          git push origin widget-v${VERSION}
+
+          ASSETS=""
+          if [[ -f "packages/widget/dist/chia-widget.min.js" ]]; then
+            ASSETS="packages/widget/dist/chia-widget.min.js"
+          fi
+
+          if [[ "${{ steps.setup.outputs.IS_BETA }}" == "true" ]]; then
+            gh release create widget-v${VERSION} $ASSETS \
+              --prerelease \
+              --title "Chia Widget v${VERSION}" \
+              --notes "$(cat packages/widget/CHANGELOG.md | head -50)"
+          else
+            gh release create widget-v${VERSION} $ASSETS \
+              --title "Chia Widget v${VERSION}" \
+              --notes "$(cat packages/widget/CHANGELOG.md | head -50)"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

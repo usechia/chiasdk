@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chia Widget - Basic Example</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      max-width: 800px; margin: 0 auto; padding: 40px 20px;
+      color: #111827; background: #f9fafb;
+    }
+    h1 { font-size: 24px; margin-bottom: 8px; }
+    h2 { font-size: 18px; margin-top: 40px; margin-bottom: 12px; }
+    p { color: #6b7280; line-height: 1.6; margin-bottom: 16px; }
+    pre {
+      background: #1f2937; color: #e5e7eb; padding: 16px;
+      border-radius: 8px; overflow-x: auto; font-size: 13px;
+      line-height: 1.5; margin-bottom: 24px;
+    }
+    .demo-section {
+      background: #fff; border: 1px solid #e5e7eb;
+      border-radius: 12px; padding: 24px; margin-bottom: 32px;
+    }
+    .demo-label {
+      font-size: 11px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.05em; color: #9ca3af; margin-bottom: 16px;
+    }
+    button.demo-btn {
+      background: #2563eb; color: #fff; border: none;
+      padding: 10px 20px; border-radius: 8px; font-size: 14px;
+      cursor: pointer; font-weight: 500;
+    }
+    button.demo-btn:hover { opacity: 0.9; }
+  </style>
+</head>
+<body>
+
+  <h1>Chia Widget Examples</h1>
+  <p>
+    Three ways to embed the Chia subscribe widget on your site.
+    Replace <code>pk_test_your_publishable_key</code> with your actual publishable key
+    from the Chia dashboard.
+  </p>
+
+  <!-- ============================================ -->
+  <!-- Inline Mode                                  -->
+  <!-- The widget renders directly inside a target  -->
+  <!-- container element on the page.               -->
+  <!-- ============================================ -->
+
+  <h2>1. Inline Mode</h2>
+  <p>The widget renders directly inside a container element.</p>
+
+  <div class="demo-section">
+    <div class="demo-label">Live Preview</div>
+    <div id="chia-inline"></div>
+  </div>
+
+  <pre><code>&lt;div id="chia-inline"&gt;&lt;/div&gt;
+&lt;script src="https://cdn.jsdelivr.net/npm/@chiahq/widget/dist/chia-widget.min.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+  Chia.init({
+    publishableKey: "pk_test_your_publishable_key",
+    container: "#chia-inline",
+    mode: "inline",
+    planId: "your-plan-id",
+    onSubscribed: function(result) {
+      console.log("Subscribed:", result);
+    },
+    onError: function(error) {
+      console.error("Error:", error);
+    }
+  });
+&lt;/script&gt;</code></pre>
+
+  <!-- ============================================ -->
+  <!-- Modal Mode                                   -->
+  <!-- The widget opens as a centered overlay when   -->
+  <!-- you call widget.open().                       -->
+  <!-- ============================================ -->
+
+  <h2>2. Modal Mode</h2>
+  <p>The widget opens as a centered overlay. Call <code>widget.open()</code> to show it.</p>
+
+  <div class="demo-section">
+    <div class="demo-label">Live Preview</div>
+    <button class="demo-btn" id="open-modal">Open Subscribe Modal</button>
+    <div id="chia-modal"></div>
+  </div>
+
+  <pre><code>&lt;button id="open-modal"&gt;Subscribe&lt;/button&gt;
+&lt;div id="chia-modal"&gt;&lt;/div&gt;
+&lt;script&gt;
+  var modal = Chia.init({
+    publishableKey: "pk_test_your_publishable_key",
+    container: "#chia-modal",
+    mode: "modal",
+    onSubscribed: function(result) {
+      console.log("Subscribed:", result);
+    },
+    onClose: function() {
+      console.log("Modal closed");
+    }
+  });
+  document.getElementById("open-modal").addEventListener("click", function() {
+    modal.open();
+  });
+&lt;/script&gt;</code></pre>
+
+  <!-- ============================================ -->
+  <!-- Button Mode                                  -->
+  <!-- Pass buttonText to render a styled trigger   -->
+  <!-- button that opens the modal on click.        -->
+  <!-- ============================================ -->
+
+  <h2>3. Button Mode</h2>
+  <p>
+    Combines a trigger button with the modal. Set <code>mode: "button"</code> and
+    provide <code>buttonText</code>. Clicking the container opens the modal automatically.
+  </p>
+
+  <div class="demo-section">
+    <div class="demo-label">Live Preview</div>
+    <div id="chia-button"></div>
+  </div>
+
+  <pre><code>&lt;div id="chia-button"&gt;&lt;/div&gt;
+&lt;script&gt;
+  Chia.init({
+    publishableKey: "pk_test_your_publishable_key",
+    container: "#chia-button",
+    mode: "button",
+    buttonText: "Subscribe Now",
+    planSlug: "pro-monthly",
+    theme: {
+      primaryColor: "#7c3aed",
+      borderRadius: "12px"
+    },
+    prefill: {
+      phone: "+265999123456"
+    },
+    onSubscribed: function(result) {
+      alert("Subscribed! ID: " + result.subscriberId);
+    },
+    onError: function(error) {
+      alert("Error: " + error.message);
+    },
+    onClose: function() {
+      console.log("Widget closed");
+    },
+    onReady: function() {
+      console.log("Widget ready");
+    }
+  });
+&lt;/script&gt;</code></pre>
+
+  <h2>Configuration Reference</h2>
+  <pre><code>Chia.init({
+  // Required
+  publishableKey: "pk_test_...",    // Your publishable API key
+  container: "#element" | element,  // CSS selector or DOM element
+
+  // Display
+  mode: "inline" | "modal" | "button",  // Default: "inline"
+  buttonText: "Subscribe",              // Text for button mode trigger
+  locale: "en",                         // Locale for formatting
+
+  // Plan selection
+  planId: "uuid",                // Show a specific plan by ID
+  planSlug: "pro-monthly",       // Or by slug
+
+  // Prefill
+  prefill: {
+    phone: "+265999123456",
+    name: "Jane Doe"
+  },
+
+  // Theming
+  theme: {
+    primaryColor: "#2563eb",     // Brand color
+    borderRadius: "8px",         // Corner radius
+    fontFamily: "Inter, sans-serif"
+  },
+
+  // Callbacks
+  onReady: function() {},
+  onSubscribed: function(result) {},   // { id, subscriberId, paymentStatus, nextAction }
+  onError: function(error) {},         // { message, code? }
+  onClose: function() {},
+
+  // Advanced
+  apiBaseUrl: "https://api.usechia.com"  // Override API endpoint
+});</code></pre>
+
+  <!-- Load the widget script -->
+  <!-- In production, use the CDN URL instead of the local path -->
+  <script src="../../packages/widget/dist/chia-widget.js"></script>
+  <script>
+    var inline = Chia.init({
+      publishableKey: "pk_test_your_publishable_key",
+      container: "#chia-inline",
+      apiBaseUrl: "http://localhost:3001",
+      onReady: function() { console.log("Inline widget ready"); },
+      onError: function(err) { console.log("Inline error (expected with placeholder key):", err.message); }
+    });
+
+    var modal = Chia.init({
+      publishableKey: "pk_test_your_publishable_key",
+      container: "#chia-modal",
+      apiBaseUrl: "http://localhost:3001",
+      onClose: function() { console.log("Modal closed"); },
+      onError: function(err) { console.log("Modal error (expected with placeholder key):", err.message); }
+    });
+    document.getElementById("open-modal").addEventListener("click", function() {
+      modal.open();
+    });
+
+    var btn = Chia.init({
+      publishableKey: "pk_test_your_publishable_key",
+      container: "#chia-button",
+      apiBaseUrl: "http://localhost:3001",
+      mode: "button",
+      buttonText: "Subscribe Now",
+      theme: { primaryColor: "#7c3aed", borderRadius: "12px" },
+      onError: function(err) { console.log("Button error (expected with placeholder key):", err.message); }
+    });
+  </script>
+
+</body>
+</html>
