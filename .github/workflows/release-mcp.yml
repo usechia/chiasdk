@@ -194,6 +194,7 @@ jobs:
           if [[ -n "$(git status --porcelain CHANGELOG.md)" ]]; then
             git add CHANGELOG.md
             git commit -m "docs: update changelog for @chiahq/mcp version ${VERSION}"
+            git pull --rebase origin ${{ github.ref_name }}
             git push origin ${{ github.ref_name }}
           fi
 
