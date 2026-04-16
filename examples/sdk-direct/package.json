@@ -1,0 +1,20 @@
+{
+  "name": "chia-sdk-direct-example",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "collect:paychangu": "tsx src/collect-paychangu.ts",
+    "collect:pawapay": "tsx src/collect-pawapay.ts",
+    "collect:onekhusa": "tsx src/collect-onekhusa.ts",
+    "payout:paychangu": "tsx src/payout-paychangu.ts",
+    "payout:pawapay": "tsx src/payout-pawapay.ts",
+    "all-providers": "tsx src/all-providers.ts"
+  },
+  "dependencies": {
+    "@chiahq/sdk": "workspace:*"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.0",
+    "typescript": "^5.8.0"
+  }
+}
