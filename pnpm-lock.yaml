@@ -86,13 +86,13 @@ importers:
         specifier: workspace:*
         version: link:../../packages/sdk
       '@hono/node-server':
-        specifier: ^1.19.14
+        specifier: '>=1.19.10'
         version: 1.19.14(hono@4.12.14)
       dotenv:
         specifier: ^17.4.2
         version: 17.4.2
       hono:
-        specifier: ^4.12.14
+        specifier: '>=4.12.7'
         version: 4.12.14
     devDependencies:
       '@biomejs/biome':
@@ -117,10 +117,10 @@ importers:
         specifier: workspace:*
         version: link:../../packages/sdk
       '@hono/node-server':
-        specifier: ^1.19.14
+        specifier: '>=1.19.10'
         version: 1.19.14(hono@4.12.14)
       hono:
-        specifier: ^4.12.14
+        specifier: '>=4.12.7'
         version: 4.12.14
     devDependencies:
       tsx:
@@ -149,7 +149,7 @@ importers:
         specifier: workspace:*
         version: link:../sdk
       '@modelcontextprotocol/sdk':
-        specifier: ^1.29.0
+        specifier: '>=1.0.7'
         version: 1.29.0(zod@4.3.6)
     devDependencies:
       '@types/node':
@@ -165,7 +165,7 @@ importers:
   packages/sdk:
     dependencies:
       axios:
-        specifier: ^1.15.0
+        specifier: '>=1.7.9'
         version: 1.15.0
       dotenv:
         specifier: ^16.6.1
