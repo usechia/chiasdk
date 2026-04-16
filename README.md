@@ -1,321 +1,189 @@
 # Chia
 
-A unified ecosystem for African payment providers, featuring both an SDK and MCP server for seamless integration.
+A unified ecosystem for African payment providers. Chia provides a TypeScript SDK, an MCP server for AI assistants, and support for multiple providers including PayChangu, PawaPay, and OneKhusa.
 
 ## Packages
 
-This monorepo contains two main packages:
+| Package | Description | npm |
+|---------|-------------|-----|
+| [chia-sdk](./packages/sdk) | TypeScript SDK for African payment providers | `@chiahq/sdk` |
+| [chia-mcp](./packages/mcp) | Model Context Protocol server for AI assistants | `@chiahq/mcp` |
 
-- **[chia-sdk](./packages/sdk)** - TypeScript SDK for African payment providers
-- **[chia-mcp](./packages/mcp)** - Model Context Protocol server for AI assistants
+## Supported Providers
 
-## Chia SDK Features
-
-- 🌍 Support for multiple African payment providers
-- 🔒 Type-safe API with full TypeScript support
-- 📚 Comprehensive documentation
-- 🛠️ Easy to configure and use
-- 🔄 Consistent error handling
-- 🎯 Clean imports - no deep imports required
-
-## Chia MCP Features
-
-- 🤖 AI-powered payment operations via Claude Desktop
-- 🛠️ 23 tools for comprehensive payment management
-- 💳 Support for PayChangu and PawaPay
-- 🔐 Environment-based configuration
-- 📦 Easy installation via npm or npx
-
-## Currently Supported Providers
-
-- **PayChangu** - Payment services in Malawi
-- **PawaPay** - Mobile money payments across Africa
-
-## Prerequisites
-
-Before using the Chia SDK, you'll need to create accounts with the payment providers:
-
-### PawaPay Account Setup
-1. Visit [PawaPay](https://www.pawapay.io/) and create a developer account
-2. Complete the onboarding process and verification
-3. Get your API token from the PawaPay dashboard
-4. Note your environment (sandbox for testing, production for live transactions)
-
-### PayChangu Account Setup
-1. Visit [PayChangu](https://paychangu.com/) and create a merchant account
-2. Complete the business verification process
-3. Get your secret key from the PayChangu merchant dashboard
-4. Configure your webhook URLs for payment notifications
+- **PayChangu** - Payment gateway for Malawi (direct charge, mobile money, bank transfers)
+- **PawaPay** - Mobile money payments across Africa (deposits, payouts, refunds)
+- **OneKhusa** - Collections and disbursements across multiple African markets
 
 ## Installation
 
-### SDK Installation
+### SDK
 
 ```bash
-npm install chia-sdk
+npm install @chiahq/sdk
 # or
-pnpm add chia-sdk
+pnpm add @chiahq/sdk
 # or
-yarn add chia-sdk
+yarn add @chiahq/sdk
 ```
 
-### MCP Server Installation
+### MCP Server
 
 ```bash
-# Global installation
-npm install -g chia-mcp
+npm install -g @chiahq/mcp
 
-# Or use with npx (no installation required)
-npx chia-mcp
+# or run directly with npx
+npx @chiahq/mcp
 ```
 
-See [chia-mcp documentation](./packages/mcp) for configuration details.
+See the [MCP documentation](./packages/mcp) for configuration with Claude Desktop and other AI assistants.
 
 ## Quick Start
 
 ```typescript
-import { ChiaSDK } from "chia-sdk";
+import { ChiaSDK } from "@chiahq/sdk";
 
-const sdk = new ChiaSDK({
-  environment: "sandbox", // Use "sandbox" for testing, "production" for live
-  pawapay: {
-    apiToken: "your-pawapay-api-token" // Get this from PawaPay dashboard
-  },
+const sdk = ChiaSDK.initialize({
   paychangu: {
-    secretKey: "your-paychangu-secret-key" // Get this from PayChangu dashboard
-  }
+    secretKey: process.env.PAYCHANGU_SECRET_KEY,
+    environment: "DEVELOPMENT",
+  },
+  pawapay: {
+    jwt: process.env.PAWAPAY_JWT,
+    environment: "DEVELOPMENT",
+  },
+  onekhusa: {
+    apiKey: process.env.ONEKHUSA_API_KEY,
+    apiSecret: process.env.ONEKHUSA_API_SECRET,
+    organisationId: process.env.ONEKHUSA_ORGANISATION_ID,
+    environment: "DEVELOPMENT",
+  },
 });
 
-// Use PawaPay
-const paymentResponse = await sdk.pawapay.payments.initiate({
+// PayChangu - initiate a hosted checkout
+const payment = await sdk.paychangu.initiatePayment({
+  amount: "1000",
+  currency: "MWK",
+  tx_ref: "order-123",
+  callback_url: "https://your-app.com/webhook",
+  return_url: "https://your-app.com/success",
+  email: "customer@example.com",
+});
+
+// PawaPay - request a mobile money deposit
+const deposit = await sdk.pawapay.deposits.sendDeposit({
   depositId: "unique-deposit-id",
   amount: "100.00",
-  msisdn: "260123456789", // Customer's phone number
-  returnUrl: "https://your-app.com/callback",
-  statementDescription: "Payment for services",
-  language: "EN",
-  country: "ZMB", // ISO country code
-  reason: "Service payment"
+  currency: "ZMW",
+  payer: {
+    type: "MMO",
+    accountDetails: {
+      phoneNumber: "260971234567",
+      provider: "MTN_MOMO_ZMB",
+    },
+  },
 });
 
-// Use PayChangu
-const operatorsResponse = await sdk.paychangu.getMobileMoneyOperators();
+// OneKhusa - initiate a collection
+const collection = await sdk.onekhusa.collections.initiateRequestToPay({
+  amount: 500,
+  currency: "MWK",
+  phone: "+265991234567",
+  paymentMethod: "MOBILE_MONEY",
+});
 ```
 
-> **Note**: Always use sandbox/test credentials during development. Switch to production credentials only when you're ready to process real payments.
+> Never commit production API keys to version control. Use environment variables or a secrets manager.
 
 ## Type Imports
 
-All types are available from the main package import - no deep imports needed:
+All types are re-exported from the package root - no deep imports needed:
 
 ```typescript
-// ✅ Correct way
-import type { 
-  ActiveConfigResponse, 
+import type {
   PayChanguOperatorsResponse,
-  PayChanguTypes 
-} from "chia-sdk";
-
-// ❌ Avoid deep imports (old way)
-import type { ActiveConfigResponse } from "chia-sdk/dist/services/pawapay/types/network";
+  PawaPayTypes,
+  OneKhusaTypes,
+} from "@chiahq/sdk";
 ```
 
-For a comprehensive guide on importing types, see [TYPE_IMPORTS.md](./packages/sdk/TYPE_IMPORTS.md).
+## SDK Features
 
-## API Examples
+**PayChangu** - Direct charge payments, mobile money collections and payouts, bank transfers, transaction verification, operator listing
 
-### PawaPay Integration
+**PawaPay** - Deposit requests, single and bulk payouts, refunds, wallet balances, network configuration and availability checks, provider prediction
 
-```typescript
-import { ChiaSDK } from "chia-sdk";
-import type { 
-  ActiveConfigResponse, 
-  PaymentTransaction,
-  WalletBalance 
-} from "chia-sdk";
+**OneKhusa** - Request-to-pay collections, single and batch disbursements, approval workflows (approve, review, reject), fund transfers, transaction listing with filters
 
-const sdk = new ChiaSDK({
-  environment: "sandbox",
-  pawapay: {
-    apiToken: "your-pawapay-token"
-  }
-});
+## Prerequisites
 
-// Initiate a payment
-const payment = await sdk.pawapay.payments.initiate({
-  depositId: "order-123",
-  returnUrl: "https://your-app.com/success",
-  statementDescription: "Online purchase",
-  amount: "50.00",
-  msisdn: "260971234567",
-  language: "EN",
-  country: "ZMB",
-  reason: "Payment for goods"
-});
+You will need accounts with the providers you plan to use:
 
-// Check network configuration
-const config: ActiveConfigResponse = await sdk.pawapay.network.getActiveConfig();
+**PawaPay** - Create a developer account at [pawapay.io](https://www.pawapay.io/). Complete onboarding, then get your API token from the dashboard. Use the sandbox environment for testing.
 
-// Get wallet balances
-const balances: WalletBalance[] = await sdk.pawapay.wallets.getBalances();
-```
+**PayChangu** - Create a merchant account at [paychangu.com](https://paychangu.com/). Complete business verification, then get your secret key from the dashboard. Configure webhook URLs for payment notifications.
 
-### PayChangu Integration
-
-```typescript
-import type { 
-  PayChanguOperatorsResponse,
-  PayChanguDirectChargePaymentResponse,
-  PayChanguTypes 
-} from "chia-sdk";
-
-const sdk = new ChiaSDK({
-  environment: "sandbox",
-  paychangu: {
-    secretKey: "your-paychangu-secret"
-  }
-});
-
-// Get mobile money operators
-const operators: PayChanguOperatorsResponse = await sdk.paychangu.getMobileMoneyOperators();
-
-// Initiate direct charge payment
-const payment: PayChanguDirectChargePaymentResponse = await sdk.paychangu.initiateDirectChargePayment({
-  amount: 1000,
-  currency: "MWK",
-  chargeId: "order-456",
-  accountInfo: {
-    email: "customer@example.com",
-    first_name: "John",
-    last_name: "Doe"
-  }
-});
-
-// Process transaction with namespace types
-function processTransaction(transaction: PayChanguTypes.BaseTransaction) {
-  console.log(`Processing ${transaction.charge_id}: ${transaction.status}`);
-}
-```
-
-### Getting Started with Test Credentials
-
-Both providers offer sandbox environments for testing:
-
-**PawaPay Sandbox:**
-- Use sandbox API tokens for testing
-- Test with sandbox phone numbers provided in their documentation
-- No real money is processed in sandbox mode
-
-**PayChangu Testing:**
-- Use test secret keys for development
-- Test transactions won't affect real accounts
-- Webhook URLs can point to local development servers (use ngrok for testing)
-
-## Environment Configuration
-
-The SDK supports both sandbox and production environments:
-
-```typescript
-import { Environment } from "chia-sdk";
-
-const sdk = new ChiaSDK({
-  environment: Environment.SANDBOX, // or Environment.PRODUCTION
-  // ... provider configurations
-});
-```
-
-> **Security Tip**: Never commit your production API keys to version control. Use environment variables or secure configuration management.
-
-## Features
-
-### PawaPay Integration
-- Payment initiation and status tracking
-- Payout processing with status monitoring
-- Refund handling
-- Wallet balance queries
-- Network configuration and availability checks
-- Full TypeScript support with comprehensive types
-
-### PayChangu Integration
-- Direct charge payments
-- Mobile money payments
-- Bank transfers and payouts
-- Transaction verification
-- Operator information retrieval
-- Comprehensive error handling
+**OneKhusa** - Contact [OneKhusa](https://onekhusa.com/) for API access. You will receive an API key, secret, and organisation ID.
 
 ## Project Structure
 
-This is a monorepo containing:
-
-- `packages/sdk/` - The Chia SDK package
-- `packages/mcp/` - The Chia MCP Server package
-- `examples/` - Usage examples and demos
-- `tests/` - Test suites
-- `.github/workflows/` - GitHub Actions for CI/CD
+```
+packages/sdk/       TypeScript SDK
+packages/mcp/       MCP server for AI assistants
+examples/           Usage examples
+.github/workflows/  CI/CD and release automation
+```
 
 ## Development
 
-To work with this project:
-
 ```bash
-# Install dependencies
+# install dependencies
 pnpm install
 
-# Build all packages
-pnpm build
+# build the SDK
+pnpm --filter @chiahq/sdk build
 
-# Run tests
-pnpm test
+# build the MCP server (builds SDK first)
+pnpm --filter @chiahq/sdk build && pnpm --filter @chiahq/mcp build
 
-# Run linting
-pnpm lint
+# run SDK tests
+pnpm --filter @chiahq/sdk test
 
-# Format code
-pnpm format
+# lint and format (SDK)
+pnpm --filter @chiahq/sdk lint
+pnpm --filter @chiahq/sdk format
 ```
 
-## Release
+## Releases
 
-The project uses automated releases via GitHub Actions with separate workflows for each package:
+The project uses GitHub Actions for automated releases. Each package has its own workflow:
 
-### SDK Releases
-Workflow: `.github/workflows/release.yml`
-- Publish to npm as `chia-sdk`
-- Tags: `v{version}` (e.g., `v1.0.0`)
+| Package | Workflow | Tag format | npm package |
+|---------|----------|------------|-------------|
+| SDK | `release-sdk.yml` | `v{version}` | `@chiahq/sdk` |
+| MCP | `release-mcp.yml` | `mcp-v{version}` | `@chiahq/mcp` |
 
-### MCP Server Releases
-Workflow: `.github/workflows/release-mcp.yml`
-- Publish to npm as `chia-mcp`
-- Tags: `chia-mcp-v{version}` (e.g., `chia-mcp-v1.0.0`)
-
-### Release Types
-- `patch` - Bug fixes and small improvements (0.0.1 → 0.0.2)
-- `minor` - New features (0.1.0 → 0.2.0)
-- `major` - Breaking changes (1.0.0 → 2.0.0)
-- `beta` - Pre-release versions (1.0.0 → 1.0.1-beta.1)
-
-See [Workflows README](./.github/workflows/README.md) for detailed release instructions.
+Release types: `patch` (bug fixes), `minor` (new features), `major` (breaking changes), `beta` (pre-release).
 
 ## Documentation
 
-### SDK Documentation
-- [Type Imports Guide](./packages/sdk/TYPE_IMPORTS.md) - Complete guide for importing types
-- [API Documentation](./DOCS.md) - Detailed API documentation
-- [Examples](./examples/) - Usage examples and demos
-
-### MCP Server Documentation
-- [MCP README](./packages/mcp/README.md) - Overview and usage guide
-- [Installation Guide](./packages/mcp/INSTALLATION.md) - Detailed setup instructions
-- [Changelog](./packages/mcp/CHANGELOG.md) - Version history
-
-### Development Documentation
-- [Workflows Guide](./.github/workflows/README.md) - CI/CD and release process
+- [SDK README](./packages/sdk/README.md) - SDK overview and API reference
+- [MCP README](./packages/mcp/README.md) - MCP server setup and usage
+- [MCP Installation Guide](./packages/mcp/INSTALLATION.md) - Detailed MCP setup
+- [API Documentation](./DOCS.md) - Full API reference
+- [Examples](./examples/) - Working code examples
+- [Changelog](./CHANGELOG.md) - Version history
 
 ## Contributing
 
-Contributions are welcome! Please read our [Contributing Guide](./CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
+Contributions are welcome. Please read the [Contributing Guide](./CONTRIBUTING.md) before submitting a pull request.
+
+By participating in this project you agree to abide by the [Code of Conduct](./CODE_OF_CONDUCT.md).
+
+## Security
+
+If you discover a security vulnerability, please report it responsibly. See the [Security Policy](./SECURITY.md) for details.
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
+This project is licensed under the MIT License. See [LICENSE](./LICENSE) for the full text.
