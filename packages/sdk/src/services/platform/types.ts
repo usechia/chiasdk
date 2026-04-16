@@ -24,6 +24,15 @@ export interface Plan {
 	metadata: Record<string, unknown> | null;
 	createdAt: string;
 	updatedAt: string;
+	checkoutFields?: {
+		email: "required" | "optional";
+		name: "required" | "optional";
+	} | null;
+	postPaymentBehavior?: {
+		onSuccess: { action: "stay" | "redirect"; url?: string };
+		onFailure: { action: "stay" | "redirect"; url?: string };
+		onCancellation: { action: "stay" | "redirect"; url?: string };
+	} | null;
 }
 
 export interface UpdatePlanRequest {
@@ -40,6 +49,12 @@ export interface CreateSubscriptionRequest {
 	customerReference?: string;
 	returnUrl?: string;
 	metadata?: Record<string, unknown>;
+	turnstileToken: string;
+	redirectUrls?: {
+		onSuccess?: string;
+		onFailure?: string;
+		onCancellation?: string;
+	};
 }
 
 export interface SubscriptionIntent {

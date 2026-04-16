@@ -20,6 +20,7 @@ export class ChiaWidget {
   private config: ChiaWidgetConfig;
   private pollTimer?: number;
   private state: WidgetState;
+  private failureCount = 0;
 
   constructor(config: ChiaWidgetConfig) {
     this.validateConfig(config);
@@ -153,6 +154,17 @@ export class ChiaWidget {
 
         if (status.status === "succeeded") {
           this.stopPolling();
+
+          const successUrl = this.config.redirectUrls?.onSuccess
+            || (this.state.step === "processing" && this.state.plan.postPaymentBehavior?.onSuccess?.action === "redirect"
+                ? this.state.plan.postPaymentBehavior.onSuccess.url
+                : undefined);
+
+          if (successUrl) {
+            window.location.href = successUrl;
+            return;
+          }
+
           if (this.state.step === "processing") {
             this.setState({
               step: "success",
@@ -175,6 +187,18 @@ export class ChiaWidget {
           status.status === "cancelled"
         ) {
           this.stopPolling();
+          this.failureCount++;
+
+          const failureUrl = this.config.redirectUrls?.onFailure
+            || (this.state.step === "processing" && this.state.plan.postPaymentBehavior?.onFailure?.action === "redirect"
+                ? this.state.plan.postPaymentBehavior.onFailure.url
+                : undefined);
+
+          if (this.failureCount >= 3 && failureUrl) {
+            window.location.href = failureUrl;
+            return;
+          }
+
           this.setState({
             step: "error",
             message: `Payment ${status.status}`,
