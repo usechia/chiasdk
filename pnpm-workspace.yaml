@@ -1,5 +1,6 @@
 packages:
   - 'packages/sdk'
   - 'packages/mcp'
+  - 'packages/widget'
   - 'docs'
-  - 'examples/*' 
+  - 'examples/*'

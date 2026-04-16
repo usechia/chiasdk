@@ -1,0 +1,60 @@
+{
+  "name": "@chiahq/widget",
+  "version": "0.0.1",
+  "description": "Embeddable subscription widget for Chia",
+  "main": "dist/chia-widget.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "unpkg": "dist/chia-widget.min.js",
+  "jsdelivr": "dist/chia-widget.min.js",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/chia-widget.js",
+      "default": "./dist/chia-widget.js"
+    }
+  },
+  "scripts": {
+    "build": "rollup -c",
+    "dev": "rollup -c -w",
+    "clean": "rimraf dist"
+  },
+  "keywords": [
+    "chia",
+    "payment",
+    "widget",
+    "subscription",
+    "africa",
+    "mobile-money",
+    "embed"
+  ],
+  "author": "",
+  "type": "module",
+  "license": "MIT",
+  "devDependencies": {
+    "@rollup/plugin-node-resolve": "^16.0.0",
+    "@rollup/plugin-terser": "^0.4.4",
+    "@rollup/plugin-typescript": "^12.1.2",
+    "rimraf": "^6.1.2",
+    "rollup": "^4.34.0",
+    "tslib": "^2.8.1",
+    "typescript": "^5.9.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/usechia/chiasdk.git",
+    "directory": "packages/widget"
+  }
+}
