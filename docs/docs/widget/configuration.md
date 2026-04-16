@@ -21,6 +21,28 @@ description: Widget configuration options, themes, and callbacks
 | `onSubscribed` | `(result: SubscribeResult) => void` | No | Fires on successful subscription |
 | `onError` | `(error: WidgetError) => void` | No | Fires on any error |
 | `onClose` | `() => void` | No | Fires when a modal is closed |
+| `redirectUrls` | `{ onSuccess?: string, onFailure?: string, onCancellation?: string }` | No | Override plan-level redirect behavior |
+| `turnstileSiteKey` | `string` | No | Cloudflare Turnstile site key for bot protection |
+
+## Redirect URLs
+
+Override the plan's post-payment behavior at the widget level:
+
+```javascript
+Chia.init({
+  publishableKey: "pk_test_...",
+  container: "#usechia-widget",
+  redirectUrls: {
+    onSuccess: "https://example.com/thank-you",
+    onFailure: "https://example.com/try-again",
+    onCancellation: "https://example.com/cancelled",
+  },
+});
+```
+
+**Precedence:** Widget `redirectUrls` > plan-level `postPaymentBehavior` > inline status display.
+
+Failure redirects trigger after 3 failed payment attempts. Success and cancellation redirects are immediate.
 
 ## Publishable keys
 

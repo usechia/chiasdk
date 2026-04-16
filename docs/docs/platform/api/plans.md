@@ -64,3 +64,43 @@ curl -X PATCH https://api.usechia.com/plans/{planId} \
 curl -X DELETE https://api.usechia.com/plans/{planId} \
   -H "Authorization: Bearer sk_test_..."
 ```
+
+## Checkout fields
+
+Plans can configure which fields are required or optional on the checkout form. Phone is always required.
+
+```json
+{
+  "checkoutFields": {
+    "email": "required",
+    "name": "optional"
+  }
+}
+```
+
+| Field | Values | Default |
+|---|---|---|
+| `email` | `"required"` or `"optional"` | `"optional"` |
+| `name` | `"required"` or `"optional"` | `"optional"` |
+
+## Post-payment behavior
+
+Configure what happens after payment succeeds, fails, or is cancelled.
+
+```json
+{
+  "postPaymentBehavior": {
+    "onSuccess": { "action": "redirect", "url": "https://example.com/thank-you" },
+    "onFailure": { "action": "stay" },
+    "onCancellation": { "action": "redirect", "url": "https://example.com/cancelled" }
+  }
+}
+```
+
+| Outcome | Actions | Notes |
+|---|---|---|
+| `onSuccess` | `"stay"` or `"redirect"` | Immediate redirect on payment success |
+| `onFailure` | `"stay"` or `"redirect"` | Redirect triggers after 3 failed attempts |
+| `onCancellation` | `"stay"` or `"redirect"` | Redirect when subscriber cancels during checkout |
+
+Default: all outcomes set to `{ "action": "stay" }`.

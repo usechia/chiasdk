@@ -77,6 +77,8 @@ await sdk.platform.plans.delete(plan.id);
 | `provider` | `"paychangu" \| "pawapay" \| "onekhusa"` | Yes | Payment provider for this plan |
 | `description` | `string` | No | Plan description |
 | `metadata` | `Record<string, unknown>` | No | Custom key-value data |
+| `checkoutFields` | `{ email?: "required" \| "optional", name?: "required" \| "optional" }` | No | Which fields are required on the checkout form (phone is always required) |
+| `postPaymentBehavior` | `{ onSuccess?: { action: "stay" \| "redirect", url?: string }, onFailure?: ..., onCancellation?: ... }` | No | What happens after payment succeeds, fails, or is cancelled. Default: all `"stay"` |
 
 ## Subscriptions
 
@@ -102,11 +104,17 @@ const status = await sdk.platform.subscriptions.get(intent.id);
 |---|---|---|---|
 | `planId` | `string` | Yes | ID of the plan to subscribe to |
 | `phone` | `string` | Yes | Subscriber's phone number |
-| `name` | `string` | No | Subscriber's name |
+| `name` | `string` | Depends on plan | Subscriber's name (required if plan's `checkoutFields.name` is `"required"`) |
+| `email` | `string` | Depends on plan | Subscriber's email (required if plan's `checkoutFields.email` is `"required"`) |
 | `correspondent` | `string` | No | Mobile money operator code |
 | `customerReference` | `string` | No | Your reference for this customer |
 | `returnUrl` | `string` | No | Redirect URL after hosted checkout |
+| `redirectUrls` | `{ onSuccess?: string, onFailure?: string, onCancellation?: string }` | No | Override plan-level post-payment redirect behavior for this intent |
 | `metadata` | `Record<string, unknown>` | No | Custom key-value data |
+
+:::note Turnstile not required for SDK calls
+The `turnstileToken` field is only required when calling public HTTP endpoints directly from a browser. Server-to-server SDK calls authenticated with a secret API key (`sk_test_*` / `sk_live_*`) do not require Turnstile verification.
+:::
 
 ### Subscription intent statuses
 

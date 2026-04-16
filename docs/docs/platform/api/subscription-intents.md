@@ -22,6 +22,41 @@ curl -X POST https://api.usechia.com/public/subscription-intents \
   }'
 ```
 
+### Required fields
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `planId` | string | Yes | The plan to subscribe to |
+| `phone` | string | Yes | Mobile money phone number |
+| `turnstileToken` | string | Yes (public) | Cloudflare Turnstile verification token |
+| `name` | string | Depends on plan | Subscriber name (per plan's `checkoutFields`) |
+| `email` | string | Depends on plan | Subscriber email (per plan's `checkoutFields`) |
+| `redirectUrls` | object | No | Override plan-level redirect behavior |
+
+### Redirect URLs
+
+Override the plan's post-payment behavior for this specific intent:
+
+```json
+{
+  "redirectUrls": {
+    "onSuccess": "https://example.com/success",
+    "onFailure": "https://example.com/failed",
+    "onCancellation": "https://example.com/cancelled"
+  }
+}
+```
+
+**Precedence:** API call `redirectUrls` > plan-level `postPaymentBehavior` > stay on page.
+
+### Turnstile verification
+
+Public endpoints (`/public/subscription-intents`, `/s/:orgSlug/subscribe`) require a Cloudflare Turnstile token. Authenticated API key endpoints (server-to-server) do not require Turnstile.
+
+For development, use Cloudflare's test keys:
+- Site key: `1x00000000000000000000AA`
+- Secret key: `1x0000000000000000000000000000000AA`
+
 ### Response
 
 ```json
