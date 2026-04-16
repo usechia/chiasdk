@@ -2,6 +2,7 @@ import { PawapayDeposits } from "./deposits";
 import { PawapayPayments } from "./payments";
 import { PawapayPayouts } from "./payouts";
 import { PawapayRefunds } from "./refunds";
+import { PawapayRemittances } from "./remittances";
 import { PawapayWallets } from "./wallets";
 import type { Environment } from "../../config/constants";
 import { createPawapayClient } from "../../utils/providerClients";
@@ -18,6 +19,7 @@ export class PawaPay {
 	private readonly _payments: PawapayPayments;
 	private readonly _payouts: PawapayPayouts;
 	private readonly _refunds: PawapayRefunds;
+	private readonly _remittances: PawapayRemittances;
 	private readonly _wallets: PawapayWallets;
 
 	constructor(
@@ -36,6 +38,7 @@ export class PawaPay {
 		this._payments = new PawapayPayments(this.network);
 		this._payouts = new PawapayPayouts(this.network);
 		this._refunds = new PawapayRefunds(this.network);
+		this._remittances = new PawapayRemittances(this.network);
 		this._wallets = new PawapayWallets(this.network);
 	}
 
@@ -43,6 +46,7 @@ export class PawaPay {
 	get payments(): PawapayPayments { return this._payments; }
 	get payouts(): PawapayPayouts { return this._payouts; }
 	get refunds(): PawapayRefunds { return this._refunds; }
+	get remittances(): PawapayRemittances { return this._remittances; }
 	get wallets(): PawapayWallets { return this._wallets; }
 
 	async getAvailability(

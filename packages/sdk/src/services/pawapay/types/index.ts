@@ -235,6 +235,82 @@ export namespace PawaPayTypes {
 	export interface ResendCallbackResponse {
 		status: "ACCEPTED" | "REJECTED" | "FAILED";
 	}
+
+	export interface RemittanceSender {
+		type: "BUSINESS" | "INDIVIDUAL";
+		senderDetails?: {
+			name?: { firstName?: string; middleName?: string; lastName?: string };
+			address?: { country?: string };
+			idDocument?: { type?: string; country?: string; number?: string };
+		};
+		transactionDetails?: {
+			sendingCountry?: string;
+			receivingCountry?: string;
+			type?: string;
+			sendingCurrency?: string;
+			receivingCurrency?: string;
+			sendingAmount?: string;
+			receivingAmount?: string;
+			exchangeRate?: string;
+			fees?: string;
+		};
+	}
+
+	export interface RemittanceRecipient {
+		type: "MSISDN";
+		address: { value: string };
+	}
+
+	export interface RemittanceRequest {
+		remittanceId: string;
+		amount: string;
+		currency: string;
+		recipient: RemittanceRecipient;
+		sender: RemittanceSender;
+		customerMessage?: string;
+		metadata?: Metadata[];
+	}
+
+	export interface RemittanceInitiationResponse {
+		remittanceId: string;
+		status: "ACCEPTED" | "REJECTED" | "DUPLICATE_IGNORED";
+		created?: string;
+		failureReason?: FailureReason;
+	}
+
+	export type RemittanceStatus = "ACCEPTED" | "ENQUEUED" | "PROCESSING" | "IN_RECONCILIATION" | "COMPLETED" | "FAILED";
+
+	export interface RemittanceStatusResponse {
+		remittanceId: string;
+		status: RemittanceStatus;
+		amount: string;
+		currency: string;
+		country: string;
+		recipient: RemittanceRecipient;
+		sender: RemittanceSender;
+		customerMessage?: string;
+		created: string;
+		providerTransactionId?: string;
+		failureReason?: FailureReason;
+		metadata?: Metadata[];
+	}
+
+	export interface RemittanceSearchResult {
+		status: "FOUND" | "NOT_FOUND";
+		data?: RemittanceStatusResponse;
+	}
+
+	export interface RemittanceCallbackResponse {
+		remittanceId: string;
+		status: "ACCEPTED" | "REJECTED";
+		failureReason?: FailureReason;
+	}
+
+	export interface CancelRemittanceResponse {
+		remittanceId: string;
+		status: "ACCEPTED" | "REJECTED";
+		failureReason?: FailureReason;
+	}
 }
 
 export default PawaPayTypes;

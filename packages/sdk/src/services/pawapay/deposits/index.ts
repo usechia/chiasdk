@@ -56,8 +56,9 @@ export class PawapayDeposits {
 
 		return wrapServiceCall(
 			() =>
-				this.networkHandler.get<PawaPayTypes.ResendCallbackResponse>(
+				this.networkHandler.post<PawaPayTypes.ResendCallbackResponse>(
 					`${this.baseEndpoint}/resend-callback/${depositId}`,
+					undefined,
 					"resending callback",
 				),
 			this.networkHandler.handleApiError.bind(this.networkHandler),

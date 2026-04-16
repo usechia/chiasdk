@@ -73,8 +73,9 @@ export class PawapayPayouts {
 
 		return wrapServiceCall(
 			() =>
-				this.networkHandler.get<PawaPayTypes.CancelPayoutResponse>(
+				this.networkHandler.post<PawaPayTypes.CancelPayoutResponse>(
 					`${this.baseEndpoint}/fail-enqueued/${payoutId}`,
+					undefined,
 					"cancelling enqueued payout",
 				),
 			this.networkHandler.handleApiError.bind(this.networkHandler),

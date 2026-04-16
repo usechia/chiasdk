@@ -5,6 +5,7 @@ import { PaymentProviderAdapter, PaymentProviderConfig } from "./services";
 import { Platform } from "./services/platform";
 import type { PlatformConfig } from "./services/platform/types";
 import type { Environment } from "./config/constants";
+import type { RetryConfig } from "./utils/httpClient";
 import {
 	type EnvConfig,
 	loadEnvConfig,
@@ -21,6 +22,11 @@ export interface SDKConfig {
 	 * Environment configuration options
 	 */
 	env?: EnvLoadOptions;
+
+	/**
+	 * Retry configuration for HTTP requests
+	 */
+	retry?: Partial<RetryConfig>;
 
 	/**
 	 * PayChangu configuration (overrides environment variables)

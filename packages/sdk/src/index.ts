@@ -89,6 +89,7 @@ export type {
 	AuthStrategy,
 	RequestHook,
 	NetworkErrorResponse,
+	RetryConfig,
 } from "./utils/httpClient";
 export {
 	createPawapayClient,

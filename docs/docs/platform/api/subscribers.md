@@ -37,10 +37,26 @@ curl -X PATCH https://api.usechia.com/subscribers/{subscriberId} \
 
 ## Cancel a subscription
 
+### Cancel subscriber
+
+```
+POST /subscribers/{subscriberId}/cancel
+```
+
 ```bash
 curl -X POST https://api.usechia.com/subscribers/{subscriberId}/cancel \
-  -H "Authorization: Bearer sk_test_..."
+  -H "Authorization: Bearer sk_test_..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "mode": "at_period_end",
+    "reason": "Customer requested cancellation"
+  }'
 ```
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `mode` | `"immediate" \| "at_period_end"` | No | Default: `"at_period_end"` |
+| `reason` | string | No | Cancellation reason |
 
 Two cancellation modes:
 - **Immediate**: Stops the subscription and all future billing immediately

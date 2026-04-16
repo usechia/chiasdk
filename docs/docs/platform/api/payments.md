@@ -15,6 +15,13 @@ curl https://api.usechia.com/payments \
   -H "Authorization: Bearer sk_test_..."
 ```
 
+### Query parameters
+
+| Parameter | Type | Description |
+|---|---|---|
+| `subscriberId` | string | Filter payments by subscriber |
+| `status` | string | Filter by status: `pending`, `success`, `failed`, `expired` |
+
 ## Get a payment
 
 ```bash

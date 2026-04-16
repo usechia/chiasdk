@@ -15,11 +15,18 @@ curl -X POST https://api.usechia.com/plans \
   -H "Authorization: Bearer sk_test_..." \
   -H "Content-Type: application/json" \
   -d '{
-    "name": "Pro Plan",
-    "amount": 10000,
+    "name": "Pro Monthly",
+    "amount": 5000,
     "currency": "MWK",
     "interval": "monthly",
-    "provider": "paychangu"
+    "provider": "paychangu",
+    "checkoutFields": {
+      "email": "required",
+      "name": "optional"
+    },
+    "postPaymentBehavior": {
+      "onSuccess": { "action": "redirect", "url": "https://example.com/thank-you" }
+    }
   }'
 ```
 
@@ -32,6 +39,8 @@ curl -X POST https://api.usechia.com/plans \
 | `currency` | string | yes | ISO currency code (MWK, ZMW, UGX, KES) |
 | `interval` | string | yes | Billing frequency: `daily`, `weekly`, or `monthly` |
 | `provider` | string | yes | Payment provider: `paychangu`, `pawapay`, or `onekhusa` |
+| `checkoutFields` | object | no | Which fields appear on the checkout form. Phone is always required. `{ email?: "required" \| "optional", name?: "required" \| "optional" }` |
+| `postPaymentBehavior` | object | no | What happens after payment. `{ onSuccess?: { action: "stay" \| "redirect", url?: string }, onFailure?: { action: "stay" \| "redirect", url?: string }, onCancellation?: { action: "stay" \| "redirect", url?: string } }`. Default: all `"stay"` |
 
 ## List plans
 

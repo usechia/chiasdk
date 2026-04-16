@@ -49,9 +49,9 @@ Override the plan's post-payment behavior for this specific intent:
 
 **Precedence:** API call `redirectUrls` > plan-level `postPaymentBehavior` > stay on page.
 
-### Turnstile verification
-
-Public endpoints (`/public/subscription-intents`, `/s/:orgSlug/subscribe`) require a Cloudflare Turnstile token. Authenticated API key endpoints (server-to-server) do not require Turnstile.
+:::note Turnstile verification
+Public HTTP endpoints (used by the widget and storefront) require a `turnstileToken` field for bot protection. Server-to-server SDK calls authenticated with a secret API key (`sk_test_*` / `sk_live_*`) do not require Turnstile verification.
+:::
 
 For development, use Cloudflare's test keys:
 - Site key: `1x00000000000000000000AA`

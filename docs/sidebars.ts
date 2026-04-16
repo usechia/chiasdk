@@ -23,6 +23,8 @@ const sidebars: SidebarsConfig = {
         'sdk/pawapay/deposits',
         'sdk/pawapay/payouts',
         'sdk/pawapay/wallets',
+        'sdk/pawapay/refunds',
+        'sdk/pawapay/remittances',
       ],
     },
     {
@@ -74,6 +76,7 @@ const sidebars: SidebarsConfig = {
         'platform/api/subscription-intents',
         'platform/api/payments',
         'platform/api/webhooks',
+        'platform/api/refunds',
       ],
     },
     {

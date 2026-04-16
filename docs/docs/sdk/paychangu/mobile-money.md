@@ -62,6 +62,25 @@ if (details.type === "success") {
 }
 ```
 
+## Mobile Money Collection
+
+Initiate an inbound payment (collection) from a customer.
+
+```typescript
+const collection = await sdk.paychangu.initializeMobileMoneyCollection({
+  amount: 5000,
+  currency: "MWK",
+  phone: "265999123456",
+  // ... other fields
+});
+```
+
+## Verify Mobile Money Payment
+
+```typescript
+const verification = await sdk.paychangu.verifyMobileMoneyPayment(transactionRef);
+```
+
 ## Supported Operators
 
 The available mobile money operators can be retrieved using `getMobileMoneyOperators()`. Common operators in Malawi include:

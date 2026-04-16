@@ -6,11 +6,40 @@ import axios, {
 } from "axios";
 import { logger } from "./logger";
 
+export interface RetryConfig {
+	maxRetries: number;
+	initialDelayMs: number;
+	maxDelayMs: number;
+}
+
+const DEFAULT_RETRY_CONFIG: RetryConfig = {
+	maxRetries: 3,
+	initialDelayMs: 1000,
+	maxDelayMs: 10000,
+};
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+function isRetryable(error: unknown): boolean {
+	if (axios.isAxiosError(error)) {
+		if (!error.response) return true;
+		return error.response.status >= 500;
+	}
+	return true;
+}
+
+function computeDelay(attempt: number, config: RetryConfig): number {
+	const base = Math.min(config.initialDelayMs * 2 ** attempt, config.maxDelayMs);
+	const jitter = Math.random() * base * 0.1;
+	return base + jitter;
+}
+
 export interface HttpClientConfig {
 	baseUrl: string;
 	serviceName: string;
 	timeoutMs?: number;
 	defaultHeaders?: Record<string, string>;
+	retry?: Partial<RetryConfig>;
 }
 
 export interface AuthStrategy {
@@ -42,6 +71,7 @@ export class HttpClient {
 	protected readonly axiosInstance: AxiosInstance;
 	private readonly serviceName: string;
 	private readonly authStrategy: AuthStrategy;
+	private readonly retryConfig: RetryConfig;
 
 	constructor(
 		config: HttpClientConfig,
@@ -50,6 +80,7 @@ export class HttpClient {
 	) {
 		this.serviceName = config.serviceName;
 		this.authStrategy = authStrategy;
+		this.retryConfig = { ...DEFAULT_RETRY_CONFIG, ...config.retry };
 
 		const headers: Record<string, string> = {
 			"Content-Type": "application/json",
@@ -187,17 +218,40 @@ export class HttpClient {
 		return { errorMessage, statusCode, errorObject };
 	}
 
+	private async requestWithRetry<T>(
+		operation: () => Promise<AxiosResponse<T>>,
+		context: string,
+	): Promise<T> {
+		let lastError: unknown;
+		for (let attempt = 0; attempt <= this.retryConfig.maxRetries; attempt++) {
+			try {
+				const response = await operation();
+				return response.data;
+			} catch (error) {
+				lastError = error;
+				if (attempt < this.retryConfig.maxRetries && isRetryable(error)) {
+					const delay = computeDelay(attempt, this.retryConfig);
+					logger.debug(
+						`${this.serviceName} retrying ${context} (attempt ${attempt + 1}/${this.retryConfig.maxRetries}) in ${Math.round(delay)}ms`,
+					);
+					await sleep(delay);
+					continue;
+				}
+				throw this.handleApiError(error, context);
+			}
+		}
+		throw this.handleApiError(lastError, context);
+	}
+
 	async get<T>(
 		endpoint: string,
 		context = "GET request",
 		config: AxiosRequestConfig = {},
 	): Promise<T> {
-		try {
-			const response = await this.axiosInstance.get<T>(endpoint, config);
-			return response.data;
-		} catch (error) {
-			throw this.handleApiError(error, context);
-		}
+		return this.requestWithRetry(
+			() => this.axiosInstance.get<T>(endpoint, config),
+			context,
+		);
 	}
 
 	async post<T>(
@@ -206,12 +260,10 @@ export class HttpClient {
 		context = "POST request",
 		config: AxiosRequestConfig = {},
 	): Promise<T> {
-		try {
-			const response = await this.axiosInstance.post<T>(endpoint, data, config);
-			return response.data;
-		} catch (error) {
-			throw this.handleApiError(error, context);
-		}
+		return this.requestWithRetry(
+			() => this.axiosInstance.post<T>(endpoint, data, config),
+			context,
+		);
 	}
 
 	async put<T>(
@@ -220,12 +272,10 @@ export class HttpClient {
 		context = "PUT request",
 		config: AxiosRequestConfig = {},
 	): Promise<T> {
-		try {
-			const response = await this.axiosInstance.put<T>(endpoint, data, config);
-			return response.data;
-		} catch (error) {
-			throw this.handleApiError(error, context);
-		}
+		return this.requestWithRetry(
+			() => this.axiosInstance.put<T>(endpoint, data, config),
+			context,
+		);
 	}
 
 	async patch<T>(
@@ -234,16 +284,10 @@ export class HttpClient {
 		context = "PATCH request",
 		config: AxiosRequestConfig = {},
 	): Promise<T> {
-		try {
-			const response = await this.axiosInstance.patch<T>(
-				endpoint,
-				data,
-				config,
-			);
-			return response.data;
-		} catch (error) {
-			throw this.handleApiError(error, context);
-		}
+		return this.requestWithRetry(
+			() => this.axiosInstance.patch<T>(endpoint, data, config),
+			context,
+		);
 	}
 
 	async delete<T>(
@@ -251,12 +295,10 @@ export class HttpClient {
 		context = "DELETE request",
 		config: AxiosRequestConfig = {},
 	): Promise<T> {
-		try {
-			const response = await this.axiosInstance.delete<T>(endpoint, config);
-			return response.data;
-		} catch (error) {
-			throw this.handleApiError(error, context);
-		}
+		return this.requestWithRetry(
+			() => this.axiosInstance.delete<T>(endpoint, config),
+			context,
+		);
 	}
 
 	getInstance(): AxiosInstance {

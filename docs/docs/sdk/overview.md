@@ -51,6 +51,22 @@ const sdk = ChiaSDK.initialize({
 // Now use sdk.pawapay, sdk.paychangu, or sdk.onekhusa
 ```
 
+## Utility Methods
+
+```typescript
+// Non-singleton instance (for multi-tenant or testing)
+const sdk2 = ChiaSDK.create({
+  paychangu: { secretKey: "different-key" }
+});
+
+// Clean up the singleton (useful in tests)
+ChiaSDK.destroy();
+
+// Check which services are configured
+sdk.isServiceConfigured("pawapay"); // true/false
+const services = sdk.getConfiguredServices(); // ["pawapay", "paychangu"]
+```
+
 ## Platform API (Recurring Billing)
 
 For subscription billing, the SDK wraps the Chia Platform API. This is a separate use case from direct provider access - you don't need any provider credentials. Just a Chia API key from [usechia.com](https://usechia.com):
