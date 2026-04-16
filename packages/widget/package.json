@@ -1,6 +1,6 @@
 {
   "name": "@chiahq/widget",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Embeddable subscription widget for Chia",
   "main": "dist/chia-widget.js",
   "module": "dist/index.js",
