@@ -1,0 +1,18 @@
+{
+	"name": "chia-platform-subscribe-example",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"start": "tsx src/index.ts",
+		"start:webhook-server": "tsx src/webhook-server.ts"
+	},
+	"dependencies": {
+		"@chiahq/sdk": "workspace:*",
+		"hono": "^4.7.0",
+		"@hono/node-server": "^1.13.0"
+	},
+	"devDependencies": {
+		"tsx": "^4.19.0",
+		"typescript": "^5.8.0"
+	}
+}
