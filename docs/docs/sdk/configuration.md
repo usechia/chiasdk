@@ -6,6 +6,12 @@ description: Configure the Chia SDK
 
 # Configuration
 
+:::tip Using the Chia Platform?
+If you're using the Chia platform at [chia.africa](https://chia.africa), you don't need to configure the SDK directly. The platform handles payment collection, renewals, and payouts for you - no provider API keys needed.
+
+This guide is for developers building custom integrations with direct provider access.
+:::
+
 The SDK supports flexible configuration for multiple payment providers.
 
 ## Environment Configuration
@@ -186,6 +192,8 @@ Never commit API keys to version control. Use environment variables or a secure 
 :::
 
 ## Getting API Credentials
+
+These credentials are needed when using the SDK directly for custom integrations. If you're using the Chia platform, you don't need provider API keys.
 
 ### PawaPay
 

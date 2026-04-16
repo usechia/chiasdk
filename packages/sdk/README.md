@@ -1,9 +1,23 @@
 # Chia SDK
 
-A unified TypeScript SDK for seamless integration with African payment providers. Type-safe, reliable, and built for production.
+The Chia SDK powers the [Chia platform](https://chia.africa). You can also use it directly for custom integrations with African payment providers.
 
 [![npm version](https://img.shields.io/npm/v/chia-sdk.svg)](https://www.npmjs.com/package/chia-sdk)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+## Chia Platform vs SDK
+
+Most users should start with the **Chia platform** at [chia.africa](https://chia.africa). Sign up, create a plan, share a link, and start collecting payments. No API keys, no code, no provider accounts needed.
+
+Use the **SDK directly** when you need:
+
+- Custom payment flows beyond subscription billing
+- Direct access to provider APIs (deposits, payouts, refunds, wallets)
+- Integration into an existing backend where you manage your own provider accounts
+- Batch disbursements or approval workflows (OneKhusa)
+- Provider-specific features not exposed by the platform
+
+If you just want to bill subscribers via mobile money, the platform handles everything for you - including payment collection, retries, and weekly payouts to your account.
 
 ## Features
 
@@ -254,6 +268,8 @@ import type {
 
 ## Getting API Credentials
 
+These credentials are needed when using the SDK directly. If you're using the Chia platform, you don't need provider API keys - Chia handles payment collection for you.
+
 ### PawaPay
 
 1. Visit [PawaPay](https://www.pawapay.io/) and create a developer account
@@ -274,7 +290,7 @@ import type {
 
 ## Documentation
 
-For full documentation, visit [chia.dev](https://chia.dev) or see the [docs](https://github.com/usechia/chiasdk/tree/master/docs).
+For full documentation, visit [chia.africa/docs](https://chia.africa/docs) or see the [docs](https://github.com/usechia/chiasdk/tree/master/docs).
 
 ## MCP Server
 

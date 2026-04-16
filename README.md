@@ -1,23 +1,29 @@
 # Chia
 
-A unified ecosystem for African payment providers. Chia provides a TypeScript SDK, an MCP server for AI assistants, and support for multiple providers including PayChangu, PawaPay, and OneKhusa.
+Subscription billing for mobile money in Africa. Chia handles payment collection, automated renewals, and merchant payouts - so businesses can focus on their product.
 
-## Packages
+## Three Ways to Use Chia
 
-| Package | Description | npm |
-|---------|-------------|-----|
-| [chia-sdk](./packages/sdk) | TypeScript SDK for African payment providers | `@chiahq/sdk` |
-| [chia-mcp](./packages/mcp) | Model Context Protocol server for AI assistants | `@chiahq/mcp` |
+| Layer | What it does | Who it's for |
+|-------|-------------|--------------|
+| **[Chia Platform](https://chia.africa)** | Managed billing - sign up, create plans, share a link, get paid | Any business |
+| **[Chia SDK](./packages/sdk)** | TypeScript SDK for direct provider API access | Developers building custom integrations |
+| **[Chia MCP](./packages/mcp)** | AI assistant tools for payment operations | AI-powered workflows |
 
-## Supported Providers
+## Quick Start: Chia Platform (No Code)
 
-- **PayChangu** - Payment gateway for Malawi (direct charge, mobile money, bank transfers)
-- **PawaPay** - Mobile money payments across Africa (deposits, payouts, refunds)
-- **OneKhusa** - Collections and disbursements across multiple African markets
+The fastest way to start collecting subscription payments:
 
-## Installation
+1. **Sign up** at [chia.africa](https://chia.africa)
+2. **Create a plan** - set the name, price, and billing interval
+3. **Share your storefront link** - subscribers pay via mobile money
+4. **Get paid** - Chia collects payments and sends you your earnings weekly
 
-### SDK
+No provider API keys needed. No code required. Chia handles collection via PayChangu, PawaPay, and OneKhusa, tracks your balance, and disburses your earnings on a weekly schedule. A flat 3% fee per successful transaction.
+
+## Quick Start: Chia SDK (For Developers)
+
+For developers who want direct access to provider APIs with their own accounts:
 
 ```bash
 npm install @chiahq/sdk
@@ -26,19 +32,6 @@ pnpm add @chiahq/sdk
 # or
 yarn add @chiahq/sdk
 ```
-
-### MCP Server
-
-```bash
-npm install -g @chiahq/mcp
-
-# or run directly with npx
-npx @chiahq/mcp
-```
-
-See the [MCP documentation](./packages/mcp) for configuration with Claude Desktop and other AI assistants.
-
-## Quick Start
 
 ```typescript
 import { ChiaSDK } from "@chiahq/sdk";
@@ -95,6 +88,23 @@ const collection = await sdk.onekhusa.collections.initiateRequestToPay({
 
 > Never commit production API keys to version control. Use environment variables or a secrets manager.
 
+## Supported Providers
+
+- **PayChangu** - Payment gateway with the widest coverage in Malawi (direct charge, mobile money, bank transfers)
+- **PawaPay** - Mobile money payments across 20+ African countries (deposits, payouts, refunds)
+- **OneKhusa** - Collections and disbursements focused on Malawi and Southern Africa
+
+## MCP Server
+
+```bash
+npm install -g @chiahq/mcp
+
+# or run directly with npx
+npx @chiahq/mcp
+```
+
+See the [MCP documentation](./packages/mcp) for configuration with Claude Desktop and other AI assistants.
+
 ## Type Imports
 
 All types are re-exported from the package root - no deep imports needed:
@@ -115,9 +125,9 @@ import type {
 
 **OneKhusa** - Request-to-pay collections, single and batch disbursements, approval workflows (approve, review, reject), fund transfers, transaction listing with filters
 
-## Prerequisites
+## Getting Provider API Keys (SDK / BYOK Mode)
 
-You will need accounts with the providers you plan to use:
+If you're using the SDK directly or connecting your own provider accounts, you'll need API credentials:
 
 **PawaPay** - Create a developer account at [pawapay.io](https://www.pawapay.io/). Complete onboarding, then get your API token from the dashboard. Use the sandbox environment for testing.
 

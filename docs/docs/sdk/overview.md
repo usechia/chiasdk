@@ -8,7 +8,11 @@ description: A unified TypeScript SDK for African payment providers
 
 <span className="version-badge">v0.0.2</span>
 
-A unified TypeScript SDK for seamless integration with African payment providers. Type-safe, reliable, and built for production.
+The Chia SDK is the foundation that powers the [Chia platform](https://chia.africa). Developers can also use it directly for custom integrations with African payment providers.
+
+**Most users don't need the SDK.** If you want subscription billing over mobile money, sign up at [chia.africa](https://chia.africa) and start collecting payments in minutes - no code required. Chia handles payment collection, renewals, and weekly payouts to your account.
+
+The SDK is for developers who need direct access to provider APIs: custom payment flows, payouts, refunds, wallet management, batch disbursements, or integration into an existing backend.
 
 ## Features
 
@@ -74,3 +78,4 @@ Available services: `sdk.platform.plans`, `sdk.platform.subscribers`, `sdk.platf
 - [Installation](/docs/sdk/installation) - Install the SDK
 - [Quick Start](/docs/sdk/quick-start) - Get up and running
 - [Configuration](/docs/sdk/configuration) - Configure providers
+- [Platform Docs](/docs/platform/overview) - Use the managed platform instead
