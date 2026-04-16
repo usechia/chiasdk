@@ -6,52 +6,11 @@ description: Configure the Chia SDK
 
 # Configuration
 
-:::tip Using the Chia Platform?
-If you're using the Chia platform at [chia.africa](https://chia.africa), you don't need to configure the SDK directly. The platform handles payment collection, renewals, and payouts for you - no provider API keys needed.
-
-This guide is for developers building custom integrations with direct provider access.
-:::
-
 The SDK supports flexible configuration for multiple payment providers.
 
-## Environment Configuration
+## Provider Configuration
 
-By default, the SDK loads `.env` from your project root. You can override the path if needed:
-
-```typescript
-import { ChiaSDK } from "@chiahq/sdk";
-
-const sdk = ChiaSDK.initialize({
-  env: { envPath: ".env.local" }
-});
-```
-
-Use environment variables to securely store your API credentials:
-
-```bash
-# PayChangu Configuration
-PAYCHANGU_SECRET_KEY=your-paychangu-secret
-PAYCHANGU_RETURN_URL=https://your-return-url.com
-PAYCHANGU_ENVIRONMENT=DEVELOPMENT
-
-# PawaPay Configuration
-PAWAPAY_JWT=your-pawapay-jwt
-PAWAPAY_ENVIRONMENT=DEVELOPMENT
-
-# OneKhusa Configuration
-ONEKHUSA_API_KEY=your-onekhusa-api-key
-ONEKHUSA_API_SECRET=your-onekhusa-api-secret
-ONEKHUSA_ORGANISATION_ID=your-organisation-id
-ONEKHUSA_ENVIRONMENT=DEVELOPMENT
-```
-
-:::tip
-Use `DEVELOPMENT` for sandbox endpoints and `PRODUCTION` for live endpoints. PawaPay and OneKhusa respect the environment setting. PayChangu uses a single base URL; sandbox vs live is controlled by your PayChangu credentials.
-:::
-
-## Provider-Specific Configuration
-
-You can pass credentials directly to the SDK to override environment variables:
+Pass credentials directly when initializing the SDK:
 
 ```typescript
 import { ChiaSDK, ENVIRONMENTS } from "@chiahq/sdk";
@@ -72,6 +31,43 @@ const sdk = ChiaSDK.initialize({
   }
 });
 ```
+
+:::tip
+Use `DEVELOPMENT` for sandbox endpoints and `PRODUCTION` for live endpoints. PawaPay and OneKhusa respect the environment setting. PayChangu uses a single base URL; sandbox vs live is controlled by your PayChangu credentials.
+:::
+
+## Environment Variables (Alternative)
+
+Alternatively, the SDK can read credentials from environment variables. It loads `.env` from your project root automatically if no direct config is provided for a provider:
+
+```bash
+# PayChangu
+PAYCHANGU_SECRET_KEY=your-paychangu-secret
+PAYCHANGU_RETURN_URL=https://your-return-url.com
+PAYCHANGU_ENVIRONMENT=DEVELOPMENT
+
+# PawaPay
+PAWAPAY_JWT=your-pawapay-jwt
+PAWAPAY_ENVIRONMENT=DEVELOPMENT
+
+# OneKhusa
+ONEKHUSA_API_KEY=your-onekhusa-api-key
+ONEKHUSA_API_SECRET=your-onekhusa-api-secret
+ONEKHUSA_ORGANISATION_ID=your-organisation-id
+ONEKHUSA_ENVIRONMENT=DEVELOPMENT
+```
+
+You can override the `.env` path:
+
+```typescript
+import { ChiaSDK } from "@chiahq/sdk";
+
+const sdk = ChiaSDK.initialize({
+  env: { envPath: ".env.local" }
+});
+```
+
+Direct config takes precedence over environment variables when both are present.
 
 ## Custom API URLs
 
@@ -193,7 +189,7 @@ Never commit API keys to version control. Use environment variables or a secure 
 
 ## Getting API Credentials
 
-These credentials are needed when using the SDK directly for custom integrations. If you're using the Chia platform, you don't need provider API keys.
+These credentials are needed when using the SDK directly for custom integrations. If you're using the [Chia platform](https://usechia.com), you don't need provider API keys - the platform manages payment collection for you. You can also embed checkout on your site using the [@chiahq/widget](/docs/widget/overview).
 
 ### PawaPay
 

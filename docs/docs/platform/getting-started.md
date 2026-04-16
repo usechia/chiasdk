@@ -10,7 +10,7 @@ This guide walks you through setting up your Chia account and collecting your fi
 
 ## 1. Create your account
 
-Sign up at [chia.africa/signup](https://chia.africa/signup). You'll create a user account and an organization. The organization is your billing container - all plans, subscribers, payments, and payouts are scoped to it.
+Sign up at [usechia.com/signup](https://usechia.com/signup). You'll create a user account and an organization. The organization is your billing container - all plans, subscribers, payments, and payouts are scoped to it.
 
 ## 2. Set up your payout details
 
@@ -47,7 +47,7 @@ Create a subscription plan from the dashboard:
 Or create plans via the API:
 
 ```bash
-curl -X POST https://api.chia.africa/plans \
+curl -X POST https://api.usechia.com/plans \
   -H "Authorization: Bearer sk_test_..." \
   -H "Content-Type: application/json" \
   -d '{
@@ -60,13 +60,30 @@ curl -X POST https://api.chia.africa/plans \
 
 ## 5. Share your storefront link
 
-Every organization gets a public storefront at `chia.africa/s/your-org-slug`. Share this link with potential subscribers. They can:
+Every organization gets a public storefront at `usechia.com/s/your-org-slug`. Share this link with potential subscribers. They can:
 
 - Browse your available plans
 - Subscribe by entering their phone number
 - Pay via USSD (direct charge) or hosted checkout
 
-You can also embed the checkout widget on your own website for a seamless experience.
+### Embed checkout on your site
+
+Instead of (or alongside) the storefront link, you can embed the Chia widget directly on your website. The widget uses a **publishable key** (`pk_test_*` / `pk_live_*`) which is safe for client-side use - distinct from secret API keys (`sk_test_*` / `sk_live_*`).
+
+Create a publishable key in **Settings > API Keys**, then add the widget:
+
+```html
+<div id="usechia-subscribe"></div>
+<script src="https://cdn.jsdelivr.net/npm/@chiahq/widget/dist/chia-widget.min.js"></script>
+<script>
+  Chia.init({
+    publishableKey: "pk_live_your_key_here",
+    container: "#usechia-subscribe",
+  });
+</script>
+```
+
+See the [Widget documentation](/docs/widget/overview) for modal mode, theming, callbacks, and more.
 
 ## 6. Track everything in the dashboard
 
@@ -133,13 +150,3 @@ When you're ready to collect real payments:
 4. Create a production API key (if using the API)
 
 Your first 5 production subscribers are free, so you can verify the full flow with real payments before committing.
-
-### Optional: Bring Your Own Keys (BYOK)
-
-If you already have provider accounts and want payments to flow directly to you (skipping the weekly payout cycle), go to **Settings > Provider Credentials** and add your API keys:
-
-- **PayChangu:** Secret key from your PayChangu dashboard
-- **PawaPay:** JWT token from your PawaPay dashboard
-- **OneKhusa:** API key, API secret, organisation ID, and merchant account number
-
-When BYOK credentials are configured, payments for plans using that provider go directly to your provider account instead of through Chia's collection accounts.

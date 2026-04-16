@@ -6,13 +6,15 @@ description: A unified TypeScript SDK for African payment providers
 
 # Chia SDK
 
-<span className="version-badge">v0.0.2</span>
+import Version from '@site/src/components/Version';
 
-The Chia SDK is the foundation that powers the [Chia platform](https://chia.africa). Developers can also use it directly for custom integrations with African payment providers.
+<Version pkg="sdk" />
 
-**Most users don't need the SDK.** If you want subscription billing over mobile money, sign up at [chia.africa](https://chia.africa) and start collecting payments in minutes - no code required. Chia handles payment collection, renewals, and weekly payouts to your account.
+The Chia SDK (`@chiahq/sdk`) is a TypeScript SDK for integrating African mobile money payments into any application. It provides a unified, type-safe API for PayChangu, PawaPay, and OneKhusa.
 
-The SDK is for developers who need direct access to provider APIs: custom payment flows, payouts, refunds, wallet management, batch disbursements, or integration into an existing backend.
+**The SDK works independently** - no Chia platform account required. Configure your provider API keys and start accepting payments, processing payouts, managing wallets, and handling refunds.
+
+For businesses that want managed subscription billing (plans, recurring charges, automatic retries, weekly payouts), the [Chia platform](https://usechia.com) is available as an optional add-on. You can also embed checkout on any website using the [@chiahq/widget](/docs/widget/overview).
 
 ## Features
 
@@ -49,9 +51,9 @@ const sdk = ChiaSDK.initialize({
 // Now use sdk.pawapay, sdk.paychangu, or sdk.onekhusa
 ```
 
-## Platform API
+## Platform API (Recurring Billing)
 
-The SDK also wraps the Chia Platform API for managing plans, subscribers, payments, and webhooks:
+For subscription billing, the SDK wraps the Chia Platform API. This is a separate use case from direct provider access - you don't need any provider credentials. Just a Chia API key from [usechia.com](https://usechia.com):
 
 ```typescript
 const sdk = ChiaSDK.initialize({
@@ -66,16 +68,16 @@ const plan = await sdk.platform.plans.create({
 const intent = await sdk.platform.subscriptions.create({
   planId: plan.id, phone: "+265884123456"
 });
-
-const subscribers = await sdk.platform.subscribers.list();
-const payments = await sdk.platform.payments.list();
 ```
 
-Available services: `sdk.platform.plans`, `sdk.platform.subscribers`, `sdk.platform.subscriptions`, `sdk.platform.payments`, `sdk.platform.webhooks`, `sdk.platform.apiKeys`.
+The platform handles payment collection, renewals, retries, and payouts. Available services: `plans`, `subscribers`, `subscriptions`, `payments`, `webhooks`, `apiKeys`.
+
+See the [Platform API guide](/docs/sdk/platform) for the full reference.
 
 ## Next Steps
 
 - [Installation](/docs/sdk/installation) - Install the SDK
 - [Quick Start](/docs/sdk/quick-start) - Get up and running
 - [Configuration](/docs/sdk/configuration) - Configure providers
-- [Platform Docs](/docs/platform/overview) - Use the managed platform instead
+- [Widget](/docs/widget/overview) - Embeddable subscription checkout
+- [Platform Docs](/docs/platform/overview) - Managed subscription billing (optional)

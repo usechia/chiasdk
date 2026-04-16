@@ -144,16 +144,6 @@ jobs:
           git add package.json
           git commit -m "chore: bump @chiahq/mcp to $NEXT_VERSION" || true
 
-      - name: Update docs version badge (MCP)
-        run: |
-          VERSION=${{ steps.setup.outputs.VERSION }}
-          DOC_FILE="docs/docs/mcp/overview.md"
-          sed -i "s/<span className=\"version-badge\">v[^<]*<\\/span>/<span className=\"version-badge\">v${VERSION}<\\/span>/" "$DOC_FILE"
-          if [[ -n "$(git status --porcelain "$DOC_FILE")" ]]; then
-            git add "$DOC_FILE"
-            git commit -m "docs: update mcp version badge to v${VERSION}" || true
-          fi
-
       - name: Verify SDK is built
         run: |
           if [ ! -f packages/sdk/dist/index.d.ts ]; then

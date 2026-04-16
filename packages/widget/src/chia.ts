@@ -36,7 +36,7 @@ export class ChiaWidget {
       onSubscribe: (data) => this.handleSubscribe(data),
       onRetry: () => this.start(),
       onClose: () => this.close(),
-    });
+    }, config.prefill);
 
     this.start();
   }

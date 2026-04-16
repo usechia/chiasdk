@@ -10,6 +10,22 @@ Get up and running with Chia SDK in minutes.
 
 ## Initialize the SDK
 
+Configure only the providers you need. Here's a single-provider setup with PayChangu:
+
+```typescript
+import { ChiaSDK } from "@chiahq/sdk";
+
+const sdk = ChiaSDK.initialize({
+  paychangu: {
+    secretKey: "your-paychangu-secret"
+  }
+});
+```
+
+### Multiple providers
+
+To use more than one provider, pass multiple configurations:
+
 ```typescript
 import { ChiaSDK, ENVIRONMENTS } from "@chiahq/sdk";
 
@@ -31,7 +47,7 @@ const sdk = ChiaSDK.initialize({
 ```
 
 :::tip
-You only need to configure the providers you plan to use. Each provider is optional.
+Each provider is optional. Only configure the ones you plan to use.
 :::
 
 ## PawaPay Example

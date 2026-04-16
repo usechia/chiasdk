@@ -44,6 +44,11 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'doc',
+      id: 'sdk/platform',
+      label: 'Platform API',
+    },
+    {
+      type: 'doc',
       id: 'sdk/types',
       label: 'Type Definitions',
     },
@@ -76,8 +81,29 @@ const sidebars: SidebarsConfig = {
       label: 'Concepts',
       items: [
         'platform/concepts/subscriptions',
-        'platform/concepts/providers',
       ],
+    },
+  ],
+  widgetSidebar: [
+    {
+      type: 'doc',
+      id: 'widget/overview',
+      label: 'Overview',
+    },
+    {
+      type: 'doc',
+      id: 'widget/quick-start',
+      label: 'Quick Start',
+    },
+    {
+      type: 'doc',
+      id: 'widget/configuration',
+      label: 'Configuration',
+    },
+    {
+      type: 'doc',
+      id: 'widget/examples',
+      label: 'Examples',
     },
   ],
   mcpSidebar: [

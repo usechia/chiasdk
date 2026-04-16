@@ -10,7 +10,7 @@ Chia is a managed subscription billing platform for mobile money in Africa. Busi
 
 ## How it works
 
-1. Sign up at [chia.africa](https://chia.africa), create an organization
+1. Sign up at [usechia.com](https://usechia.com), create an organization
 2. Set up your payout details (mobile money number where you receive earnings)
 3. Create subscription plans (name, pricing, billing interval, currency)
 4. Share your storefront link with subscribers
@@ -21,42 +21,18 @@ Chia collects payments through its own provider accounts (PayChangu, PawaPay, On
 
 **Example:** A gym in Lilongwe creates a "Monthly Membership" plan for MWK 5,000. They share their storefront link. Members subscribe by entering their phone number and confirming via USSD. Chia collects MWK 5,000 each month, deducts 3% (MWK 150), and sends the gym MWK 4,850. The gym sees their balance, transactions, and payout history in the dashboard.
 
-## Two modes
-
-### Platform-managed (default)
-
-No provider accounts or API keys needed. Chia is the payment collector:
-
-- Chia collects payments via its own PayChangu, PawaPay, and OneKhusa accounts
-- Merchant balances are tracked per transaction
-- Earnings are disbursed weekly to the merchant's mobile money account
-- 3% fee per successful transaction
-
-This is the path for most businesses. Sign up and start collecting in minutes.
-
-### Bring Your Own Keys (BYOK)
-
-For businesses that already have provider accounts and want money to flow directly to them:
-
-- Connect your own PayChangu, PawaPay, or OneKhusa API credentials
-- Payments go directly to your provider account
-- No payout delay - you receive funds per your provider's settlement schedule
-- Chia charges the same 3% platform fee
-
-Go to **Settings > Provider Credentials** to switch to BYOK mode.
-
 ## Key features
 
 - **No setup friction** - sign up, create a plan, share a link
 - **Automatic billing** with retry logic and dunning for failed payments
-- **Weekly payouts** to your mobile money account (platform-managed mode)
+- **Weekly payouts** to your mobile money account
 - **Multi-provider checkout** - PayChangu, PawaPay, and OneKhusa
 - **Merchant dashboard** - balances, transactions, payout history, subscribers, plans
 - **Multi-tenant organizations** with team roles (owner, admin, member)
 - **Sandbox and production environments** with a built-in mock provider for testing
 - **Business webhook delivery** with HMAC-SHA256 signatures and retry
 - **API key authentication** for programmatic access
-- **Embeddable checkout widget** for developers who want to embed checkout on their own site
+- **[Embeddable checkout widget](/docs/widget/overview)** for developers who want to embed checkout on their own site
 
 ## Environments
 

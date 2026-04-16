@@ -1,0 +1,50 @@
+.demoWrapper {
+  margin: 24px 0;
+  border: 1px solid var(--ifm-color-emphasis-200);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.demoLabel {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--ifm-color-emphasis-500);
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--ifm-color-emphasis-200);
+  background: var(--ifm-color-emphasis-100);
+}
+
+.demoContainer {
+  background: #ffffff;
+  padding: 16px;
+  min-height: 200px;
+}
+
+.demoFallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  color: var(--ifm-color-emphasis-500);
+  font-size: 13px;
+}
+
+.modalTrigger {
+  display: inline-flex;
+  align-items: center;
+  padding: 10px 20px;
+  border-radius: 8px;
+  background: var(--ifm-color-primary);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  margin-bottom: 12px;
+}
+
+.modalTrigger:hover {
+  opacity: 0.9;
+}

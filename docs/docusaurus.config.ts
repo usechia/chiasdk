@@ -19,10 +19,16 @@ const config: Config = {
 
   onBrokenLinks: 'throw',
 
+  customFields: {
+    widgetDemoKey: process.env.WIDGET_DEMO_KEY || '',
+  },
+
   i18n: {
     defaultLocale: 'en',
     locales: ['en'],
   },
+
+  plugins: [require.resolve('./plugins/package-versions')],
 
   presets: [
     [
@@ -46,12 +52,12 @@ const config: Config = {
       {
         name: 'description',
         content:
-          'Chia documentation for the SDK and MCP server. Integrate PayChangu, PawaPay, and OneKhusa with a unified TypeScript SDK.',
+          'Chia documentation for the SDK, embeddable widget, and MCP server. Integrate PayChangu, PawaPay, and OneKhusa with a unified TypeScript SDK.',
       },
       {
         name: 'keywords',
         content:
-          'Chia, African payments, PayChangu, PawaPay, OneKhusa, SDK, MCP, TypeScript, mobile money, bank transfer',
+          'Chia, African payments, PayChangu, PawaPay, OneKhusa, SDK, MCP, widget, embeddable checkout, TypeScript, mobile money, bank transfer',
       },
       { property: 'og:site_name', content: 'Chia' },
       { property: 'og:type', content: 'website' },
@@ -91,6 +97,12 @@ const config: Config = {
         },
         {
           type: 'docSidebar',
+          sidebarId: 'widgetSidebar',
+          position: 'left',
+          label: 'Widget',
+        },
+        {
+          type: 'docSidebar',
           sidebarId: 'mcpSidebar',
           position: 'left',
           label: 'MCP Server',
@@ -116,6 +128,10 @@ const config: Config = {
             {
               label: 'SDK Guide',
               to: '/docs/sdk/overview',
+            },
+            {
+              label: 'Widget',
+              to: '/docs/widget/overview',
             },
             {
               label: 'MCP Server',
@@ -154,6 +170,10 @@ const config: Config = {
             {
               label: 'npm - MCP',
               href: 'https://www.npmjs.com/package/@chiahq/mcp',
+            },
+            {
+              label: 'npm - Widget',
+              href: 'https://www.npmjs.com/package/@chiahq/widget',
             },
           ],
         },

@@ -6,9 +6,11 @@ description: AI-powered payment operations with Chia MCP
 
 # Chia MCP Server
 
-<span className="version-badge">v0.0.3</span>
+import Version from '@site/src/components/Version';
 
-Model Context Protocol server enabling AI assistants like Claude to handle payment operations through natural language. **42 comprehensive tools** for PayChangu, PawaPay, and OneKhusa.
+<Version pkg="mcp" />
+
+Model Context Protocol server enabling AI assistants like Claude to handle payment operations through natural language. **44 comprehensive tools** for PayChangu, PawaPay, and OneKhusa.
 
 ## What is MCP?
 
@@ -22,7 +24,7 @@ Instead of writing code, you can simply ask:
 
 ## Features
 
-- **42 Tools** - Comprehensive coverage of all payment operations
+- **44 Tools** - Comprehensive coverage of all payment operations
 - **Natural Language** - Interact with payments using plain English
 - **Multiple Providers** - PayChangu, PawaPay, and OneKhusa support
 - **Easy Setup** - Configure once in Claude Desktop
@@ -32,7 +34,7 @@ Instead of writing code, you can simply ask:
 | Provider | Tools | Capabilities |
 |----------|-------|--------------|
 | PayChangu | 12 | Payments, transfers, mobile money, bank payouts |
-| PawaPay | 12 | Deposits, payouts, refunds, wallets, config |
+| PawaPay | 14 | Deposits, payouts, refunds, wallets, config |
 | OneKhusa | 18 | Collections, single/batch disbursements |
 
 ## Quick Example
@@ -54,3 +56,4 @@ Uganda (UGX): 2,500,000.00 available
 - [Installation](/docs/mcp/installation) - Install the MCP server
 - [Claude Desktop Setup](/docs/mcp/claude-desktop) - Configure Claude Desktop
 - [Available Tools](/docs/mcp/tools/pawapay) - Explore all tools
+- [Widget](/docs/widget/overview) - Embeddable subscription checkout for websites

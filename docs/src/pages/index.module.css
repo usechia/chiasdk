@@ -74,7 +74,7 @@
 
 .whatIsGrid {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: 1px;
   background: #1a1a1f;
   border-radius: 12px;
@@ -204,6 +204,11 @@
 
 .docCardIconGuide {
   background: rgba(202, 154, 4, 0.1);
+  color: #eab308;
+}
+
+.docCardIconWidget {
+  background: rgba(234, 179, 8, 0.1);
   color: #eab308;
 }
 

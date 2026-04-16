@@ -128,16 +128,6 @@ jobs:
           git add package.json
           git commit -m "chore: bump @chiahq/sdk to $NEXT_VERSION" || true
 
-      - name: Update docs version badge (SDK)
-        run: |
-          VERSION=${{ steps.setup.outputs.VERSION }}
-          DOC_FILE="docs/docs/sdk/overview.md"
-          sed -i "s/<span className=\"version-badge\">v[^<]*<\\/span>/<span className=\"version-badge\">v${VERSION}<\\/span>/" "$DOC_FILE"
-          if [[ -n "$(git status --porcelain "$DOC_FILE")" ]]; then
-            git add "$DOC_FILE"
-            git commit -m "docs: update sdk version badge to v${VERSION}" || true
-          fi
-
       - name: Build SDK
         run: |
           cd packages/sdk

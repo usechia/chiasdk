@@ -4,7 +4,7 @@ title: PawaPay Tools
 description: PawaPay MCP tools reference
 ---
 
-# PawaPay Tools (12)
+# PawaPay Tools (14)
 
 MCP tools for PawaPay payment operations.
 
@@ -33,7 +33,7 @@ Resend the webhook callback for a deposit.
 **Example prompts:**
 - *"Resend the callback for deposit DEP_12345"*
 
-## Payouts (3 tools)
+## Payouts (4 tools)
 
 ### Send Single Payout
 
@@ -57,6 +57,14 @@ Check payout status.
 **Example prompts:**
 - *"What's the status of payout PAY_12345?"*
 
+### Cancel Enqueued Payout
+
+Cancel a payout that is still in ENQUEUED status.
+
+**Example prompts:**
+- *"Cancel payout PAY_12345"*
+- *"Stop the enqueued payout PAY_67890"*
+
 ## Refunds (2 tools)
 
 ### Create Refund
@@ -73,7 +81,7 @@ Check refund status.
 **Example prompts:**
 - *"Check the status of refund REF_12345"*
 
-## Wallet & Config (4 tools)
+## Wallet & Config (5 tools)
 
 ### Get All Balances
 
@@ -105,3 +113,11 @@ Check MNO availability by country.
 **Example prompts:**
 - *"Which mobile operators are available in Zambia?"*
 - *"Check PawaPay availability in Tanzania"*
+
+### Predict Provider
+
+Validate a phone number and predict the mobile money provider.
+
+**Example prompts:**
+- *"Which provider handles the number 260971234567?"*
+- *"Predict the provider for +255712345678"*
