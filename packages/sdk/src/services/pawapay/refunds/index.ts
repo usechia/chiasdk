@@ -39,7 +39,7 @@ export class PawapayRefunds {
 		return wrapServiceCall(
 			() =>
 				this.networkHandler.get<PawaPayTypes.RefundStatusResponse>(
-					`/payouts/${refundId}`,
+					`${this.baseEndpoint}/${refundId}`,
 					"getting refund status",
 				),
 			this.networkHandler.handleApiError.bind(this.networkHandler),

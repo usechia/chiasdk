@@ -159,6 +159,25 @@ export class ChiaSDK {
 	}
 
 	/**
+	 * Destroy the current singleton instance, allowing re-initialization.
+	 * Intended for testing scenarios only. Any existing references to the
+	 * old instance will become stale - callers must call initialize() again.
+	 */
+	public static destroy(): void {
+		ChiaSDK.instance = undefined;
+	}
+
+	/**
+	 * Create an independent SDK instance (not a singleton).
+	 * Useful for multi-tenant applications or testing.
+	 * Note: this loads environment variables from .env on each call.
+	 * Pass explicit config to avoid env side effects.
+	 */
+	public static create(config: SDKConfig = {}): ChiaSDK {
+		return new ChiaSDK(config);
+	}
+
+	/**
 	 * Access the PayChangu payment service
 	 * @throws Error if PayChangu is not configured
 	 */

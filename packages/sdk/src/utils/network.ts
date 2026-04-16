@@ -3,6 +3,9 @@ import { URLS, type Environment, ENVIRONMENTS } from "../config/constants";
 import type { PawaPayNetworkResponse } from "../types";
 import { logger } from "./logger";
 
+/**
+ * @deprecated Use HttpClient instead. NetworkManager will be removed in v1.0.0.
+ */
 export class NetworkManager {
 	private readonly axiosInstance: AxiosInstance;
 

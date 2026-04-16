@@ -1,7 +1,8 @@
 import axios, {
-	AxiosInstance,
-	AxiosRequestConfig,
-	InternalAxiosRequestConfig,
+	type AxiosInstance,
+	type AxiosRequestConfig,
+	type AxiosResponse,
+	type InternalAxiosRequestConfig,
 } from "axios";
 import { logger } from "./logger";
 
@@ -25,6 +26,10 @@ export interface RequestHook {
 		config: InternalAxiosRequestConfig,
 	) => Promise<InternalAxiosRequestConfig> | InternalAxiosRequestConfig;
 	onRequestError?: (error: unknown) => Promise<unknown>;
+	onResponse?: (
+		response: AxiosResponse,
+	) => Promise<AxiosResponse> | AxiosResponse;
+	onResponseError?: (error: unknown) => Promise<unknown>;
 }
 
 export interface NetworkErrorResponse {
@@ -107,14 +112,18 @@ export class HttpClient {
 		);
 
 		this.axiosInstance.interceptors.response.use(
-			(response) => {
+			async (response) => {
 				logger.debug(`${this.serviceName} API Response:`, {
 					status: response.status,
 					statusText: response.statusText,
 				});
+				if (this.requestHook?.onResponse) {
+					const result = await this.requestHook.onResponse(response);
+					return result ?? response;
+				}
 				return response;
 			},
-			(error) => {
+			async (error) => {
 				if (axios.isAxiosError(error)) {
 					logger.error({
 						msg: `${this.serviceName} API Response Error`,
@@ -127,6 +136,13 @@ export class HttpClient {
 					logger.error(`${this.serviceName} API Response Error:`, {
 						message: error instanceof Error ? error.message : String(error),
 					});
+				}
+				if (this.requestHook?.onResponseError) {
+					const result = await this.requestHook.onResponseError(error);
+					if (result === undefined) {
+						return Promise.reject(error);
+					}
+					return result;
 				}
 				return Promise.reject(error);
 			},

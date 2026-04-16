@@ -2,6 +2,7 @@ import {
 	HttpClient,
 	type HttpClientConfig,
 	type AuthStrategy,
+	type RequestHook,
 } from "../../utils/httpClient";
 import { logger } from "../../utils/logger";
 import { isServiceError, type ServiceResult } from "../../utils/serviceWrapper";
@@ -55,6 +56,7 @@ export interface PaymentProviderConfig {
 		request: GenericPaymentRequest,
 	) => Record<string, unknown>;
 	responseTransformer?: <T>(response: unknown) => T;
+	requestHook?: RequestHook;
 }
 
 export class PaymentProviderAdapter {
@@ -77,7 +79,7 @@ export class PaymentProviderAdapter {
 			password: config.password,
 		};
 
-		this.network = new HttpClient(httpConfig, authStrategy);
+		this.network = new HttpClient(httpConfig, authStrategy, config.requestHook);
 	}
 
 	async createPayment(
@@ -168,8 +170,12 @@ export class PaymentProviderAdapter {
 		}
 	}
 
+	get httpClient(): HttpClient {
+		return this.network;
+	}
+
 	async request<T>(
-		method: "get" | "post" | "put" | "delete",
+		method: "get" | "post" | "put" | "patch" | "delete",
 		endpoint: string,
 		data?: unknown,
 	): Promise<T | null> {
@@ -194,6 +200,12 @@ export class PaymentProviderAdapter {
 					);
 				case "put":
 					return await this.network.put<T>(
+						endpoint,
+						data || {},
+						`custom ${method} request`,
+					);
+				case "patch":
+					return await this.network.patch<T>(
 						endpoint,
 						data || {},
 						`custom ${method} request`,
