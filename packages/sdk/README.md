@@ -1,13 +1,13 @@
 # Chia SDK
 
-The Chia SDK powers the [Chia platform](https://chia.africa). You can also use it directly for custom integrations with African payment providers.
+A TypeScript SDK for integrating African mobile money payments. Unified, type-safe API for PayChangu, PawaPay, and OneKhusa.
 
 [![npm version](https://img.shields.io/npm/v/chia-sdk.svg)](https://www.npmjs.com/package/chia-sdk)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## Chia Platform vs SDK
 
-Most users should start with the **Chia platform** at [chia.africa](https://chia.africa). Sign up, create a plan, share a link, and start collecting payments. No API keys, no code, no provider accounts needed.
+For managed subscription billing, use the **Chia platform** at [usechia.com](https://usechia.com). Sign up, create a plan, share a link, and start collecting payments - no provider accounts needed.
 
 Use the **SDK directly** when you need:
 
@@ -290,7 +290,7 @@ These credentials are needed when using the SDK directly. If you're using the Ch
 
 ## Documentation
 
-For full documentation, visit [chia.africa/docs](https://chia.africa/docs) or see the [docs](https://github.com/usechia/chiasdk/tree/master/docs).
+For full documentation, visit [docs.usechia.com](https://docs.usechia.com) or see the [docs](https://github.com/usechia/chiasdk/tree/master/docs).
 
 ## MCP Server
 

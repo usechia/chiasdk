@@ -251,7 +251,7 @@ Approve batch BATCH_12345 and transfer the funds
 
 ## Documentation
 
-For full documentation, visit [chia.dev](https://chia.dev).
+For full documentation, visit [docs.usechia.com](https://docs.usechia.com).
 
 ## Related Packages
 
