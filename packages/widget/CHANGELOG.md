@@ -11,7 +11,7 @@
 
 ### Features
 
-* migrate PawaPay SDK to v2 API, rebrand afrimomo to chia ([ad48578](https://github.com/usechia/chiasdk/commit/ad48578111a0a2ccaabeab6babdd7e02e9a910a0))
+* migrate PawaPay SDK to v2 API ([ad48578](https://github.com/usechia/chiasdk/commit/ad48578111a0a2ccaabeab6babdd7e02e9a910a0))
 * **sdk:** add mobile money collection API and improve error logging ([7b71c75](https://github.com/usechia/chiasdk/commit/7b71c7514fe7fc9f8585e42c7003aa0b23543117))
 * **sdk:** add Platform service for subscription billing API ([b32d23c](https://github.com/usechia/chiasdk/commit/b32d23c9169245ec60a697ea4031de523b0060a6))
 * **sdk:** fix refund endpoint, add lifecycle methods, and extend hook system ([70d62a3](https://github.com/usechia/chiasdk/commit/70d62a31299420989a7225f769685391bd7f380b))

@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- Initial release of the Afromomo SDK
+- Initial release of the SDK
 - PayChangu integration with payment initiation and transaction status
 - PawaPay integration with wallet management, payments, payouts, and refunds
 - Express.js example application demonstrating SDK usage
