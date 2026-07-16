@@ -84,13 +84,19 @@ export function renderPhoneForm(
   btn.textContent = "Subscribe";
   form.appendChild(btn);
 
+  let submitted = false;
+
   form.addEventListener("submit", (e) => {
     e.preventDefault();
+    if (submitted) return;
     const phone = phoneInput.value.trim();
     if (!phone) {
       phoneInput.focus();
       return;
     }
+    submitted = true;
+    btn.disabled = true;
+    btn.textContent = "Submitting...";
     const name = nameInput.value.trim() || undefined;
     const providerSelect = form.querySelector<HTMLSelectElement>("select[name=provider]");
     const provider = providerSelect?.value || sorted[0]?.provider || undefined;

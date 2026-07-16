@@ -21,6 +21,7 @@ export class ChiaWidget {
   private pollTimer?: number;
   private state: WidgetState;
   private failureCount = 0;
+  private submitting = false;
 
   constructor(config: ChiaWidgetConfig) {
     this.validateConfig(config);
@@ -113,6 +114,8 @@ export class ChiaWidget {
     provider?: string;
   }): Promise<void> {
     if (this.state.step !== "phone-form") return;
+    if (this.submitting) return;
+    this.submitting = true;
 
     const plan = this.state.plan;
 
@@ -142,6 +145,8 @@ export class ChiaWidget {
         canRetry: true,
       });
       this.config.onError?.(error);
+    } finally {
+      this.submitting = false;
     }
   }
 
