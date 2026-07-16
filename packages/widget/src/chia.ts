@@ -11,6 +11,8 @@ import type {
 
 const DEFAULT_API_BASE_URL = "https://api.usechia.com";
 const POLL_INTERVAL_MS = 3000;
+const POLL_TIMEOUT_MS = 120000;
+const CONNECTION_TROUBLE_THRESHOLD = 3;
 
 export class ChiaWidget {
   private api: ChiaApi;
@@ -19,6 +21,7 @@ export class ChiaWidget {
   private shadow: ShadowRoot;
   private config: ChiaWidgetConfig;
   private pollTimer?: number;
+  private pollGeneration = 0;
   private state: WidgetState;
   private failureCount = 0;
   private submitting = false;
@@ -37,6 +40,7 @@ export class ChiaWidget {
       onPlanSelected: (plan: Plan) => this.handlePlanSelected(plan),
       onSubscribe: (data) => this.handleSubscribe(data),
       onRetry: () => this.start(),
+      onCheckAgain: () => this.resumePolling(),
       onClose: () => this.close(),
     }, config.prefill);
 
@@ -152,10 +156,21 @@ export class ChiaWidget {
 
   private startPolling(intentId: string): void {
     this.stopPolling();
+    const generation = this.pollGeneration;
+    let elapsedMs = 0;
+    let consecutiveFailures = 0;
 
     this.pollTimer = window.setInterval(async () => {
+      if (generation !== this.pollGeneration) return;
+
       try {
         const status: IntentStatus = await this.api.getIntentStatus(intentId);
+        if (generation !== this.pollGeneration) return;
+
+        consecutiveFailures = 0;
+        if (this.state.step === "processing" && this.state.connectionTrouble) {
+          this.setState({ ...this.state, connectionTrouble: false });
+        }
 
         if (status.status === "succeeded") {
           this.stopPolling();
@@ -219,12 +234,47 @@ export class ChiaWidget {
           });
         }
       } catch {
-        // continue polling on transient errors
+        if (generation !== this.pollGeneration) return;
+        consecutiveFailures++;
+        if (
+          consecutiveFailures >= CONNECTION_TROUBLE_THRESHOLD &&
+          this.state.step === "processing" &&
+          !this.state.connectionTrouble
+        ) {
+          this.setState({ ...this.state, connectionTrouble: true });
+        }
+      }
+
+      if (generation !== this.pollGeneration) return;
+      elapsedMs += POLL_INTERVAL_MS;
+      if (elapsedMs >= POLL_TIMEOUT_MS && this.state.step === "processing") {
+        const { plan, intentId: pendingIntentId, subscriberId } = this.state;
+        this.stopPolling();
+        this.setState({
+          step: "timeout",
+          plan,
+          intentId: pendingIntentId,
+          subscriberId,
+        });
       }
     }, POLL_INTERVAL_MS);
   }
 
+  private resumePolling(): void {
+    if (this.state.step !== "timeout") return;
+    const { plan, intentId, subscriberId } = this.state;
+    this.setState({
+      step: "processing",
+      plan,
+      intentId,
+      subscriberId,
+      nextAction: null,
+    });
+    this.startPolling(intentId);
+  }
+
   private stopPolling(): void {
+    this.pollGeneration++;
     if (this.pollTimer !== undefined) {
       window.clearInterval(this.pollTimer);
       this.pollTimer = undefined;
@@ -236,6 +286,7 @@ export class ChiaWidget {
   }
 
   close(): void {
+    this.stopPolling();
     this.renderer.hideModal();
     this.config.onClose?.();
   }
