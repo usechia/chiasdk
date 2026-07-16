@@ -36,6 +36,12 @@ runAdapterContract("PawaPayAdapter", () => {
 				statusCode: 500,
 				errorObject: "{}",
 			}),
+		inlineRefusedPayment: () =>
+			service.deposits.sendDeposit.mockResolvedValue({
+				depositId: "dep-1",
+				status: "REJECTED",
+				failureReason: { failureCode: "INVALID_PAYER", failureMessage: "bad" },
+			}),
 		sampleCountry: "ZMB",
 		sampleCurrency: "ZMW",
 		sampleMsisdn: "260971234567",
@@ -163,7 +169,7 @@ test("getPayment returns the real amount from a realistic getDeposit response", 
 	expect(payment.amount).toBe("50.00");
 });
 
-test("getPayment maps a NOT_FOUND deposit to status failed, not pending", async () => {
+test("NOT_FOUND is pending, not failed: no record is not a verdict", async () => {
 	const service = makeService();
 	service.deposits.getDeposit.mockResolvedValue({
 		depositId: "dep-1",
@@ -171,7 +177,7 @@ test("getPayment maps a NOT_FOUND deposit to status failed, not pending", async 
 	});
 	const adapter = new PawaPayAdapter(service);
 	const payment = await adapter.getPayment("dep-1");
-	expect(payment.status).toBe("failed");
+	expect(payment.status).toBe("pending");
 });
 
 test("getPayment surfaces authorizationUrl as a redirect nextAction", async () => {
@@ -190,6 +196,189 @@ test("getPayment surfaces authorizationUrl as a redirect nextAction", async () =
 		type: "redirect",
 		url: "https://pawapay.example/auth/dep-1",
 	});
+});
+
+test("REDIRECT_TO_AUTH_URL fetches the real authorizationUrl via getDeposit, never an empty redirect", async () => {
+	const service = makeService();
+	service.predictProvider.mockResolvedValue({ provider: "AIRTEL_ZMB" });
+	service.deposits.sendDeposit.mockResolvedValue({
+		depositId: "dep-1",
+		status: "ACCEPTED",
+		nextStep: "REDIRECT_TO_AUTH_URL",
+	});
+	service.deposits.getDeposit.mockResolvedValue({
+		depositId: "dep-1",
+		status: "PROCESSING",
+		authorizationUrl: "https://pawapay.example/auth/dep-1",
+	});
+	const adapter = new PawaPayAdapter(service);
+	const p = await adapter.initiatePayment({
+		reference: "dep-1",
+		amount: "50.00",
+		currency: "ZMW",
+		msisdn: "260971234567",
+		country: "ZMB",
+	});
+	expect(service.deposits.getDeposit).toHaveBeenCalledWith("dep-1");
+	expect(p.nextAction).toEqual({
+		type: "redirect",
+		url: "https://pawapay.example/auth/dep-1",
+	});
+});
+
+test("GET_AUTH_URL falls back to wait_for_webhook, not an empty redirect, when getDeposit errors", async () => {
+	const service = makeService();
+	service.predictProvider.mockResolvedValue({ provider: "AIRTEL_ZMB" });
+	service.deposits.sendDeposit.mockResolvedValue({
+		depositId: "dep-1",
+		status: "ACCEPTED",
+		nextStep: "GET_AUTH_URL",
+	});
+	service.deposits.getDeposit.mockResolvedValue({
+		errorMessage: "timeout of 30000ms exceeded",
+		statusCode: 500,
+		errorObject: "{}",
+	});
+	const adapter = new PawaPayAdapter(service);
+	const p = await adapter.initiatePayment({
+		reference: "dep-1",
+		amount: "50.00",
+		currency: "ZMW",
+		msisdn: "260971234567",
+		country: "ZMB",
+	});
+	expect(p.nextAction).toEqual({ type: "wait_for_webhook" });
+	expect(p.status).toBe("requires_action");
+});
+
+test("REDIRECT_TO_AUTH_URL falls back to wait_for_webhook when getDeposit carries no authorizationUrl", async () => {
+	const service = makeService();
+	service.predictProvider.mockResolvedValue({ provider: "AIRTEL_ZMB" });
+	service.deposits.sendDeposit.mockResolvedValue({
+		depositId: "dep-1",
+		status: "ACCEPTED",
+		nextStep: "REDIRECT_TO_AUTH_URL",
+	});
+	service.deposits.getDeposit.mockResolvedValue({
+		depositId: "dep-1",
+		status: "PROCESSING",
+	});
+	const adapter = new PawaPayAdapter(service);
+	const p = await adapter.initiatePayment({
+		reference: "dep-1",
+		amount: "50.00",
+		currency: "ZMW",
+		msisdn: "260971234567",
+		country: "ZMB",
+	});
+	expect(p.nextAction).toEqual({ type: "wait_for_webhook" });
+	expect(p.status).toBe("requires_action");
+});
+
+test("sendPayout success path returns a normalized ChiaPayout", async () => {
+	const service = makeService();
+	service.payouts.sendPayout.mockResolvedValue({
+		payoutId: "pay-1",
+		status: "ACCEPTED",
+		created: "2026-07-16T00:00:00Z",
+	});
+	const adapter = new PawaPayAdapter(service);
+	const payout = await adapter.sendPayout({
+		reference: "pay-1",
+		amount: "50.00",
+		currency: "ZMW",
+		msisdn: "260971234567",
+		country: "ZMB",
+		operator: "AIRTEL_ZMB",
+	});
+	expect(payout.id).toBe("pay-1");
+	expect(payout.status).toBe("pending");
+	expect(payout.requiresApproval).toBe(false);
+	expect(payout.raw).toBeDefined();
+});
+
+test("sendPayout on a PawaPay rejection throws ChiaError marked no_money_moved", async () => {
+	const service = makeService();
+	service.payouts.sendPayout.mockResolvedValue({
+		payoutId: "pay-1",
+		status: "REJECTED",
+		failureReason: { failureCode: "INVALID_RECIPIENT", failureMessage: "bad recipient" },
+	});
+	const adapter = new PawaPayAdapter(service);
+	const err = await adapter
+		.sendPayout({
+			reference: "pay-1",
+			amount: "50.00",
+			currency: "ZMW",
+			msisdn: "260971234567",
+			country: "ZMB",
+			operator: "AIRTEL_ZMB",
+		})
+		.catch((e) => e);
+	expect(err.name).toBe("ChiaProviderError");
+	expect(err.failoverSafety).toBe("no_money_moved");
+});
+
+test("CRITICAL: sendPayout on a 500 ServiceError throws indeterminate, never a refusal", async () => {
+	const service = makeService();
+	service.payouts.sendPayout.mockResolvedValue({
+		errorMessage: "timeout of 30000ms exceeded",
+		statusCode: 500,
+		errorObject: "{}",
+	});
+	const adapter = new PawaPayAdapter(service);
+	const err = await adapter
+		.sendPayout({
+			reference: "pay-1",
+			amount: "50.00",
+			currency: "ZMW",
+			msisdn: "260971234567",
+			country: "ZMB",
+			operator: "AIRTEL_ZMB",
+		})
+		.catch((e) => e);
+	expect(err.failoverSafety).toBe("indeterminate");
+});
+
+test("sendPayout maps a DUPLICATE_IGNORED response through result.status, not a hardcoded literal", async () => {
+	const service = makeService();
+	service.payouts.sendPayout.mockResolvedValue({
+		payoutId: "pay-1",
+		status: "DUPLICATE_IGNORED",
+		created: "2026-07-16T00:00:00Z",
+	});
+	const adapter = new PawaPayAdapter(service);
+	const payout = await adapter.sendPayout({
+		reference: "pay-1",
+		amount: "50.00",
+		currency: "ZMW",
+		msisdn: "260971234567",
+		country: "ZMB",
+		operator: "AIRTEL_ZMB",
+	});
+	expect(payout.status).toBe("pending");
+});
+
+test("getPayment leaves currency undefined rather than laundering a missing field into the Currency union", async () => {
+	const service = makeService();
+	service.deposits.getDeposit.mockResolvedValue({
+		depositId: "dep-1",
+		status: "PROCESSING",
+	});
+	const adapter = new PawaPayAdapter(service);
+	const payment = await adapter.getPayment("dep-1");
+	expect(payment.currency).toBeUndefined();
+});
+
+test("getPayout leaves currency undefined rather than laundering a missing field into the Currency union", async () => {
+	const service = makeService();
+	service.payouts.getPayout.mockResolvedValue({
+		status: "FOUND",
+		data: { payoutId: "pay-1", status: "PROCESSING" },
+	});
+	const adapter = new PawaPayAdapter(service);
+	const payout = await adapter.getPayout("pay-1");
+	expect(payout.currency).toBeUndefined();
 });
 
 test("getPayout returns the real amount from a realistic FOUND wrapper", async () => {
