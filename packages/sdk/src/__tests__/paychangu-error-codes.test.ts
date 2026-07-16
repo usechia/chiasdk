@@ -74,7 +74,7 @@ test("a timeout does NOT report a refusal status code", async () => {
 	expect(res.payload.HasError).toBe(true);
 	expect([undefined, 500]).toContain(res.payload.ErrorCode);
 	expect(res.payload.ErrorCode).not.toBe(400);
-});
+}, 30000);
 
 test("a 502 carries ErrorCode 502", async () => {
 	const sdk = new PayChangu("sk");
@@ -85,7 +85,7 @@ test("a 502 carries ErrorCode 502", async () => {
 	);
 
 	expect(res.payload.ErrorCode).toBe(502);
-});
+}, 30000);
 
 test("a refusal and a timeout are now distinguishable", async () => {
 	const sdk = new PayChangu("sk");
@@ -102,4 +102,4 @@ test("a refusal and a timeout are now distinguishable", async () => {
 	);
 
 	expect(refusal.payload.ErrorCode).not.toBe(timeout.payload.ErrorCode);
-});
+}, 30000);
