@@ -146,3 +146,66 @@ test("an unresolvable operator throws ChiaValidationError, which is safe to fall
 		failoverSafety: "no_money_moved",
 	});
 });
+
+test("getPayment returns the real amount from a realistic getDeposit response", async () => {
+	const service = makeService();
+	service.deposits.getDeposit.mockResolvedValue({
+		depositId: "dep-1",
+		status: "COMPLETED",
+		amount: "50.00",
+		currency: "ZMW",
+		country: "ZMB",
+		created: "2026-07-16T00:00:00Z",
+		providerTransactionId: "prov-tx-1",
+	});
+	const adapter = new PawaPayAdapter(service);
+	const payment = await adapter.getPayment("dep-1");
+	expect(payment.amount).toBe("50.00");
+});
+
+test("getPayment maps a NOT_FOUND deposit to status failed, not pending", async () => {
+	const service = makeService();
+	service.deposits.getDeposit.mockResolvedValue({
+		depositId: "dep-1",
+		status: "NOT_FOUND",
+	});
+	const adapter = new PawaPayAdapter(service);
+	const payment = await adapter.getPayment("dep-1");
+	expect(payment.status).toBe("failed");
+});
+
+test("getPayment surfaces authorizationUrl as a redirect nextAction", async () => {
+	const service = makeService();
+	service.deposits.getDeposit.mockResolvedValue({
+		depositId: "dep-1",
+		status: "PROCESSING",
+		nextStep: "REDIRECT_TO_AUTH_URL",
+		amount: "50.00",
+		currency: "ZMW",
+		authorizationUrl: "https://pawapay.example/auth/dep-1",
+	});
+	const adapter = new PawaPayAdapter(service);
+	const payment = await adapter.getPayment("dep-1");
+	expect(payment.nextAction).toEqual({
+		type: "redirect",
+		url: "https://pawapay.example/auth/dep-1",
+	});
+});
+
+test("getPayout returns the real amount from a realistic FOUND wrapper", async () => {
+	const service = makeService();
+	service.payouts.getPayout.mockResolvedValue({
+		status: "FOUND",
+		data: {
+			payoutId: "pay-1",
+			status: "COMPLETED",
+			amount: "75.50",
+			currency: "ZMW",
+			country: "ZMB",
+			created: "2026-07-16T00:00:00Z",
+		},
+	});
+	const adapter = new PawaPayAdapter(service);
+	const payout = await adapter.getPayout("pay-1");
+	expect(payout.amount).toBe("75.50");
+});

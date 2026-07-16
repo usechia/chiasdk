@@ -37,15 +37,19 @@ test.each([
 	[401, "no_money_moved"],
 	[403, "no_money_moved"],
 	[404, "no_money_moved"],
-	[409, "no_money_moved"],
 	[422, "no_money_moved"],
 	[429, "no_money_moved"],
+	[409, "indeterminate"],
 	[500, "indeterminate"],
 	[502, "indeterminate"],
 	[503, "indeterminate"],
 	[504, "indeterminate"],
 ])("status %i classifies as %s", (status, expected) => {
 	expect(classifyByStatusCode(status)).toBe(expected);
+});
+
+test("409 conflict is indeterminate: a duplicate key means the original may have succeeded", () => {
+	expect(classifyByStatusCode(409)).toBe("indeterminate");
 });
 
 test("unknown status codes default to indeterminate", () => {
