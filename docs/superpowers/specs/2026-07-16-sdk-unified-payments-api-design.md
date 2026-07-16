@@ -371,11 +371,21 @@ member, no existing call site breaks.
 or 5xx regardless of HTTP method, so `requestWithRetry` re-sends POSTs up to 3 times.
 Measured: a single timed-out OneKhusa `request-to-pay` sends **4 POSTs over 7.2s**. OneKhusa
 collection ids are server-generated, so nothing dedupes them and the payer can be prompted
-four times. PawaPay and PayChangu are unaffected in practice because their caller-supplied
-`depositId` / `charge_id` dedupe server-side.
+four times.
 
-Fix: retry becomes opt-in per request. GET/PUT/DELETE stay retryable. PawaPay and PayChangu
-opt back in where a caller-supplied key exists. OneKhusa does not.
+Fix: retry becomes opt-in per request. GET/PUT/DELETE stay retryable. A POST opts in only
+where server-side dedupe is **proven**, not assumed:
+
+- **PawaPay opts in.** Its `DepositInitiationResponse` carries an explicit `DUPLICATE_IGNORED`
+  status. That is documented, in-band evidence that a repeated `depositId` is deduplicated.
+- **PayChangu does NOT opt in**, despite also taking a caller-supplied key. An earlier draft
+  assumed `charge_id` made retries safe. It does not. PayChangu's reference documents it as
+  "Used to Identify the transaction. This MUST be unique for every transaction" - an obligation
+  on the caller, not a guarantee from the server. Measured: with retry wrongly enabled, a
+  timed-out PayChangu collection sent 4 POSTs. It now sends 1, with a regression test.
+- **OneKhusa does NOT opt in.** Server-generated ids, nothing to dedupe on.
+
+The standard of proof runs one way. Retry is an optimisation; not retrying is never unsafe.
 
 **2. PayChangu discards HTTP status codes.** `handleApiError` branches on
 `axios.isAxiosError(error)`, but `HttpClient.requestWithRetry` throws a plain

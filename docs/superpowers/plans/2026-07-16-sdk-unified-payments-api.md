@@ -28,7 +28,9 @@ Spec: `docs/superpowers/specs/2026-07-16-sdk-unified-payments-api-design.md`
 
 **Why first:** `HttpClient.requestWithRetry` retries POSTs on timeout and 5xx. Verified empirically: a single timed-out OneKhusa collection sends **4 POSTs** over 7.2s. OneKhusa's collection id is server-generated, so there is no idempotency key to dedupe them and the payer can be prompted four times. Every failover guarantee in this plan is fiction until this is fixed.
 
-PawaPay (`depositId`) and PayChangu (`charge_id`) send a caller-supplied key, so retrying those is safe and should stay enabled by opting in.
+PawaPay sends a caller-supplied `depositId` and its `DepositInitiationResponse` has an explicit `DUPLICATE_IGNORED` status. That status is documented, in-band proof that PawaPay deduplicates a repeated `depositId` server-side, so retrying a PawaPay deposit is safe and it opts back in.
+
+**PayChangu does NOT opt in, despite also taking a caller-supplied `charge_id`.** An earlier draft of this plan asserted that `charge_id` made retries safe. That was an assumption and it is false. PayChangu's API reference says only: "Used to Identify the transaction. This MUST be unique for every transaction." That is a uniqueness obligation on the caller, not a server-side dedupe guarantee, and nothing in their documentation says a repeated `charge_id` is ignored or returns the original charge. Absent proof of dedupe, retrying is a double-charge path. The burden of proof runs one way here: retry is an optimisation, not retrying is never unsafe.
 
 **Files:**
 - Modify: `src/utils/httpClient.ts:22-28` (`isRetryable`), `:196-222` (`requestWithRetry`), `:224-280` (verb methods)
@@ -2137,21 +2139,17 @@ export class PayChanguAdapter implements ChiaProviderAdapter {
 }
 ```
 
-- [ ] **Step 4: Opt PayChangu's charge_id POSTs back into retry**
+- [ ] **Step 4: Do NOT opt PayChangu into retry**
 
-In `src/services/paychangu/index.ts`, locate `initializeMobileMoneyCollection` and `initializeMobileMoneyPayout`. Both send a caller-supplied `charge_id`, so a retry dedupes server-side. Add the options argument to their `this.network.post(...)` calls:
+This step originally added `{ idempotent: true }` to `initializeMobileMoneyCollection` and `initializeMobileMoneyPayout`, on the assumption that `charge_id` acts as an idempotency key. **That assumption is false and the step has been removed.**
 
-```ts
-this.network.post<PayChanguMobileMoneyPaymentResponse>(
-	"/mobile-money/payments/initialize",
-	payload,
-	"initializing mobile money collection",
-	{},
-	{ idempotent: true },
-)
-```
+PayChangu's API reference documents `charge_id` as: "Used to Identify the transaction. This MUST be unique for every transaction." That is an obligation on the caller, not a dedupe guarantee from the server. No PayChangu documentation states that a repeated `charge_id` is ignored, deduplicated, or returns the original charge.
 
-Leave `initiatePayment` (the `tx_ref` hosted-checkout track) and the bank-payout methods non-idempotent for now; they are outside the unified surface and unverified.
+So PayChangu's collections and payouts stay non-retrying, which is the safe default established in Task 1. Leave every PayChangu POST alone.
+
+Contrast PawaPay, which does opt in: its `DUPLICATE_IGNORED` status value is explicit, documented, in-band evidence of server-side dedupe. That is the standard of proof required to enable retry on a payment endpoint.
+
+If PayChangu later confirms `charge_id` idempotency in writing, opting in is a one-line change plus a regression test. Until then, `src/__tests__/paychangu-error-codes.test.ts` carries a test asserting a timed-out collection is sent exactly once.
 
 - [ ] **Step 5: Run tests to verify they pass**
 
