@@ -18,6 +18,7 @@ import type {
 	PaymentRequest,
 	PaymentStatus,
 	PayoutRequest,
+	PayoutStatus,
 	ProviderCapabilities,
 	ProviderName,
 } from "../types";
@@ -50,6 +51,23 @@ function statusFor(raw: string): PaymentStatus {
 			return "failed";
 		case "pending":
 			return "pending";
+		case "processing":
+			return "processing";
+		default:
+			return "pending";
+	}
+}
+
+function payoutStatusFor(raw: string): PayoutStatus {
+	switch (raw.toLowerCase()) {
+		case "successful":
+		case "success":
+		case "completed":
+			return "success";
+		case "failed":
+			return "failed";
+		case "cancelled":
+			return "cancelled";
 		case "processing":
 			return "processing";
 		default:
@@ -229,7 +247,7 @@ export class PayChanguAdapter implements ChiaProviderAdapter {
 			id: String(details.charge_id ?? req.reference),
 			reference: req.reference,
 			provider: "paychangu",
-			status: statusFor(String(details.status ?? "pending")) as never,
+			status: payoutStatusFor(String(details.status ?? "pending")),
 			amount: req.amount,
 			currency: req.currency,
 			msisdn: req.msisdn,
@@ -248,7 +266,7 @@ export class PayChanguAdapter implements ChiaProviderAdapter {
 			id,
 			reference: String(details.charge_id ?? id),
 			provider: "paychangu",
-			status: statusFor(String(details.status ?? "pending")) as never,
+			status: payoutStatusFor(String(details.status ?? "pending")),
 			amount: String(details.amount ?? ""),
 			currency: "MWK" as Currency,
 			requiresApproval: false,
