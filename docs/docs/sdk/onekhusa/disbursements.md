@@ -6,6 +6,10 @@ description: OneKhusa disbursement operations
 
 # OneKhusa Disbursements
 
+:::info Direct provider access
+For ordinary payouts routed automatically across your configured providers, use [`sdk.payouts`](/docs/sdk/unified-payments) instead - note that OneKhusa payouts always require approval. This page covers direct OneKhusa access, including batch disbursements, which are a OneKhusa-specific feature.
+:::
+
 Send payments to recipients with single or batch disbursements.
 
 ## Single Disbursements

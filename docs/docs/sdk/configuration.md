@@ -8,6 +8,14 @@ description: Configure the Chia SDK
 
 The SDK supports flexible configuration for multiple payment providers.
 
+:::tip Configuring multiple providers enables routing
+[`sdk.payments`](/docs/sdk/unified-payments) and `sdk.payouts` only route across the
+providers you've configured. Configure one provider and the unified API behaves like a
+direct call to it. Configure more than one and it can fail over between them according to
+[the routing rules](/docs/sdk/unified-payments#routing) - by country, currency, and the
+conservative failover-safety check described there.
+:::
+
 ## Provider Configuration
 
 Pass credentials directly when initializing the SDK:
@@ -140,9 +148,17 @@ const multiProvider = ChiaSDK.initialize({
 });
 ```
 
+Only PayChangu and OneKhusa serve routes outside their home countries when reached
+directly through `sdk.pawapay`, `sdk.paychangu`, or `sdk.onekhusa` - the unified API is
+what lets a single call fail over between whichever of these you've configured. See
+[Coverage today](/docs/sdk/unified-payments#coverage-today) for what each provider
+supports.
+
 ## Custom Providers
 
-Bring your own PSP with the generic provider adapter:
+Bring your own PSP with the generic provider adapter. Custom providers registered this way
+are not part of the unified routing - they're accessed directly through
+`sdk.getProvider(name)`.
 
 ```typescript
 import { ChiaSDK } from "@chiahq/sdk";

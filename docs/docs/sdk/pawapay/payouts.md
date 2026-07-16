@@ -6,6 +6,10 @@ description: PawaPay payout operations
 
 # PawaPay Payouts
 
+:::info Direct provider access
+For ordinary payouts routed automatically across your configured providers, use [`sdk.payouts`](/docs/sdk/unified-payments) instead. This page covers direct PawaPay access and PawaPay-specific features.
+:::
+
 Send money to customers via mobile money.
 
 ## Send a Single Payout

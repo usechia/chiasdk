@@ -17,31 +17,47 @@ const sidebars: SidebarsConfig = {
       ],
     },
     {
-      type: 'category',
-      label: 'PawaPay',
-      items: [
-        'sdk/pawapay/deposits',
-        'sdk/pawapay/payouts',
-        'sdk/pawapay/wallets',
-        'sdk/pawapay/refunds',
-        'sdk/pawapay/remittances',
-      ],
+      type: 'doc',
+      id: 'sdk/unified-payments',
+      label: 'Unified Payments',
     },
     {
       type: 'category',
-      label: 'PayChangu',
+      label: 'Direct Provider Access',
+      link: {
+        type: 'generated-index',
+        title: 'Direct Provider Access',
+        description: 'Provider-specific features and direct access to PayChangu, PawaPay, and OneKhusa, for anything the unified payments API does not cover.',
+      },
       items: [
-        'sdk/paychangu/payments',
-        'sdk/paychangu/mobile-money',
-        'sdk/paychangu/bank-transfers',
-      ],
-    },
-    {
-      type: 'category',
-      label: 'OneKhusa',
-      items: [
-        'sdk/onekhusa/collections',
-        'sdk/onekhusa/disbursements',
+        {
+          type: 'category',
+          label: 'PawaPay',
+          items: [
+            'sdk/pawapay/deposits',
+            'sdk/pawapay/payouts',
+            'sdk/pawapay/wallets',
+            'sdk/pawapay/refunds',
+            'sdk/pawapay/remittances',
+          ],
+        },
+        {
+          type: 'category',
+          label: 'PayChangu',
+          items: [
+            'sdk/paychangu/payments',
+            'sdk/paychangu/mobile-money',
+            'sdk/paychangu/bank-transfers',
+          ],
+        },
+        {
+          type: 'category',
+          label: 'OneKhusa',
+          items: [
+            'sdk/onekhusa/collections',
+            'sdk/onekhusa/disbursements',
+          ],
+        },
       ],
     },
     {

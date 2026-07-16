@@ -6,6 +6,10 @@ description: PayChangu mobile money operations
 
 # PayChangu Mobile Money
 
+:::info Direct provider access
+For ordinary collections and payouts routed automatically across your configured providers, use [`sdk.payments`](/docs/sdk/unified-payments) and `sdk.payouts` instead. This page covers direct PayChangu access and PayChangu-specific features.
+:::
+
 Send payouts via mobile money operators in Malawi.
 
 ## Get Mobile Operators

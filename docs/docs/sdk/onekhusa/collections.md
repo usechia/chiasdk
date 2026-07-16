@@ -6,6 +6,10 @@ description: OneKhusa collection operations
 
 # OneKhusa Collections
 
+:::info Direct provider access
+For ordinary collections routed automatically across your configured providers, use [`sdk.payments`](/docs/sdk/unified-payments) instead. This page covers direct OneKhusa access and OneKhusa-specific features.
+:::
+
 Request payments from customers via mobile money or bank transfer.
 
 ## Initiate Request-to-Pay
