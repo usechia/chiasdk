@@ -9,7 +9,7 @@ Model Context Protocol (MCP) server for the Chia SDK, enabling AI assistants lik
 
 - **Unified** - Provider-agnostic payment and payout tools that route across whatever is configured (4 tools)
 - **PayChangu** - Payment services in Malawi (12 tools)
-- **PawaPay** - Mobile money payments across Sub-Saharan Africa (12 tools)
+- **PawaPay** - Mobile money payments across Sub-Saharan Africa (14 tools)
 - **OneKhusa** - Enterprise payments in Malawi & Southern Africa (18 tools)
 
 ## Features
