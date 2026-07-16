@@ -13,6 +13,16 @@ import {
 	loadEnvFile,
 	type EnvLoadOptions,
 } from "./config/env";
+import { PawaPayAdapter } from "./unified/adapters/pawapay";
+import { PayChanguAdapter } from "./unified/adapters/paychangu";
+import { OneKhusaAdapter } from "./unified/adapters/onekhusa";
+import { ProviderRouter } from "./unified/router";
+import { Payments } from "./unified/payments";
+import { Payouts } from "./unified/payouts";
+import { ChiaConfigError } from "./unified/errors";
+import { PROVIDER_COVERAGE } from "./unified/coverage";
+import type { ChiaProviderAdapter } from "./unified/adapters/types";
+import type { ProviderCapabilities, ProviderName } from "./unified/types";
 
 /**
  * Configuration interface for the Chia SDK
@@ -98,6 +108,8 @@ export class ChiaSDK {
 	private readonly envConfig?: EnvConfig;
 	private _providers: Record<string, PaymentProviderAdapter> = {};
 	private _platform?: Platform;
+	private _payments?: Payments;
+	private _payouts?: Payouts;
 
 	private constructor(private readonly config: SDKConfig = {}) {
 		// Private constructor to enforce a singleton pattern
@@ -232,6 +244,42 @@ export class ChiaSDK {
 	}
 
 	/**
+	 * Access the unified payments facade, which routes across all configured providers.
+	 * @throws ChiaConfigError if the SDK is not initialized
+	 */
+	get payments(): Payments {
+		if (!this._payments) {
+			throw new ChiaConfigError("SDK is not initialized.");
+		}
+		return this._payments;
+	}
+
+	/**
+	 * Access the unified payouts facade, which routes across all configured providers.
+	 * @throws ChiaConfigError if the SDK is not initialized
+	 */
+	get payouts(): Payouts {
+		if (!this._payouts) {
+			throw new ChiaConfigError("SDK is not initialized.");
+		}
+		return this._payouts;
+	}
+
+	/**
+	 * Get the payment/payout capabilities of a specific provider
+	 * @param provider - The provider to inspect
+	 * @throws ChiaConfigError if the provider is not configured
+	 */
+	capabilities(provider: ProviderName): ProviderCapabilities {
+		if (!this.isServiceConfigured(provider)) {
+			throw new ChiaConfigError(
+				`Provider "${provider}" is not configured. Add its credentials to the SDK config or environment variables.`,
+			);
+		}
+		return PROVIDER_COVERAGE[provider];
+	}
+
+	/**
 	 * Access a custom payment provider
 	 * @param providerName - The name of the custom provider
 	 * @throws Error if the provider is not configured
@@ -309,6 +357,18 @@ export class ChiaSDK {
 		this.initializeFromEnv();
 		this.initializeFromConfig();
 		this.initializeCustomProviders();
+		this.initializeUnified();
+	}
+
+	private initializeUnified(): void {
+		const adapters: Partial<Record<ProviderName, ChiaProviderAdapter>> = {};
+		if (this._pawapay) adapters.pawapay = new PawaPayAdapter(this._pawapay);
+		if (this._paychangu) adapters.paychangu = new PayChanguAdapter(this._paychangu);
+		if (this._onekhusa) adapters.onekhusa = new OneKhusaAdapter(this._onekhusa);
+
+		const router = new ProviderRouter(adapters);
+		this._payments = new Payments(router);
+		this._payouts = new Payouts(router);
 	}
 
 	private initializeFromEnv(): void {
