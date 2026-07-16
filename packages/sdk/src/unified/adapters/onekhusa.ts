@@ -1,4 +1,5 @@
 import type { OneKhusa } from "../../services/onekhusa";
+import type { Currency as OneKhusaCurrency } from "../../services/onekhusa/types/common";
 import { isServiceError } from "../../utils/serviceWrapper";
 import { PROVIDER_COVERAGE, supportsRoute } from "../coverage";
 import {
@@ -20,7 +21,14 @@ import type {
 } from "../types";
 import type { ChiaProviderAdapter } from "./types";
 
+const DECIMAL_AMOUNT = /^\d+(\.\d+)?$/;
+
 function toNumber(amount: string): number {
+	if (!DECIMAL_AMOUNT.test(amount)) {
+		throw new ChiaValidationError(`Amount "${amount}" is not a valid decimal.`, {
+			provider: "onekhusa",
+		});
+	}
 	const n = Number(amount);
 	if (!Number.isFinite(n)) {
 		throw new ChiaValidationError(`Amount "${amount}" is not a valid decimal.`, {
@@ -54,6 +62,7 @@ function payoutStatusFor(status: string): PayoutStatus {
 			return "failed";
 		case "CANCELLED":
 			return "cancelled";
+		case "APPROVED":
 		case "PROCESSING":
 			return "processing";
 		default:
@@ -78,6 +87,15 @@ export class OneKhusaAdapter implements ChiaProviderAdapter {
 		return "";
 	}
 
+	private assertCurrency(currency: Currency): void {
+		if (!PROVIDER_COVERAGE.onekhusa.currencies.includes(currency)) {
+			throw new ChiaValidationError(
+				`OneKhusa does not support ${currency}.`,
+				{ provider: "onekhusa" },
+			);
+		}
+	}
+
 	private fail(raw: unknown, context: string): never {
 		if (isServiceError(raw)) {
 			throw new ChiaProviderError(`OneKhusa ${context}: ${raw.errorMessage}`, {
@@ -94,11 +112,12 @@ export class OneKhusaAdapter implements ChiaProviderAdapter {
 	}
 
 	async initiatePayment(req: PaymentRequest): Promise<ChiaPayment> {
+		this.assertCurrency(req.currency);
 		const amount = toNumber(req.amount);
 
 		const result = await this.service.collections.initiateRequestToPay({
 			amount,
-			currency: req.currency as never,
+			currency: req.currency as OneKhusaCurrency,
 			phone: req.msisdn,
 			paymentMethod: req.providerOptions?.onekhusa?.paymentMethod ?? "MOBILE_MONEY",
 			reference: req.reference,
@@ -108,11 +127,14 @@ export class OneKhusaAdapter implements ChiaProviderAdapter {
 
 		if (isServiceError(result) || !("id" in result)) this.fail(result, "collection");
 
+		const mapped = paymentStatusFor(result.status);
+		const status = mapped === "pending" && result.tan ? "requires_action" : mapped;
+
 		return {
 			id: result.id,
 			reference: req.reference,
 			provider: "onekhusa",
-			status: result.tan ? "requires_action" : paymentStatusFor(result.status),
+			status,
 			amount: req.amount,
 			currency: req.currency,
 			msisdn: req.msisdn,
@@ -148,11 +170,12 @@ export class OneKhusaAdapter implements ChiaProviderAdapter {
 				{ provider: "onekhusa" },
 			);
 		}
+		this.assertCurrency(req.currency);
 		const amount = toNumber(req.amount);
 
 		const result = await this.service.disbursements.addSingle({
 			amount,
-			currency: req.currency as never,
+			currency: req.currency as OneKhusaCurrency,
 			recipient: { name: req.recipientName, phone: req.msisdn },
 			paymentMethod: req.providerOptions?.onekhusa?.paymentMethod ?? "MOBILE_MONEY",
 			reference: req.reference,
