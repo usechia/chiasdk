@@ -10,21 +10,8 @@ Get up and running with Chia SDK in minutes.
 
 ## Initialize the SDK
 
-Configure only the providers you need. Here's a single-provider setup with PayChangu:
-
-```typescript
-import { ChiaSDK } from "@chiahq/sdk";
-
-const sdk = ChiaSDK.initialize({
-  paychangu: {
-    secretKey: "your-paychangu-secret"
-  }
-});
-```
-
-### Multiple providers
-
-To use more than one provider, pass multiple configurations:
+Configure the providers you need. The more you configure, the more routing options the
+unified API has to work with:
 
 ```typescript
 import { ChiaSDK, ENVIRONMENTS } from "@chiahq/sdk";
@@ -47,58 +34,52 @@ const sdk = ChiaSDK.initialize({
 ```
 
 :::tip
-Each provider is optional. Only configure the ones you plan to use.
+Each provider is optional. Only configure the ones you plan to use. A single provider
+works fine - you just won't get automatic failover between providers.
 :::
 
-## PawaPay Example
+## Initiate a payment
 
-Request a mobile money deposit via the widget session API:
+`sdk.payments.initiate()` routes the request to whichever configured provider can serve
+the country and currency, so you don't have to pick a provider yourself:
 
 ```typescript
-import { isServiceError } from "@chiahq/sdk";
-
-const deposit = await sdk.pawapay.payments.initiatePayment({
-  depositId: "order-123",
+const payment = await sdk.payments.initiate({
+  reference: "order-123",
   amount: "50.00",
+  currency: "ZMW",
   msisdn: "260971234567",
   country: "ZMB",
-  returnUrl: "https://your-app.com/callback",
-  statementDescription: "Payment for services",
-  language: "EN",
-  reason: "Service payment"
+  description: "Payment for services",
 });
 
-if (isServiceError(deposit)) {
-  console.error(deposit.errorMessage);
-} else {
-  console.log("Redirect URL:", deposit.redirectUrl);
-}
+payment.provider   // "pawapay" - paychangu was skipped, it cannot serve ZMW in ZMB
+payment.status     // "pending"
+payment.nextAction // { type: "pin_prompt" }
+payment.operator   // "AIRTEL_ZMB" - inferred from the msisdn
 ```
 
-## PayChangu Example
-
-Initiate a hosted payment:
+Send a payout the same way:
 
 ```typescript
-const payment = await sdk.paychangu.initiatePayment({
-  amount: 1000,
-  currency: "MWK",
-  tx_ref: "order-456",
-  email: "customer@example.com",
-  first_name: "John",
-  last_name: "Doe",
-  callback_url: "https://your-app.com/webhook",
-  return_url: "https://your-app.com/success"
+const payout = await sdk.payouts.send({
+  reference: "payout-123",
+  amount: "50.00",
+  currency: "ZMW",
+  msisdn: "260701234567",
+  country: "ZMB",
 });
-
-if (payment.status === "success" && payment.data) {
-  console.log("Payment URL:", payment.data.checkout_url);
-}
 ```
 
-## OneKhusa Example
+This is the recommended starting point for ordinary collections and payouts. See
+[Unified Payments](/docs/sdk/unified-payments) for routing rules, failover safety, and
+error handling.
 
-Initiate a collection (request-to-pay):
+## Direct provider access
+
+Each provider is also available on its own namespace, for provider-specific features the
+unified API doesn't cover - PawaPay refunds and remittances, PayChangu hosted checkout and
+bank transfers, OneKhusa batch disbursements, and so on:
 
 ```typescript
 const collection = await sdk.onekhusa.collections.initiateRequestToPay({
@@ -112,23 +93,9 @@ const collection = await sdk.onekhusa.collections.initiateRequestToPay({
 console.log("Collection TAN:", collection.tan);
 ```
 
-Create a disbursement:
-
-```typescript
-const disbursement = await sdk.onekhusa.disbursements.addSingle({
-  amount: 10000,
-  currency: "MWK",
-  paymentMethod: "MOBILE_MONEY",
-  recipient: {
-    name: "John Doe",
-    phone: "265991234567"
-  },
-  reference: "payout-001",
-  narration: "Salary payment"
-});
-
-console.log("Disbursement created:", disbursement.id);
-```
+- [PawaPay](/docs/sdk/pawapay/deposits) - direct PawaPay API reference
+- [PayChangu](/docs/sdk/paychangu/payments) - direct PayChangu API reference
+- [OneKhusa](/docs/sdk/onekhusa/collections) - direct OneKhusa API reference
 
 ## Using Custom API URLs
 
@@ -148,6 +115,7 @@ See the [Configuration](/docs/sdk/configuration#custom-api-urls) guide for more 
 
 ## Next Steps
 
+- [Unified Payments](/docs/sdk/unified-payments) - Routing, failover, and errors
 - [Configuration](/docs/sdk/configuration) - Advanced configuration options
 - [PawaPay](/docs/sdk/pawapay/deposits) - PawaPay API reference
 - [PayChangu](/docs/sdk/paychangu/payments) - PayChangu API reference

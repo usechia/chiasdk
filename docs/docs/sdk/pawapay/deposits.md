@@ -8,6 +8,10 @@ import DepositPlayground from "@site/src/components/DepositPlayground";
 
 # PawaPay Deposits
 
+:::info Direct provider access
+For ordinary collections routed automatically across your configured providers, use [`sdk.payments`](/docs/sdk/unified-payments) instead. This page covers direct PawaPay access and PawaPay-specific features.
+:::
+
 Request mobile money deposits from customers across Sub-Saharan Africa.
 
 ## Deposit Playground

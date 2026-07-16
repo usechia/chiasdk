@@ -6,6 +6,10 @@ description: PayChangu payment operations
 
 # PayChangu Payments
 
+:::info Direct provider access
+For ordinary collections routed automatically across your configured providers, use [`sdk.payments`](/docs/sdk/unified-payments) instead. This page covers direct PayChangu access, including hosted checkout, which is a PayChangu-specific feature.
+:::
+
 Accept payments through hosted checkout and direct charge.
 
 ## Hosted Checkout
