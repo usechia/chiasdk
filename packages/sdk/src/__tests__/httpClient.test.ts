@@ -104,7 +104,20 @@ describe("HttpClient retry logic", () => {
 		expect(instance.get).toHaveBeenCalledTimes(1);
 	});
 
-	it("retries on network error (no response)", async () => {
+	it("does not retry a POST on network error (no response) by default", async () => {
+		const client = new HttpClient({
+			baseUrl: "https://api.test.com",
+			serviceName: "Test",
+			retry: { maxRetries: 2, initialDelayMs: 1, maxDelayMs: 10 },
+		});
+		const instance = getAxiosInstance();
+		instance.post.mockRejectedValueOnce(makeNetworkError());
+
+		await expect(client.post("/test", { foo: "bar" })).rejects.toBeDefined();
+		expect(instance.post).toHaveBeenCalledTimes(1);
+	});
+
+	it("retries a POST on network error (no response) when opted into idempotent", async () => {
 		const client = new HttpClient({
 			baseUrl: "https://api.test.com",
 			serviceName: "Test",
@@ -115,7 +128,13 @@ describe("HttpClient retry logic", () => {
 			.mockRejectedValueOnce(makeNetworkError())
 			.mockResolvedValueOnce({ data: { created: true } });
 
-		const result = await client.post("/test", { foo: "bar" });
+		const result = await client.post(
+			"/test",
+			{ foo: "bar" },
+			"POST request",
+			{},
+			{ idempotent: true },
+		);
 		expect(result).toEqual({ created: true });
 		expect(instance.post).toHaveBeenCalledTimes(2);
 	});

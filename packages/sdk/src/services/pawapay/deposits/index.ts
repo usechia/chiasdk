@@ -27,6 +27,8 @@ export class PawapayDeposits {
 					this.baseEndpoint,
 					request,
 					"sending deposit",
+					{},
+					{ idempotent: true },
 				),
 			this.networkHandler.handleApiError.bind(this.networkHandler),
 			"sending deposit",
