@@ -90,11 +90,10 @@ export default function Home() {
           <div className="bg-white/5 border border-white/10 rounded-lg p-6 overflow-x-auto">
             <pre className="text-sm">
               <code className="text-gray-300">
-{`import { ChiaSDK } from "chia-sdk";
+{`import { ChiaSDK } from "@chiahq/sdk";
 
-const sdk = new ChiaSDK({
-  environment: "sandbox",
-  pawapay: { apiToken: "your-pawapay-token" },
+const sdk = ChiaSDK.initialize({
+  pawapay: { jwt: "your-pawapay-token" },
   paychangu: { secretKey: "your-paychangu-secret" },
   onekhusa: {
     apiKey: "your-api-key",
@@ -103,13 +102,18 @@ const sdk = new ChiaSDK({
   }
 });
 
-// Request a mobile money deposit via PawaPay
-const deposit = await sdk.pawapay.payments.initiate({
-  depositId: "order-123",
+// Collect a mobile money payment - routed to whichever provider can serve it
+const payment = await sdk.payments.initiate({
+  reference: "order-123",
   amount: "50.00",
+  currency: "ZMW",
   msisdn: "260971234567",
-  country: "ZMB"
-});`}
+  country: "ZMB",
+});
+
+payment.provider   // "pawapay" - routed by country and currency
+payment.status     // "pending"
+payment.nextAction // { type: "pin_prompt" }`}
               </code>
             </pre>
           </div>
@@ -178,7 +182,7 @@ const deposit = await sdk.pawapay.payments.initiate({
         </p>
         <div className="flex gap-4 justify-center flex-wrap">
           <a
-            href="https://www.npmjs.com/package/chia-sdk"
+            href="https://www.npmjs.com/package/@chiahq/sdk"
             target="_blank"
             rel="noopener noreferrer"
             className="bg-lime-400 text-black px-8 py-3 rounded-lg font-semibold hover:bg-lime-500 transition-colors"
