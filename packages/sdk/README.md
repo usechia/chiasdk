@@ -67,6 +67,73 @@ const sdk = new ChiaSDK({
 
 You only need to configure the providers you plan to use.
 
+## Unified payments API
+
+Instead of calling each provider directly, `sdk.payments` and `sdk.payouts` route a request to
+whichever configured provider can serve it:
+
+```typescript
+const payment = await sdk.payments.initiate({
+  reference: "order-123",
+  amount: "50.00",
+  currency: "ZMW",
+  msisdn: "260971234567",
+  country: "ZMB",
+  description: "Payment for services",
+});
+
+payment.provider   // "pawapay"      - paychangu was skipped, it cannot serve ZMW in ZMB
+payment.status     // "pending"
+payment.nextAction // { type: "pin_prompt" }
+payment.operator   // "AIRTEL_ZMB"   - inferred from the msisdn
+```
+
+Routing is by country and currency, preferring PayChangu, then PawaPay, then OneKhusa.
+Providers that cannot serve the route are skipped, not contacted. Pin a single provider with
+`provider: "pawapay"`, or give an ordered shortlist with `providers: ["pawapay", "paychangu"]`.
+
+`payment.attempts` records every provider tried, skipped or refused, with the reason.
+`payment.raw` always carries the untouched response from whichever provider handled the
+request.
+
+### Coverage today
+
+| Provider | Countries |
+|----------|-----------|
+| PawaPay | 19 countries across Sub-Saharan Africa |
+| PayChangu | Malawi only |
+| OneKhusa | Malawi only |
+
+Outside Malawi, PawaPay is currently the only candidate.
+
+### Failover is deliberately conservative
+
+This is not retry-on-failure. When a shortlist is given, the SDK advances to the next
+provider **only** on outcomes that provably moved no money: the provider isn't configured, it
+can't serve the route, validation was rejected, or it explicitly refused the request. On a
+timeout or a 5xx after the request was sent, it **aborts** rather than trying another
+provider - a client-side timeout is indistinguishable from a successful charge, and retrying
+elsewhere would risk charging the customer twice.
+
+### Fetching a payment later
+
+`sdk.payments.get(id, { provider })` requires an explicit provider: an opaque id carries no
+routing information on its own. Pass back the `provider` field from the `ChiaPayment` that
+`initiate()` returned.
+
+### Provider-specific features
+
+Anything the providers do not share stays on its own namespace: `sdk.pawapay.refunds`,
+`sdk.pawapay.remittances`, `sdk.paychangu` hosted checkout, `sdk.onekhusa.disbursements`, and
+so on.
+
+### OneKhusa payouts need approval
+
+`sdk.payouts.send()` on OneKhusa returns `status: "pending_approval"` and
+`requiresApproval: true`, because its API opens a maker-checker flow rather than sending.
+Advance it with `sdk.onekhusa.disbursements.approveSingle(id)`. Check
+`sdk.capabilities("onekhusa").payouts.requiresApproval` before calling.
+
 ## PawaPay
 
 Mobile money payments across Sub-Saharan Africa.
