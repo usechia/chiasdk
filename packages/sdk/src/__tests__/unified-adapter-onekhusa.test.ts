@@ -196,3 +196,84 @@ test("getPayout throws ChiaProviderError when the service returns a ServiceError
 		failoverSafety: "indeterminate",
 	});
 });
+
+test("CRITICAL: an empty or whitespace amount is rejected before any network call", async () => {
+	const service = makeService();
+	const adapter = new OneKhusaAdapter(service);
+	await expect(
+		adapter.initiatePayment({
+			reference: "ref-1", amount: "", currency: "MWK",
+			msisdn: "265991234567", country: "MWI",
+		}),
+	).rejects.toMatchObject({ name: "ChiaValidationError" });
+	await expect(
+		adapter.initiatePayment({
+			reference: "ref-1", amount: " ", currency: "MWK",
+			msisdn: "265991234567", country: "MWI",
+		}),
+	).rejects.toMatchObject({ name: "ChiaValidationError" });
+	expect(service.collections.initiateRequestToPay).not.toHaveBeenCalled();
+});
+
+test("toNumber rejects hex and exponential notation, not just prose", async () => {
+	const service = makeService();
+	const adapter = new OneKhusaAdapter(service);
+	await expect(
+		adapter.initiatePayment({
+			reference: "ref-1", amount: "0x10", currency: "MWK",
+			msisdn: "265991234567", country: "MWI",
+		}),
+	).rejects.toMatchObject({ name: "ChiaValidationError" });
+	await expect(
+		adapter.initiatePayment({
+			reference: "ref-1", amount: "1e5", currency: "MWK",
+			msisdn: "265991234567", country: "MWI",
+		}),
+	).rejects.toMatchObject({ name: "ChiaValidationError" });
+	expect(service.collections.initiateRequestToPay).not.toHaveBeenCalled();
+});
+
+test("a FAILED collection with a leftover tan maps to failed, not requires_action", async () => {
+	const service = makeService();
+	service.collections.initiateRequestToPay.mockResolvedValue({
+		id: "col-1", tan: "123456", amount: 50, currency: "MWK", status: "FAILED",
+		phone: "265991234567", paymentMethod: "MOBILE_MONEY",
+		createdAt: "x", updatedAt: "x",
+	});
+	const adapter = new OneKhusaAdapter(service);
+	const p = await adapter.initiatePayment({
+		reference: "ref-1", amount: "50.00", currency: "MWK",
+		msisdn: "265991234567", country: "MWI",
+	});
+	expect(p.status).toBe("failed");
+});
+
+test("a PENDING collection with a tan still maps to requires_action", async () => {
+	const service = makeService();
+	service.collections.initiateRequestToPay.mockResolvedValue({
+		id: "col-1", tan: "123456", amount: 50, currency: "MWK", status: "PENDING",
+		phone: "265991234567", paymentMethod: "MOBILE_MONEY",
+		createdAt: "x", updatedAt: "x",
+	});
+	const adapter = new OneKhusaAdapter(service);
+	const p = await adapter.initiatePayment({
+		reference: "ref-1", amount: "50.00", currency: "MWK",
+		msisdn: "265991234567", country: "MWI",
+	});
+	expect(p.status).toBe("requires_action");
+});
+
+test("an unsupported currency throws ChiaValidationError before any network call", async () => {
+	const service = makeService();
+	const adapter = new OneKhusaAdapter(service);
+	await expect(
+		adapter.initiatePayment({
+			reference: "ref-1", amount: "50.00", currency: "NGN",
+			msisdn: "265991234567", country: "MWI",
+		}),
+	).rejects.toMatchObject({
+		name: "ChiaValidationError",
+		failoverSafety: "no_money_moved",
+	});
+	expect(service.collections.initiateRequestToPay).not.toHaveBeenCalled();
+});
