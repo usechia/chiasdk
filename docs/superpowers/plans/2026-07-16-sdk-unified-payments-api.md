@@ -3299,7 +3299,7 @@ Expected: no errors.
 - [ ] **Step 4: Confirm the double-charge guards actually run**
 
 Run: `pnpm test -t "CRITICAL"`
-Expected: **6** tests PASS: three in `unified-router.test.ts` (indeterminate aborts, unknown-safety aborts, non-Chia exception aborts) and three in `unified-adapter-paychangu.test.ts` (500 is indeterminate, absent ErrorCode is indeterminate, safety is never inferred from message text). These are the failover safety guards. If the count is lower, a guard has been renamed or deleted and is silently absent.
+Expected: **8** tests PASS across 3 suites. Three in `unified-router.test.ts` (indeterminate aborts, unknown-safety aborts, non-Chia exception aborts), three in `unified-adapter-paychangu.test.ts` (500 is indeterminate, absent ErrorCode is indeterminate, safety is never inferred from message text), and two in `unified-adapter-onekhusa.test.ts` (empty/whitespace amount rejected before any network call, indeterminate payout failure). These are the failover safety guards. If the count drops below 8, a guard has been renamed or deleted and is silently absent.
 
 Run: `pnpm test src/__tests__/httpClient-idempotency.test.ts`
 Expected: PASS, proving the OneKhusa retry fix from Task 1 still holds.
