@@ -59,6 +59,7 @@ const PAWAPAY_CURRENCIES: Currency[] = [
 ];
 
 export interface MsisdnPrefix {
+	// Matched against an E.164 msisdn WITHOUT the leading plus (e.g. "265991234567"). Do not store national-format prefixes (e.g. "099").
 	prefix: string;
 	country: CountryCode;
 	operatorName: string;
@@ -74,7 +75,7 @@ export interface MsisdnPrefix {
 // regulator-sourced and were not corroborated by MACRA or ITU documents, so
 // they are deliberately left out rather than guessed.
 export const PAYCHANGU_MSISDN_PREFIXES: MsisdnPrefix[] = [
-	{ prefix: "088", country: "MWI", operatorName: "TNM Mpamba" },
+	{ prefix: "26588", country: "MWI", operatorName: "TNM Mpamba" },
 	// source: ITU "Malawi (country code +265)" operational bulletin, reproducing MACRA's
 	// 15.XII.2008 numbering-plan communication ("8 XXX XXX" / "4 XXX XXX" -> "8 8XXX XXXX", operator: TNM)
 	// and MACRA's 11.XII.2017 communication (TNM Plc, "(0)88 XXX XXXX", SIM based services).
@@ -82,7 +83,8 @@ export const PAYCHANGU_MSISDN_PREFIXES: MsisdnPrefix[] = [
 	// Operator product name "TNM Mpamba" confirmed at
 	// https://developer.paychangu.com/docs/mobile-money, consulted 2026-07-16 (names TNM Mpamba and Airtel Money
 	// as the two Malawian mobile money operators PayChangu integrates with).
-	{ prefix: "099", country: "MWI", operatorName: "Airtel Money" },
+	// MACRA's national-format "(0)88 XXX XXXX" is "26588" in E.164 (national trunk "0" dropped, "265" country code prepended).
+	{ prefix: "26599", country: "MWI", operatorName: "Airtel Money" },
 	// source: ITU "Malawi (country code +265)" operational bulletin, reproducing MACRA's
 	// 15.XII.2008 numbering-plan communication ("9 XXX XXX" / "5 XXX XXX" / "3 XXX XXX" -> "9 9XXX XXXX",
 	// operator: Zain Malawi Limited, the pre-rebrand name for Airtel Malawi).
@@ -91,6 +93,7 @@ export const PAYCHANGU_MSISDN_PREFIXES: MsisdnPrefix[] = [
 	// https://www.bizcommunity.com/Article/129/82/49408.html, consulted 2026-07-16
 	// Operator product name "Airtel Money" confirmed at
 	// https://developer.paychangu.com/docs/mobile-money, consulted 2026-07-16
+	// MACRA's national-format "9 9XXX XXXX" is "26599" in E.164 (national trunk "0" dropped, "265" country code prepended).
 ];
 
 export const PROVIDER_COVERAGE: Record<ProviderName, ProviderCapabilities> = {
