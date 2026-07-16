@@ -52,11 +52,11 @@ export default function SDK() {
           <div className="bg-white/5 border border-white/10 rounded-lg p-6 overflow-x-auto mb-4">
             <pre className="text-sm">
               <code className="text-gray-300">
-{`npm install chia-sdk
+{`npm install @chiahq/sdk
 # or
-pnpm add chia-sdk
+pnpm add @chiahq/sdk
 # or
-yarn add chia-sdk`}
+yarn add @chiahq/sdk`}
               </code>
             </pre>
           </div>
@@ -71,13 +71,12 @@ yarn add chia-sdk`}
           <div className="bg-white/5 border border-white/10 rounded-lg p-6 overflow-x-auto mb-4">
             <pre className="text-sm">
               <code className="text-gray-300">
-{`import { ChiaSDK } from "chia-sdk";
+{`import { ChiaSDK } from "@chiahq/sdk";
 
 // Initialize the SDK
-const sdk = new ChiaSDK({
-  environment: "sandbox", // or "production"
+const sdk = ChiaSDK.initialize({
   pawapay: {
-    apiToken: "your-pawapay-token"
+    jwt: "your-pawapay-token"
   },
   paychangu: {
     secretKey: "your-paychangu-secret"
@@ -89,28 +88,29 @@ const sdk = new ChiaSDK({
   }
 });
 
-// Use PawaPay
-const deposit = await sdk.pawapay.payments.initiate({
-  depositId: "order-123",
+// Collect a payment - routed to whichever configured provider can serve it
+const payment = await sdk.payments.initiate({
+  reference: "order-123",
   amount: "50.00",
+  currency: "ZMW",
   msisdn: "260971234567",
   country: "ZMB",
-  returnUrl: "https://your-app.com/callback",
-  statementDescription: "Payment for services",
-  language: "EN",
-  reason: "Service payment"
 });
 
-// Use PayChangu
+payment.provider   // "pawapay" - routed by country and currency
+payment.status     // "pending"
+payment.nextAction // { type: "pin_prompt" }
+
+// Provider-specific features stay on their own namespace
 const operators = await sdk.paychangu.getMobileMoneyOperators();
 
-// Use OneKhusa
 const collection = await sdk.onekhusa.collections.initiateRequestToPay({
   amount: 5000,
   currency: "MWK",
-  phoneNumber: "265991234567",
+  phone: "265991234567",
+  paymentMethod: "MOBILE_MONEY",
   reference: "order-456",
-  narration: "Payment for services"
+  description: "Payment for services"
 });`}
               </code>
             </pre>
@@ -126,20 +126,22 @@ const collection = await sdk.onekhusa.collections.initiateRequestToPay({
           <div className="bg-white/5 border border-white/10 rounded-lg p-6 overflow-x-auto">
             <pre className="text-sm">
               <code className="text-gray-300">
-{`import { ChiaSDK, Environment } from "chia-sdk";
+{`import { ChiaSDK, ENVIRONMENTS } from "@chiahq/sdk";
 
-const sdk = new ChiaSDK({
-  environment: Environment.SANDBOX, // or Environment.PRODUCTION
+const sdk = ChiaSDK.initialize({
   pawapay: {
-    apiToken: process.env.PAWAPAY_TOKEN
+    jwt: process.env.PAWAPAY_TOKEN,
+    environment: ENVIRONMENTS.PRODUCTION // or ENVIRONMENTS.DEVELOPMENT
   },
   paychangu: {
-    secretKey: process.env.PAYCHANGU_SECRET
+    secretKey: process.env.PAYCHANGU_SECRET,
+    environment: ENVIRONMENTS.PRODUCTION
   },
   onekhusa: {
     apiKey: process.env.ONEKHUSA_API_KEY,
     apiSecret: process.env.ONEKHUSA_API_SECRET,
-    organisationId: process.env.ONEKHUSA_ORGANISATION_ID
+    organisationId: process.env.ONEKHUSA_ORGANISATION_ID,
+    environment: ENVIRONMENTS.PRODUCTION
   }
 });`}
               </code>
@@ -163,23 +165,23 @@ const sdk = new ChiaSDK({
               <div className="bg-white/5 border border-white/10 rounded-lg p-6 overflow-x-auto">
                 <pre className="text-sm">
                   <code className="text-gray-300">
-{`// Request a deposit
-const deposit = await sdk.pawapay.payments.initiate({
+{`// Request a deposit via the hosted payment page
+const deposit = await sdk.pawapay.payments.initiatePayment({
   depositId: "unique-deposit-id",
-  amount: "100.00",
-  msisdn: "260971234567",
-  country: "ZMB",
   returnUrl: "https://your-app.com/callback",
-  statementDescription: "Online purchase",
-  language: "EN",
-  reason: "Payment for goods"
+  msisdn: "260971234567",
+  amount: "100.00",
+  country: "ZMB",
+  reason: "Payment for goods",
+  language: "EN"
 });
+// deposit.redirectUrl - send the customer here to complete payment
 
 // Get deposit details
-const details = await sdk.pawapay.payments.getDeposit(depositId);
+const details = await sdk.pawapay.deposits.getDeposit(deposit.depositId);
 
 // Resend callback
-await sdk.pawapay.payments.resendCallback(depositId);`}
+await sdk.pawapay.deposits.resendCallback(deposit.depositId);`}
                   </code>
                 </pre>
               </div>
@@ -192,32 +194,43 @@ await sdk.pawapay.payments.resendCallback(depositId);`}
                 <pre className="text-sm">
                   <code className="text-gray-300">
 {`// Send a payout
-const payout = await sdk.pawapay.payouts.send({
+const payout = await sdk.pawapay.payouts.sendPayout({
   payoutId: "payout-123",
   amount: "50.00",
-  msisdn: "260701234567",
-  country: "ZMB",
-  statementDescription: "Withdrawal"
+  currency: "ZMW",
+  recipient: {
+    type: "MMO",
+    accountDetails: {
+      phoneNumber: "260701234567",
+      provider: "AIRTEL_ZMB"
+    }
+  }
 });
 
 // Send bulk payouts
-const bulkPayout = await sdk.pawapay.payouts.sendBulk([
+const bulkPayout = await sdk.pawapay.payouts.sendBulkPayout([
   {
     payoutId: "payout-001",
     amount: "25.00",
-    msisdn: "260701234567",
-    country: "ZMB"
+    currency: "ZMW",
+    recipient: {
+      type: "MMO",
+      accountDetails: { phoneNumber: "260701234567", provider: "AIRTEL_ZMB" }
+    }
   },
   {
     payoutId: "payout-002",
     amount: "30.00",
-    msisdn: "260709876543",
-    country: "ZMB"
+    currency: "ZMW",
+    recipient: {
+      type: "MMO",
+      accountDetails: { phoneNumber: "260709876543", provider: "AIRTEL_ZMB" }
+    }
   }
 ]);
 
 // Get payout status
-const status = await sdk.pawapay.payouts.getStatus(payoutId);`}
+const status = await sdk.pawapay.payouts.getPayout(payoutId);`}
                   </code>
                 </pre>
               </div>
@@ -230,7 +243,7 @@ const status = await sdk.pawapay.payouts.getStatus(payoutId);`}
                 <pre className="text-sm">
                   <code className="text-gray-300">
 {`// Get all wallet balances
-const balances = await sdk.pawapay.wallets.getBalances();
+const balances = await sdk.pawapay.wallets.getAllBalances();
 
 // Get balance for specific country
 const zambiaBalance = await sdk.pawapay.wallets.getCountryBalance("ZMB");`}
@@ -254,7 +267,7 @@ const zambiaBalance = await sdk.pawapay.wallets.getCountryBalance("ZMB");`}
                   <code className="text-gray-300">
 {`// Initiate hosted checkout
 const payment = await sdk.paychangu.initiatePayment({
-  amount: 1000,
+  amount: "1000",
   currency: "MWK",
   tx_ref: "order-456",
   email: "customer@example.com",
@@ -268,16 +281,16 @@ const payment = await sdk.paychangu.initiatePayment({
 const verification = await sdk.paychangu.verifyTransaction(tx_ref);
 
 // Initiate direct charge
-const directCharge = await sdk.paychangu.initiateDirectChargePayment({
-  amount: 5000,
-  currency: "MWK",
-  chargeId: "charge-789",
-  accountInfo: {
+const directCharge = await sdk.paychangu.initializeDirectChargePayment(
+  5000,
+  "charge-789",
+  "MWK",
+  {
     email: "customer@example.com",
     first_name: "John",
     last_name: "Doe"
   }
-});`}
+);`}
                   </code>
                 </pre>
               </div>
@@ -293,16 +306,15 @@ const directCharge = await sdk.paychangu.initiateDirectChargePayment({
 const operators = await sdk.paychangu.getMobileMoneyOperators();
 
 // Send mobile money payout
-const payout = await sdk.paychangu.mobileMoneyPayout({
-  amount: 2000,
-  currency: "MWK",
-  recipient_phone: "265991234567",
-  operator_id: "operator-uuid",
-  reference: "payout-123"
-});
+const payout = await sdk.paychangu.initializeMobileMoneyPayout(
+  "265991234567",
+  "operator-ref-id",
+  2000,
+  "payout-123"
+);
 
 // Get payout details
-const details = await sdk.paychangu.getMobilePayoutDetails(reference);`}
+const details = await sdk.paychangu.getMobileMoneyPayoutDetails(chargeId);`}
                   </code>
                 </pre>
               </div>
@@ -318,22 +330,23 @@ const details = await sdk.paychangu.getMobilePayoutDetails(reference);`}
 const banks = await sdk.paychangu.getSupportedBanks("MWK");
 
 // Process bank transfer
-const transfer = await sdk.paychangu.processBankTransfer({
-  amount: 10000,
-  currency: "MWK",
-  bank_id: "bank-uuid",
-  account_number: "123456789",
-  account_name: "John Doe"
-});
+const transfer = await sdk.paychangu.processBankTransfer(
+  "bank-uuid",
+  "John Doe",
+  "123456789",
+  10000,
+  "charge-789",
+  "MWK"
+);
 
 // Send bank payout
-const bankPayout = await sdk.paychangu.bankPayout({
-  amount: 5000,
-  currency: "MWK",
-  account_number: "987654321",
-  bank_uuid: "bank-uuid",
-  reference: "bank-payout-456"
-});`}
+const bankPayout = await sdk.paychangu.initializeBankPayout(
+  "bank-uuid",
+  "John Doe",
+  "987654321",
+  5000,
+  "bank-payout-456"
+);`}
                   </code>
                 </pre>
               </div>
@@ -359,9 +372,10 @@ const bankPayout = await sdk.paychangu.bankPayout({
 const collection = await sdk.onekhusa.collections.initiateRequestToPay({
   amount: 5000,
   currency: "MWK",
-  phoneNumber: "265991234567",
+  phone: "265991234567",
+  paymentMethod: "MOBILE_MONEY",
   reference: "order-123",
-  narration: "Payment for goods"
+  description: "Payment for goods"
 });
 // Returns a TAN (Transaction Authentication Number) for customer authorization
 
@@ -398,7 +412,7 @@ const disbursement = await sdk.onekhusa.disbursements.addSingle({
     phone: "265991234567"
   },
   reference: "payout-001",
-  narration: "Salary payment"
+  description: "Salary payment"
 });
 
 // Approve a pending disbursement
@@ -431,11 +445,19 @@ const details = await sdk.onekhusa.disbursements.getSingle(disbursementId);`}
 {`// Create a batch disbursement
 const batch = await sdk.onekhusa.disbursements.addBatch({
   name: "January Salaries",
-  currency: "MWK",
-  paymentMethod: "MOBILE_MONEY",
-  recipients: [
-    { name: "John Doe", phone: "265991234567", amount: 50000 },
-    { name: "Jane Smith", phone: "265999876543", amount: 45000 }
+  items: [
+    {
+      amount: 50000,
+      currency: "MWK",
+      paymentMethod: "MOBILE_MONEY",
+      recipient: { name: "John Doe", phone: "265991234567" }
+    },
+    {
+      amount: 45000,
+      currency: "MWK",
+      paymentMethod: "MOBILE_MONEY",
+      recipient: { name: "Jane Smith", phone: "265999876543" }
+    }
   ]
 });
 
@@ -480,15 +502,14 @@ const batchTransactions = await sdk.onekhusa.disbursements.getBatchTransactions(
               <code className="text-gray-300">
 {`// ✅ Correct way
 import type {
-  ActiveConfigResponse,
   PayChanguOperatorsResponse,
   PayChanguTypes,
   PawaPayTypes,
   OneKhusaTypes
-} from "chia-sdk";
+} from "@chiahq/sdk";
 
 // ❌ Avoid deep imports
-import type { ActiveConfigResponse } from "chia-sdk/dist/...";`}
+import type { PayChanguOperatorsResponse } from "@chiahq/sdk/dist/...";`}
               </code>
             </pre>
           </div>
@@ -568,7 +589,7 @@ import type { ActiveConfigResponse } from "chia-sdk/dist/...";`}
               </a>
             </li>
             <li>
-              <a href="https://www.npmjs.com/package/chia-sdk" target="_blank" rel="noopener noreferrer" className="text-lime-400 hover:underline">
+              <a href="https://www.npmjs.com/package/@chiahq/sdk" target="_blank" rel="noopener noreferrer" className="text-lime-400 hover:underline">
                 npm Package →
               </a>
             </li>
