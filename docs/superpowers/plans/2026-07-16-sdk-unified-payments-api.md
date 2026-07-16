@@ -1687,6 +1687,16 @@ git commit -m "feat: add PawaPay unified adapter"
 
 PayChangu is the hardest adapter: positional args, snake_case wire, a `{type, payload: {HasError, ErrorMessage}}` envelope, and an operator `ref_id` that must come from a directory lookup.
 
+**Three corrections, each of which would have silently broken the default provider.** Earlier drafts of this task got all three wrong; do not reintroduce them:
+
+1. **`getMobileMoneyOperators()` returns an envelope, not an array.** Its body builds `defaultPayload = { Operators: [] }` and returns `createSuccessResponse({ Operators: response.data })`, i.e. `{type: "success", payload: {Operators: [...], HasError: false}}`. An `Array.isArray(result)` check on the result is always false and makes every lookup throw.
+2. **Do not read `is_active` as required, and do not read `country_iso` at all.** The repo's `PayChanguMobileMoneyOperatorsResponse` type declares `country_iso`, `is_active`, `code` and `currency`, but PayChangu's live OpenAPI schema reportedly returns `short_code`, `logo`, `supports_withdrawals` and `supported_country` instead. One of the two is stale and we cannot settle it without live credentials. Depend only on `name` and `ref_id`, which both schemas agree on. Treat `is_active` as optional: `e.is_active !== false` means an absent field reads as active. The prefix table already carries the country, so `country_iso` is unnecessary.
+3. **Match the directory by keyword, not by full name.** The prefix table stores "TNM Mpamba" / "Airtel Money"; the directory may say "Airtel" or "Airtel Money". Matching the first token ("airtel") against the directory name handles both.
+
+There is no phone-number-to-operator endpoint at PayChangu, confirmed against their docs, which is why the static prefix table exists for this provider and not for PawaPay. See `.superpowers/sdd/operator-resolution-research.md`.
+
+**Mock honestly.** The fixture below returns the real envelope shape. A mock that returns a convenient shape rather than the real one hides exactly these bugs, which is how all three survived into the plan.
+
 - [ ] **Step 1: Write the failing test**
 
 Create `src/__tests__/unified-adapter-paychangu.test.ts`:
@@ -1697,10 +1707,16 @@ import { runAdapterContract } from "./helpers/adapterContract";
 
 function makeService() {
 	return {
-		getMobileMoneyOperators: jest.fn().mockResolvedValue([
-			{ id: 1, name: "Airtel Money", code: "airtel", ref_id: "ref-airtel", country_iso: "MW", currency: "MWK", is_active: true },
-			{ id: 2, name: "TNM Mpamba", code: "tnm", ref_id: "ref-tnm", country_iso: "MW", currency: "MWK", is_active: true },
-		]),
+		getMobileMoneyOperators: jest.fn().mockResolvedValue({
+			type: "success",
+			payload: {
+				HasError: false,
+				Operators: [
+					{ id: 1, name: "Airtel Money", ref_id: "ref-airtel" },
+					{ id: 2, name: "TNM Mpamba", ref_id: "ref-tnm" },
+				],
+			},
+		}),
 		initializeMobileMoneyCollection: jest.fn(),
 		initializeMobileMoneyPayout: jest.fn(),
 		verifyMobileMoneyPayment: jest.fn(),
@@ -1902,8 +1918,7 @@ interface PayChanguEnvelope {
 interface OperatorEntry {
 	name: string;
 	ref_id: string;
-	country_iso: string;
-	is_active: boolean;
+	is_active?: boolean;
 }
 
 function statusFor(raw: string): PaymentStatus {
@@ -1940,15 +1955,26 @@ export class PayChanguAdapter implements ChiaProviderAdapter {
 
 	private async directory(): Promise<OperatorEntry[]> {
 		if (this.operatorDirectory) return this.operatorDirectory;
+
 		const result = await this.service.getMobileMoneyOperators();
-		if (isServiceError(result) || !Array.isArray(result)) {
+		const env = result as {
+			payload?: { Operators?: OperatorEntry[]; HasError?: boolean };
+		};
+		const operators = env.payload?.Operators;
+
+		if (
+			isServiceError(result) ||
+			env.payload?.HasError === true ||
+			!Array.isArray(operators)
+		) {
 			throw new ChiaValidationError(
 				"Could not load the PayChangu operator directory. Pass operator explicitly.",
 				{ provider: "paychangu", raw: result },
 			);
 		}
-		this.operatorDirectory = result as OperatorEntry[];
-		return this.operatorDirectory;
+
+		this.operatorDirectory = operators;
+		return operators;
 	}
 
 	async resolveOperator(msisdn: string, country: CountryCode): Promise<string> {
@@ -1968,12 +1994,14 @@ export class PayChanguAdapter implements ChiaProviderAdapter {
 		}
 
 		const dir = await this.directory();
+		const keyword = match.operatorName.split(" ")[0].toLowerCase();
 		const entry = dir.find(
-			(e) => e.is_active && e.name.toLowerCase().includes(match.operatorName.toLowerCase()),
+			(e) =>
+				e.is_active !== false && e.name.toLowerCase().includes(keyword),
 		);
 		if (!entry) {
 			throw new ChiaValidationError(
-				`PayChangu directory has no active operator named ${match.operatorName}. Pass operator explicitly.`,
+				`PayChangu directory has no active operator matching "${keyword}" for ${msisdn}. Pass operator explicitly.`,
 				{ provider: "paychangu", raw: dir },
 			);
 		}
