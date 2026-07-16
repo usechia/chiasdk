@@ -36,6 +36,18 @@ runAdapterContract("OneKhusaAdapter", () => {
 				statusCode: 500,
 				errorObject: "{}",
 			}),
+		inlineRefusedPayment: () =>
+			service.collections.initiateRequestToPay.mockResolvedValue({
+				id: "col-1",
+				tan: "123456",
+				amount: 50,
+				currency: "MWK",
+				status: "FAILED",
+				phone: "265991234567",
+				paymentMethod: "MOBILE_MONEY",
+				createdAt: "2026-07-16T00:00:00Z",
+				updatedAt: "2026-07-16T00:00:00Z",
+			}),
 		sampleCountry: "MWI",
 		sampleCurrency: "MWK",
 		sampleMsisdn: "265991234567",
@@ -169,6 +181,30 @@ test("getPayout normalizes a polled disbursement, still marked requiresApproval 
 	expect(p.reference).toBe("ref-1");
 });
 
+test("getPayment leaves currency undefined rather than laundering a missing field into the Currency union", async () => {
+	const service = makeService();
+	service.collections.getTransaction.mockResolvedValue({
+		id: "txn-1",
+		status: "COMPLETED",
+		reference: "ref-1",
+	});
+	const adapter = new OneKhusaAdapter(service);
+	const p = await adapter.getPayment("col-1");
+	expect(p.currency).toBeUndefined();
+});
+
+test("getPayout leaves currency undefined rather than laundering a missing field into the Currency union", async () => {
+	const service = makeService();
+	service.disbursements.getSingle.mockResolvedValue({
+		id: "dis-1",
+		status: "REVIEWED",
+		reference: "ref-1",
+	});
+	const adapter = new OneKhusaAdapter(service);
+	const p = await adapter.getPayout("dis-1");
+	expect(p.currency).toBeUndefined();
+});
+
 test("getPayment throws ChiaProviderError when the service returns a ServiceError", async () => {
 	const service = makeService();
 	service.collections.getTransaction.mockResolvedValue({
@@ -233,7 +269,7 @@ test("toNumber rejects hex and exponential notation, not just prose", async () =
 	expect(service.collections.initiateRequestToPay).not.toHaveBeenCalled();
 });
 
-test("a FAILED collection with a leftover tan maps to failed, not requires_action", async () => {
+test("an inline FAILED collection throws no_money_moved instead of returning status failed, so the router fails over", async () => {
 	const service = makeService();
 	service.collections.initiateRequestToPay.mockResolvedValue({
 		id: "col-1", tan: "123456", amount: 50, currency: "MWK", status: "FAILED",
@@ -241,11 +277,14 @@ test("a FAILED collection with a leftover tan maps to failed, not requires_actio
 		createdAt: "x", updatedAt: "x",
 	});
 	const adapter = new OneKhusaAdapter(service);
-	const p = await adapter.initiatePayment({
-		reference: "ref-1", amount: "50.00", currency: "MWK",
-		msisdn: "265991234567", country: "MWI",
-	});
-	expect(p.status).toBe("failed");
+	const err = await adapter
+		.initiatePayment({
+			reference: "ref-1", amount: "50.00", currency: "MWK",
+			msisdn: "265991234567", country: "MWI",
+		})
+		.catch((e) => e);
+	expect(err.name).toBe("ChiaProviderError");
+	expect(err.failoverSafety).toBe("no_money_moved");
 });
 
 test("a PENDING collection with a tan still maps to requires_action", async () => {
