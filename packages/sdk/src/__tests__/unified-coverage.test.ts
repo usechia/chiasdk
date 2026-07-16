@@ -57,3 +57,23 @@ test("supportsRoute rejects unknown countries rather than guessing", () => {
 	expect(supportsRoute("pawapay", "XXX", "ZMW")).toBe(false);
 	expect(supportsRoute("onekhusa", "MWI", "XOF" as never)).toBe(false);
 });
+
+test("prefixes match real E.164 msisdns, not national-format numbers", () => {
+	const cases = [
+		{ msisdn: "265991234567", expected: "Airtel Money" },
+		{ msisdn: "265881234567", expected: "TNM Mpamba" },
+	];
+	for (const { msisdn, expected } of cases) {
+		const matches = PAYCHANGU_MSISDN_PREFIXES.filter((p) =>
+			msisdn.startsWith(p.prefix),
+		);
+		expect(matches).toHaveLength(1);
+		expect(matches[0].operatorName).toBe(expected);
+	}
+});
+
+test("no prefix is stored in national trunk format", () => {
+	for (const entry of PAYCHANGU_MSISDN_PREFIXES) {
+		expect(entry.prefix.startsWith("0")).toBe(false);
+	}
+});
