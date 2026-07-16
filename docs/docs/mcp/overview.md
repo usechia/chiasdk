@@ -10,7 +10,7 @@ import Version from '@site/src/components/Version';
 
 <Version pkg="mcp" />
 
-Model Context Protocol server enabling AI assistants like Claude to handle payment operations through natural language. **44 comprehensive tools** for PayChangu, PawaPay, and OneKhusa.
+Model Context Protocol server enabling AI assistants like Claude to handle payment operations through natural language. **48 comprehensive tools**: 4 provider-agnostic unified tools plus dedicated tools for PayChangu, PawaPay, and OneKhusa.
 
 ## What is MCP?
 
@@ -24,7 +24,8 @@ Instead of writing code, you can simply ask:
 
 ## Features
 
-- **44 Tools** - Comprehensive coverage of all payment operations
+- **48 Tools** - Comprehensive coverage of all payment operations
+- **Unified by Default** - Provider-agnostic tools that route for you, so most tasks don't need a specific provider named
 - **Natural Language** - Interact with payments using plain English
 - **Multiple Providers** - PayChangu, PawaPay, and OneKhusa support
 - **Easy Setup** - Configure once in Claude Desktop
@@ -33,6 +34,7 @@ Instead of writing code, you can simply ask:
 
 | Provider | Tools | Capabilities |
 |----------|-------|--------------|
+| Unified | 4 | Provider-agnostic collections and payouts, routed by country and currency |
 | PayChangu | 12 | Payments, transfers, mobile money, bank payouts |
 | PawaPay | 14 | Deposits, payouts, refunds, wallets, config |
 | OneKhusa | 18 | Collections, single/batch disbursements |
@@ -55,5 +57,6 @@ Uganda (UGX): 2,500,000.00 available
 
 - [Installation](/docs/mcp/installation) - Install the MCP server
 - [Claude Desktop Setup](/docs/mcp/claude-desktop) - Configure Claude Desktop
+- [Unified Tools](/docs/mcp/tools/unified) - The recommended default for collections and payouts
 - [Available Tools](/docs/mcp/tools/pawapay) - Explore all tools
 - [Widget](/docs/widget/overview) - Embeddable subscription checkout for websites

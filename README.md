@@ -42,8 +42,31 @@ const sdk = ChiaSDK.initialize({
   },
 });
 
+// Unified - route a payment across whatever providers are configured
+const payment = await sdk.payments.initiate({
+  reference: "order-123",
+  amount: "50.00",
+  currency: "ZMW",
+  msisdn: "260971234567",
+  country: "ZMB",
+});
+
+payment.provider   // "pawapay" - routed by country and currency
+payment.status     // "pending"
+payment.nextAction // { type: "pin_prompt" }
+```
+
+`sdk.payments` and `sdk.payouts` are the recommended way to collect and send money - they
+route to whichever configured provider can serve the request. See
+[Unified Payments](https://docs.usechia.com/docs/sdk/unified-payments) for routing,
+failover, and error handling.
+
+Direct provider access (`sdk.pawapay.*`, `sdk.paychangu.*`, `sdk.onekhusa.*`) remains
+available for provider-specific features the unified API doesn't cover:
+
+```typescript
 // PayChangu - initiate a hosted checkout
-const payment = await sdk.paychangu.initiatePayment({
+const checkout = await sdk.paychangu.initiatePayment({
   amount: "1000",
   currency: "MWK",
   tx_ref: "order-123",

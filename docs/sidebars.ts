@@ -145,6 +145,7 @@ const sidebars: SidebarsConfig = {
       type: 'category',
       label: 'Available Tools',
       items: [
+        'mcp/tools/unified',
         'mcp/tools/pawapay',
         'mcp/tools/paychangu',
         'mcp/tools/onekhusa',
