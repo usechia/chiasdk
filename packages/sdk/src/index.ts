@@ -136,3 +136,36 @@ export type {
 	ApiKeyWithSecret,
 	DeleteResult,
 } from "./services/platform/types";
+
+// Export the unified payments API
+export {
+	ChiaError,
+	ChiaConfigError,
+	ChiaValidationError,
+	ChiaAuthError,
+	ChiaProviderError,
+	ChiaNetworkError,
+	ChiaRoutingError,
+	classifyByStatusCode,
+} from "./unified/errors";
+export type { FailoverSafety, ChiaErrorOptions } from "./unified/errors";
+export { PROVIDER_COVERAGE, supportsRoute } from "./unified/coverage";
+export { Payments } from "./unified/payments";
+export { Payouts } from "./unified/payouts";
+export { ProviderRouter } from "./unified/router";
+export type { ChiaProviderAdapter } from "./unified/adapters/types";
+export type {
+	AttemptRecord,
+	ChiaPayment,
+	ChiaPayout,
+	CountryCode,
+	Currency,
+	NextAction,
+	PaymentRequest,
+	PaymentStatus as ChiaPaymentStatus,
+	PayoutRequest,
+	PayoutStatus,
+	ProviderCapabilities,
+	ProviderName,
+	ProviderOptions,
+} from "./unified/types";
