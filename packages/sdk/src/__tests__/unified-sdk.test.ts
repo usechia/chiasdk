@@ -41,3 +41,89 @@ test("routing with nothing configured throws ChiaConfigError", async () => {
 		}),
 	).rejects.toMatchObject({ name: "ChiaConfigError" });
 });
+
+test("a successful payments.initiate resolves through the real Payments -> router -> adapter -> service chain", async () => {
+	const sdk = ChiaSDK.create({ paychangu: { secretKey: "sk" } });
+	jest.spyOn(sdk.paychangu, "initializeMobileMoneyCollection").mockResolvedValue({
+		type: "success",
+		payload: {
+			PaymentDetails: {
+				charge_id: "chg-1",
+				mobile: "265991234567",
+				amount: "50.00",
+				status: "pending",
+				created_at: "2026-07-16T00:00:00Z",
+				completed_at: null,
+			},
+			HasError: false,
+		},
+	} as any);
+
+	const payment = await sdk.payments.initiate({
+		reference: "chg-1",
+		amount: "50.00",
+		currency: "MWK",
+		msisdn: "265991234567",
+		country: "MWI",
+		operator: "ref-airtel",
+	});
+
+	expect(payment.provider).toBe("paychangu");
+	expect(payment.status).toBe("pending");
+});
+
+test("Payments.get throws ChiaConfigError for an unconfigured provider", async () => {
+	const sdk = ChiaSDK.create({ paychangu: { secretKey: "sk" } });
+	await expect(
+		sdk.payments.get("dep-1", { provider: "pawapay" }),
+	).rejects.toMatchObject({ name: "ChiaConfigError" });
+});
+
+test("Payments.get delegates to the configured provider's getPayment", async () => {
+	const sdk = ChiaSDK.create({ paychangu: { secretKey: "sk" } });
+	jest.spyOn(sdk.paychangu, "verifyMobileMoneyPayment").mockResolvedValue({
+		type: "success",
+		payload: {
+			PaymentDetails: {
+				charge_id: "chg-1",
+				mobile: "265991234567",
+				amount: "50.00",
+				status: "successful",
+				created_at: "2026-07-16T00:00:00Z",
+				completed_at: "2026-07-16T00:05:00Z",
+			},
+			HasError: false,
+		},
+	} as any);
+
+	const payment = await sdk.payments.get("chg-1", { provider: "paychangu" });
+	expect(payment.status).toBe("success");
+});
+
+test("Payouts.get throws ChiaConfigError for an unconfigured provider", async () => {
+	const sdk = ChiaSDK.create({ paychangu: { secretKey: "sk" } });
+	await expect(
+		sdk.payouts.get("pay-1", { provider: "onekhusa" }),
+	).rejects.toMatchObject({ name: "ChiaConfigError" });
+});
+
+test("Payouts.get delegates to the configured provider's getPayout", async () => {
+	const sdk = ChiaSDK.create({ paychangu: { secretKey: "sk" } });
+	jest.spyOn(sdk.paychangu, "getMobileMoneyPayoutDetails").mockResolvedValue({
+		type: "success",
+		payload: {
+			PayoutDetails: {
+				charge_id: "chg-2",
+				mobile: "265991234567",
+				amount: "50.00",
+				status: "successful",
+				created_at: "2026-07-16T00:00:00Z",
+				completed_at: "2026-07-16T00:05:00Z",
+			},
+			HasError: false,
+		},
+	} as any);
+
+	const payout = await sdk.payouts.get("chg-2", { provider: "paychangu" });
+	expect(payout.status).toBe("success");
+});
