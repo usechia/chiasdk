@@ -49,10 +49,9 @@ yarn add @chiahq/sdk
 ```typescript
 import { ChiaSDK } from "@chiahq/sdk";
 
-const sdk = new ChiaSDK({
-  environment: "sandbox", // or "production"
+const sdk = ChiaSDK.initialize({
   pawapay: {
-    apiToken: "your-pawapay-token"
+    jwt: "your-pawapay-jwt"
   },
   paychangu: {
     secretKey: "your-paychangu-secret"
@@ -64,6 +63,10 @@ const sdk = new ChiaSDK({
   }
 });
 ```
+
+`ChiaSDK` has a private constructor - use `ChiaSDK.initialize(config)` to create (or fetch) the
+singleton, or `ChiaSDK.create(config)` for an independent instance. Both accept the same
+`SDKConfig` shape.
 
 You only need to configure the providers you plan to use.
 
@@ -138,37 +141,43 @@ Advance it with `sdk.onekhusa.disbursements.approveSingle(id)`. Check
 
 Mobile money payments across Sub-Saharan Africa.
 
-### Request a Deposit
+### Request a Deposit via the Hosted Payment Page
 
 ```typescript
-const deposit = await sdk.pawapay.payments.initiate({
+const deposit = await sdk.pawapay.payments.initiatePayment({
   depositId: "order-123",
-  amount: "50.00",
-  msisdn: "260971234567",
-  country: "ZMB",
   returnUrl: "https://your-app.com/callback",
-  statementDescription: "Payment for services",
-  language: "EN",
-  reason: "Service payment"
+  msisdn: "260971234567",
+  amount: "50.00",
+  country: "ZMB",
+  reason: "Service payment",
+  language: "EN"
 });
+
+// Redirect the customer to deposit.redirectUrl to complete the payment
 ```
 
 ### Send a Payout
 
 ```typescript
-const payout = await sdk.pawapay.payouts.send({
+const payout = await sdk.pawapay.payouts.sendPayout({
   payoutId: "payout-123",
   amount: "50.00",
-  msisdn: "260701234567",
-  country: "ZMB",
-  statementDescription: "Withdrawal"
+  currency: "ZMW",
+  recipient: {
+    type: "MMO",
+    accountDetails: {
+      phoneNumber: "260701234567",
+      provider: "AIRTEL_ZMB"
+    }
+  }
 });
 ```
 
 ### Check Wallet Balance
 
 ```typescript
-const balances = await sdk.pawapay.wallets.getBalances();
+const balances = await sdk.pawapay.wallets.getAllBalances();
 ```
 
 ## PayChangu
@@ -178,10 +187,12 @@ Payment services in Malawi.
 ### Initiate Payment
 
 ```typescript
+const txRef = "order-456";
+
 const payment = await sdk.paychangu.initiatePayment({
-  amount: 1000,
+  amount: "1000",
   currency: "MWK",
-  tx_ref: "order-456",
+  tx_ref: txRef,
   email: "customer@example.com",
   first_name: "John",
   last_name: "Doe",
@@ -196,19 +207,20 @@ console.log("Checkout URL:", payment.data.checkout_url);
 ### Verify Transaction
 
 ```typescript
-const verification = await sdk.paychangu.verifyTransaction(tx_ref);
+const verification = await sdk.paychangu.verifyTransaction(txRef);
 ```
 
 ### Mobile Money Payout
 
+`initializeMobileMoneyPayout` takes positional arguments, not an options object:
+
 ```typescript
-const payout = await sdk.paychangu.mobileMoneyPayout({
-  amount: 2000,
-  currency: "MWK",
-  recipient_phone: "265991234567",
-  operator_id: "operator-uuid",
-  reference: "payout-123"
-});
+const payout = await sdk.paychangu.initializeMobileMoneyPayout(
+  "265991234567", // recipient mobile number
+  "operator-ref-id", // from sdk.paychangu.getMobileMoneyOperators()
+  2000, // amount
+  "payout-123" // charge_id
+);
 ```
 
 ## OneKhusa
@@ -217,14 +229,24 @@ Enterprise payment platform with collections and disbursements.
 
 ### Request-to-Pay Collection
 
+`initiateRequestToPay` returns `CollectionResponse | ServiceError` - narrow with
+`isServiceError` before reading the success fields:
+
 ```typescript
+import { isServiceError } from "@chiahq/sdk";
+
 const collection = await sdk.onekhusa.collections.initiateRequestToPay({
   amount: 5000,
   currency: "MWK",
-  phoneNumber: "265991234567",
+  phone: "265991234567",
+  paymentMethod: "MOBILE_MONEY",
   reference: "order-789",
-  narration: "Payment for goods"
+  description: "Payment for goods"
 });
+
+if (isServiceError(collection)) {
+  throw new Error(collection.errorMessage);
+}
 
 console.log("TAN:", collection.tan);
 ```
@@ -241,8 +263,12 @@ const disbursement = await sdk.onekhusa.disbursements.addSingle({
     phone: "265991234567"
   },
   reference: "payout-001",
-  narration: "Salary payment"
+  description: "Salary payment"
 });
+
+if (isServiceError(disbursement)) {
+  throw new Error(disbursement.errorMessage);
+}
 
 // Approve the disbursement
 await sdk.onekhusa.disbursements.approveSingle(disbursement.id);
@@ -250,16 +276,31 @@ await sdk.onekhusa.disbursements.approveSingle(disbursement.id);
 
 ### Batch Disbursement
 
+Batch items each carry their own `amount`, `currency`, `paymentMethod` and `recipient` - there is
+no top-level `currency`/`paymentMethod`/`recipients` on the batch request:
+
 ```typescript
 const batch = await sdk.onekhusa.disbursements.addBatch({
   name: "January Salaries",
-  currency: "MWK",
-  paymentMethod: "MOBILE_MONEY",
-  recipients: [
-    { name: "John Doe", phone: "265991234567", amount: 50000 },
-    { name: "Jane Smith", phone: "265999876543", amount: 45000 }
+  items: [
+    {
+      amount: 50000,
+      currency: "MWK",
+      paymentMethod: "MOBILE_MONEY",
+      recipient: { name: "John Doe", phone: "265991234567" }
+    },
+    {
+      amount: 45000,
+      currency: "MWK",
+      paymentMethod: "MOBILE_MONEY",
+      recipient: { name: "Jane Smith", phone: "265999876543" }
+    }
   ]
 });
+
+if (isServiceError(batch)) {
+  throw new Error(batch.errorMessage);
+}
 
 // Approve and transfer funds
 await sdk.onekhusa.disbursements.approveBatch(batch.id);
@@ -268,23 +309,27 @@ await sdk.onekhusa.disbursements.transferBatchFunds(batch.id);
 
 ## Configuration
 
-Use environment variables for secure credential management:
+Use environment variables for secure credential management. There is no top-level `environment`
+option - each provider takes its own `environment` field (`"DEVELOPMENT"` or `"PRODUCTION"`,
+defaulting to `"DEVELOPMENT"`):
 
 ```typescript
-import { ChiaSDK, Environment } from "@chiahq/sdk";
+import { ChiaSDK, ENVIRONMENTS } from "@chiahq/sdk";
 
-const sdk = new ChiaSDK({
-  environment: Environment.SANDBOX, // or Environment.PRODUCTION
+const sdk = ChiaSDK.initialize({
   pawapay: {
-    apiToken: process.env.PAWAPAY_TOKEN
+    jwt: process.env.PAWAPAY_TOKEN,
+    environment: ENVIRONMENTS.PRODUCTION // or ENVIRONMENTS.DEVELOPMENT
   },
   paychangu: {
-    secretKey: process.env.PAYCHANGU_SECRET
+    secretKey: process.env.PAYCHANGU_SECRET,
+    environment: ENVIRONMENTS.PRODUCTION
   },
   onekhusa: {
     apiKey: process.env.ONEKHUSA_API_KEY,
     apiSecret: process.env.ONEKHUSA_API_SECRET,
-    organisationId: process.env.ONEKHUSA_ORGANISATION_ID
+    organisationId: process.env.ONEKHUSA_ORGANISATION_ID,
+    environment: ENVIRONMENTS.PRODUCTION
   }
 });
 ```
@@ -294,10 +339,10 @@ const sdk = new ChiaSDK({
 Override default provider endpoints for testing or regional deployments:
 
 ```typescript
-const sdk = new ChiaSDK({
+const sdk = ChiaSDK.initialize({
   pawapay: {
-    apiToken: "your-token",
-    environment: "sandbox",
+    jwt: "your-jwt",
+    environment: "DEVELOPMENT",
     sandboxUrl: "https://custom-sandbox.pawapay.io/v1",
     productionUrl: "https://custom-prod.pawapay.io/v1"
   },
@@ -361,7 +406,7 @@ For full documentation, visit [docs.usechia.com](https://docs.usechia.com) or se
 
 ## MCP Server
 
-For AI-powered payment operations with Claude, check out [chia-mcp](https://www.npmjs.com/package/chia-mcp).
+For AI-powered payment operations with Claude, check out [@chiahq/mcp](https://www.npmjs.com/package/@chiahq/mcp).
 
 ## License
 
