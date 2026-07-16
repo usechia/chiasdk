@@ -46,9 +46,9 @@ function statusFromPolling(status: string): PaymentStatus {
 		case "COMPLETED":
 			return "success";
 		case "FAILED":
+		case "NOT_FOUND":
 			return "failed";
 		case "PROCESSING":
-		case "SUBMITTED":
 			return "processing";
 		case "ENQUEUED":
 		case "IN_RECONCILIATION":
@@ -155,14 +155,18 @@ export class PawaPayAdapter implements ChiaProviderAdapter {
 		if (isServiceError(result)) this.fail(result, "get deposit");
 		const data = result as unknown as Record<string, unknown>;
 		const status = String(data.status ?? "");
+		const authorizationUrl = data.authorizationUrl;
 		return {
 			id,
 			reference: String(data.depositId ?? id),
 			provider: "pawapay",
 			status: statusFromPolling(status),
-			amount: String(data.requestedAmount ?? data.depositedAmount ?? ""),
+			amount: String(data.amount ?? ""),
 			currency: String(data.currency ?? "") as Currency,
 			attempts: [],
+			...(typeof authorizationUrl === "string" && authorizationUrl
+				? { nextAction: { type: "redirect", url: authorizationUrl } as NextAction }
+				: {}),
 			raw: result,
 		};
 	}
@@ -217,7 +221,7 @@ export class PawaPayAdapter implements ChiaProviderAdapter {
 			reference: String(data.payoutId ?? id),
 			provider: "pawapay",
 			status: statusFromPolling(String(data.status ?? "")) as PayoutStatus,
-			amount: String(data.requestedAmount ?? ""),
+			amount: String(data.amount ?? ""),
 			currency: String(data.currency ?? "") as Currency,
 			requiresApproval: false,
 			attempts: [],
