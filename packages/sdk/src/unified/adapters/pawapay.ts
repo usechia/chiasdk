@@ -21,24 +21,19 @@ import type {
 } from "../types";
 import type { ChiaProviderAdapter } from "./types";
 
-function nextActionFor(nextStep?: string): NextAction {
-	switch (nextStep) {
-		case "REDIRECT_TO_AUTH_URL":
-		case "GET_AUTH_URL":
-			return { type: "redirect", url: "" };
-		case "FINAL_STATUS":
-			return { type: "wait_for_webhook" };
-		default:
-			return { type: "pin_prompt" };
-	}
-}
-
 function paymentStatusFor(status: string, nextStep?: string): PaymentStatus {
-	if (status === "REJECTED") return "failed";
 	if (nextStep === "REDIRECT_TO_AUTH_URL" || nextStep === "GET_AUTH_URL") {
 		return "requires_action";
 	}
 	return "pending";
+}
+
+function payoutStatusForInitiation(status: string): PayoutStatus {
+	return status === "REJECTED" ? "failed" : "pending";
+}
+
+function toCurrency(value: unknown): Currency | undefined {
+	return typeof value === "string" && value ? (value as Currency) : undefined;
 }
 
 function statusFromPolling(status: string): PaymentStatus {
@@ -46,8 +41,9 @@ function statusFromPolling(status: string): PaymentStatus {
 		case "COMPLETED":
 			return "success";
 		case "FAILED":
-		case "NOT_FOUND":
 			return "failed";
+		case "NOT_FOUND":
+			return "pending";
 		case "PROCESSING":
 			return "processing";
 		case "ENQUEUED":
@@ -143,11 +139,32 @@ export class PawaPayAdapter implements ChiaProviderAdapter {
 			currency: req.currency,
 			msisdn: req.msisdn,
 			operator,
-			nextAction: nextActionFor(result.nextStep),
+			nextAction: await this.resolveNextAction(result.depositId, result.nextStep),
 			attempts: [],
 			createdAt: result.created,
 			raw: result,
 		};
+	}
+
+	private async resolveNextAction(depositId: string, nextStep?: string): Promise<NextAction> {
+		if (nextStep === "REDIRECT_TO_AUTH_URL" || nextStep === "GET_AUTH_URL") {
+			try {
+				const status = await this.service.deposits.getDeposit(depositId);
+				if (!isServiceError(status)) {
+					const url = (status as { authorizationUrl?: string }).authorizationUrl;
+					if (typeof url === "string" && url) {
+						return { type: "redirect", url };
+					}
+				}
+			} catch {
+				return { type: "wait_for_webhook" };
+			}
+			return { type: "wait_for_webhook" };
+		}
+		if (nextStep === "FINAL_STATUS") {
+			return { type: "wait_for_webhook" };
+		}
+		return { type: "pin_prompt" };
 	}
 
 	async getPayment(id: string): Promise<ChiaPayment> {
@@ -162,7 +179,7 @@ export class PawaPayAdapter implements ChiaProviderAdapter {
 			provider: "pawapay",
 			status: statusFromPolling(status),
 			amount: String(data.amount ?? ""),
-			currency: String(data.currency ?? "") as Currency,
+			currency: toCurrency(data.currency),
 			attempts: [],
 			...(typeof authorizationUrl === "string" && authorizationUrl
 				? { nextAction: { type: "redirect", url: authorizationUrl } as NextAction }
@@ -199,7 +216,7 @@ export class PawaPayAdapter implements ChiaProviderAdapter {
 			id: result.payoutId,
 			reference: req.reference,
 			provider: "pawapay",
-			status: "pending" as PayoutStatus,
+			status: payoutStatusForInitiation(result.status),
 			amount: req.amount,
 			currency: req.currency,
 			msisdn: req.msisdn,
@@ -222,7 +239,7 @@ export class PawaPayAdapter implements ChiaProviderAdapter {
 			provider: "pawapay",
 			status: statusFromPolling(String(data.status ?? "")) as PayoutStatus,
 			amount: String(data.amount ?? ""),
-			currency: String(data.currency ?? "") as Currency,
+			currency: toCurrency(data.currency),
 			requiresApproval: false,
 			attempts: [],
 			raw: result,
