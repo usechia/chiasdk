@@ -2,7 +2,7 @@
 
 A TypeScript SDK for integrating African mobile money payments. Unified, type-safe API for PayChangu, PawaPay, and OneKhusa.
 
-[![npm version](https://img.shields.io/npm/v/chia-sdk.svg)](https://www.npmjs.com/package/chia-sdk)
+[![npm version](https://img.shields.io/npm/v/@chiahq/sdk.svg)](https://www.npmjs.com/package/@chiahq/sdk)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## Chia Platform vs SDK
@@ -37,17 +37,17 @@ If you just want to bill subscribers via mobile money, the platform handles ever
 ## Installation
 
 ```bash
-npm install chia-sdk
+npm install @chiahq/sdk
 # or
-pnpm add chia-sdk
+pnpm add @chiahq/sdk
 # or
-yarn add chia-sdk
+yarn add @chiahq/sdk
 ```
 
 ## Quick Start
 
 ```typescript
-import { ChiaSDK } from "chia-sdk";
+import { ChiaSDK } from "@chiahq/sdk";
 
 const sdk = new ChiaSDK({
   environment: "sandbox", // or "production"
@@ -204,7 +204,7 @@ await sdk.onekhusa.disbursements.transferBatchFunds(batch.id);
 Use environment variables for secure credential management:
 
 ```typescript
-import { ChiaSDK, Environment } from "chia-sdk";
+import { ChiaSDK, Environment } from "@chiahq/sdk";
 
 const sdk = new ChiaSDK({
   environment: Environment.SANDBOX, // or Environment.PRODUCTION
@@ -258,7 +258,7 @@ import type {
   PayChanguTypes,
   PawaPayTypes,
   OneKhusaTypes
-} from "chia-sdk";
+} from "@chiahq/sdk";
 ```
 
 ## Requirements

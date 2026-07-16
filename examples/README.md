@@ -15,7 +15,7 @@ Working examples showing how to use Chia for subscription billing over mobile mo
 
 **If you want managed billing (recommended):**
 
-1. Sign up at [chia.africa](https://chia.africa)
+1. Sign up at [usechia.com](https://usechia.com)
 2. Create a plan in your dashboard
 3. See [platform-subscribe](./platform-subscribe/) for the API flow
 4. Or see [widget-basic](./widget-basic/) to embed checkout on your site
