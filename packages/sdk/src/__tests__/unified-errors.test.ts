@@ -37,6 +37,7 @@ test.each([
 	[401, "no_money_moved"],
 	[403, "no_money_moved"],
 	[404, "no_money_moved"],
+	[409, "no_money_moved"],
 	[422, "no_money_moved"],
 	[429, "no_money_moved"],
 	[500, "indeterminate"],
@@ -58,4 +59,23 @@ test("ChiaRoutingError carries the attempt trail", () => {
 	]);
 	expect(err.attempts).toHaveLength(1);
 	expect(err.failoverSafety).toBe("no_money_moved");
+});
+
+test("forced safety cannot be overridden by caller options", () => {
+	expect(
+		new ChiaNetworkError("timeout", { failoverSafety: "no_money_moved" })
+			.failoverSafety,
+	).toBe("indeterminate");
+	expect(
+		new ChiaConfigError("nope", { failoverSafety: "indeterminate" })
+			.failoverSafety,
+	).toBe("no_money_moved");
+	expect(
+		new ChiaValidationError("bad", { failoverSafety: "indeterminate" })
+			.failoverSafety,
+	).toBe("no_money_moved");
+	expect(
+		new ChiaAuthError("denied", { failoverSafety: "indeterminate" })
+			.failoverSafety,
+	).toBe("no_money_moved");
 });
