@@ -164,7 +164,7 @@ export type {
 	PaymentRequest,
 	PaymentStatus as ChiaPaymentStatus,
 	PayoutRequest,
-	PayoutStatus,
+	PayoutStatus as ChiaPayoutStatus,
 	ProviderCapabilities,
 	ProviderName,
 	ProviderOptions,
