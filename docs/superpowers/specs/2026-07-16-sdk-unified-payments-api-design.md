@@ -348,12 +348,52 @@ inference. Resolved operators are cached per provider.
 
 ## Migration
 
-Purely additive. `sdk.pawapay.*`, `sdk.paychangu.*`, `sdk.onekhusa.*` are untouched and
-remain exported. No existing call site breaks. The unified surface ships alongside.
+Additive. `sdk.pawapay.*`, `sdk.paychangu.*`, `sdk.onekhusa.*` keep their signatures and stay
+exported. No existing call site breaks and no major version is needed. The unified surface
+ships alongside.
+
+Two behaviour changes reach existing callers, both from the prerequisite fixes, and both are
+corrections rather than regressions:
+
+- A timed-out OneKhusa collection is now attempted once rather than four times. Callers see a
+  failure sooner instead of a possible quadruple charge.
+- PayChangu errors now carry the provider's real message and an `ErrorCode`, where they
+  previously reported a generic "An unexpected error occurred during ...". Any test asserting
+  the generic string needs updating.
+
+## Prerequisites: two live double-charge bugs
+
+Found while planning. Both are fixed before the unified layer is built, because the failover
+guarantee above is unenforceable otherwise. Both fixes are additive: no public type loses a
+member, no existing call site breaks.
+
+**1. `HttpClient` retries non-idempotent POSTs.** `isRetryable` returns true for any timeout
+or 5xx regardless of HTTP method, so `requestWithRetry` re-sends POSTs up to 3 times.
+Measured: a single timed-out OneKhusa `request-to-pay` sends **4 POSTs over 7.2s**. OneKhusa
+collection ids are server-generated, so nothing dedupes them and the payer can be prompted
+four times. PawaPay and PayChangu are unaffected in practice because their caller-supplied
+`depositId` / `charge_id` dedupe server-side.
+
+Fix: retry becomes opt-in per request. GET/PUT/DELETE stay retryable. PawaPay and PayChangu
+opt back in where a caller-supplied key exists. OneKhusa does not.
+
+**2. PayChangu discards HTTP status codes.** `handleApiError` branches on
+`axios.isAxiosError(error)`, but `HttpClient.requestWithRetry` throws a plain
+`{errorMessage, statusCode, errorObject}` object, so that branch never matches. Every failure
+collapses to a generic message with the status code dropped, making a 400 refusal
+indistinguishable from a timeout. An adapter reading `HasError: true` as a refusal would fall
+through to another provider on a timeout and double-charge the payer.
+
+Fix: error payloads carry `ErrorCode` when the status is known and omit it when it is not.
+Absent means unknown means indeterminate. Safety is never inferred from message text.
 
 ## Out of scope
 
-- Changing provider namespace behaviour or error conventions.
+- Unifying the four public error conventions (`T | ServiceError`, the PayChangu envelope, the
+  generic adapter's `null`, `T | PawaPayNetworkResponse`). Internally, every error path now
+  preserves a status code, which is what the adapters need. Collapsing the public surfaces
+  into one is a breaking change and belongs to a future major version.
+- Changing provider namespace behaviour beyond the two prerequisite fixes above.
 - Unifying refunds, remittances, checkout, direct charge, or approval workflows.
 - The generic `PaymentProviderAdapter` (no payout concept, swallows errors to `null`).
   It does not implement `ChiaProviderAdapter` and is not routable.
