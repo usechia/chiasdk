@@ -12,6 +12,10 @@ export interface RetryConfig {
 	maxDelayMs: number;
 }
 
+export interface RequestOptions {
+	idempotent?: boolean;
+}
+
 const DEFAULT_RETRY_CONFIG: RetryConfig = {
 	maxRetries: 3,
 	initialDelayMs: 1000,
@@ -20,7 +24,8 @@ const DEFAULT_RETRY_CONFIG: RetryConfig = {
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-function isRetryable(error: unknown): boolean {
+function isRetryable(error: unknown, idempotent: boolean): boolean {
+	if (!idempotent) return false;
 	if (axios.isAxiosError(error)) {
 		if (!error.response) return true;
 		return error.response.status >= 500;
@@ -221,6 +226,7 @@ export class HttpClient {
 	private async requestWithRetry<T>(
 		operation: () => Promise<AxiosResponse<T>>,
 		context: string,
+		idempotent: boolean,
 	): Promise<T> {
 		let lastError: unknown;
 		for (let attempt = 0; attempt <= this.retryConfig.maxRetries; attempt++) {
@@ -229,7 +235,7 @@ export class HttpClient {
 				return response.data;
 			} catch (error) {
 				lastError = error;
-				if (attempt < this.retryConfig.maxRetries && isRetryable(error)) {
+				if (attempt < this.retryConfig.maxRetries && isRetryable(error, idempotent)) {
 					const delay = computeDelay(attempt, this.retryConfig);
 					logger.debug(
 						`${this.serviceName} retrying ${context} (attempt ${attempt + 1}/${this.retryConfig.maxRetries}) in ${Math.round(delay)}ms`,
@@ -251,6 +257,7 @@ export class HttpClient {
 		return this.requestWithRetry(
 			() => this.axiosInstance.get<T>(endpoint, config),
 			context,
+			true,
 		);
 	}
 
@@ -259,10 +266,12 @@ export class HttpClient {
 		data: unknown,
 		context = "POST request",
 		config: AxiosRequestConfig = {},
+		options: RequestOptions = {},
 	): Promise<T> {
 		return this.requestWithRetry(
 			() => this.axiosInstance.post<T>(endpoint, data, config),
 			context,
+			options.idempotent === true,
 		);
 	}
 
@@ -275,6 +284,7 @@ export class HttpClient {
 		return this.requestWithRetry(
 			() => this.axiosInstance.put<T>(endpoint, data, config),
 			context,
+			true,
 		);
 	}
 
@@ -283,10 +293,12 @@ export class HttpClient {
 		data?: unknown,
 		context = "PATCH request",
 		config: AxiosRequestConfig = {},
+		options: RequestOptions = {},
 	): Promise<T> {
 		return this.requestWithRetry(
 			() => this.axiosInstance.patch<T>(endpoint, data, config),
 			context,
+			options.idempotent === true,
 		);
 	}
 
@@ -298,6 +310,7 @@ export class HttpClient {
 		return this.requestWithRetry(
 			() => this.axiosInstance.delete<T>(endpoint, config),
 			context,
+			true,
 		);
 	}
 
