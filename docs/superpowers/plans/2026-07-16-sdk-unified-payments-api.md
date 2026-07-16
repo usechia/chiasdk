@@ -2849,6 +2849,7 @@ export class ProviderRouter {
 					throw error;
 				}
 
+				lastRefusal = error instanceof ChiaError ? error : undefined;
 				attempts.push({
 					provider: name,
 					outcome: "rejected",
@@ -2858,22 +2859,40 @@ export class ProviderRouter {
 			}
 		}
 
-		if (attempts.every((a) => a.outcome === "skipped")) {
+		const attempted = attempts.filter((a) => a.outcome !== "skipped");
+
+		if (attempted.length === 0) {
 			throw new ChiaConfigError(
 				`No configured provider supports ${req.currency} in ${req.country}.`,
 				{ attempts },
 			);
 		}
 
+		if (attempted.length === 1 && lastRefusal) {
+			lastRefusal.attempts = attempts;
+			throw lastRefusal;
+		}
+
+		const rejected = attempts.filter((a) => a.outcome === "rejected").length;
 		throw new ChiaRoutingError(
-			`All ${attempts.length} candidate providers refused this request.`,
+			`All ${rejected} candidate providers refused this request.`,
 			attempts,
 		);
 	}
 }
 ```
 
-`ChiaError.attempts` is declared `readonly`, so `Object.assign` is used to attach the trail at throw time. If Biome or tsc objects, change `attempts` in `ChiaErrorOptions` handling to a mutable private field with a public getter rather than widening the type.
+Declare `let lastRefusal: ChiaError | undefined;` alongside `attempts` at the top of `route()`.
+
+**Two corrections to earlier drafts of this task, both found during implementation:**
+
+1. **`ChiaError.attempts` is mutable**, not readonly. Task 2 made it so deliberately, precisely to avoid an `Object.assign` hack here. Assign it plainly: `error.attempts = attempts; throw error;`.
+
+2. **The post-loop fallback was wrong in two ways.** An earlier draft always threw `ChiaRoutingError` once the loop ended, which meant a request pinned to a single provider that safely refused produced a synthesised `ChiaRoutingError` instead of that provider's real error - failing this task's own "an explicit provider pins to exactly one" test. And its message read `All ${attempts.length} candidate providers refused`, counting **skipped** providers as refusals: a ZMB payment where two providers are skipped for lack of coverage and one refuses would claim "All 3 candidate providers refused", which is simply false.
+
+   The rule now: `ChiaRoutingError` means "I genuinely had a choice between multiple providers and every one refused". If only one provider was ever actually contacted - whether because the caller pinned it, or because only one supported the route - there was no routing to fail, so the caller gets that provider's real error. `attempts` still carries the full trail including skips in every case; only the message counts rejections.
+
+**What must not change:** the `catch` block inside the loop is the safety boundary. Only `error instanceof ChiaError && error.failoverSafety === "no_money_moved"` may continue the loop. Neither correction above touches that path.
 
 - [ ] **Step 4: Run tests to verify they pass**
 
