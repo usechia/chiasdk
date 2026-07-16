@@ -90,7 +90,7 @@ export interface ChiaPayment {
 	provider: ProviderName;
 	status: PaymentStatus;
 	amount: string;
-	currency: Currency;
+	currency?: Currency;
 	msisdn?: string;
 	operator?: string;
 	nextAction?: NextAction;
@@ -106,7 +106,7 @@ export interface ChiaPayout {
 	provider: ProviderName;
 	status: PayoutStatus;
 	amount: string;
-	currency: Currency;
+	currency?: Currency;
 	msisdn?: string;
 	operator?: string;
 	requiresApproval: boolean;
