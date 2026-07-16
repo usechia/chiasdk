@@ -13,7 +13,7 @@ Spec: `docs/superpowers/specs/2026-07-16-sdk-unified-payments-api-design.md`
 ## Global Constraints
 
 - Package root for all paths: `packages/sdk/`. All `src/...` paths below are relative to it.
-- Formatting: Biome. Tabs for indent, double quotes. Run `pnpm lint:fix` before each commit.
+- Formatting: Biome style. Tabs for indent, double quotes. **`pnpm lint` and `pnpm lint:fix` are currently broken repo-wide** and cannot be used: `biome.json` declares the 2.3.15 schema and the `assist` key, but `package.json` pins `@biomejs/biome` at `1.5.3`, which fails to deserialize it. This is pre-existing on `master` and is tracked separately; do not fix it in this plan, and do not let it block a task. Instead, match the surrounding file's style by hand and verify with `pnpm exec tsc --noEmit`. Substitute that command wherever a task step says `pnpm lint:fix`.
 - Tests: `pnpm test` from `packages/sdk/`. Test files live in `src/__tests__/`, named `*.test.ts`.
 - Mock axios using the exact factory in the existing tests (see Task 1 Step 1). Do not invent a new mocking style.
 - No comments in code unless a constraint cannot be expressed in code itself.
@@ -265,10 +265,12 @@ async patch<T>(
 
 - [ ] **Step 4: Opt PawaPay back in, since its keys dedupe**
 
-In `src/services/pawapay/deposits/index.ts`, find the `sendDeposit` call to `this.network.post<DepositInitiationResponse>("/deposits", request, "sending deposit")` and add the options argument:
+Note the field name: PawaPay's services hold their client as `this.networkHandler`, not `this.network`. PayChangu and OneKhusa use `this.network`. Check before editing.
+
+In `src/services/pawapay/deposits/index.ts`, find the `sendDeposit` call to `this.networkHandler.post<DepositInitiationResponse>("/deposits", request, "sending deposit")` and add the options argument:
 
 ```ts
-this.network.post<DepositInitiationResponse>(
+this.networkHandler.post<PawaPayTypes.DepositInitiationResponse>(
 	"/deposits",
 	request,
 	"sending deposit",
@@ -280,7 +282,7 @@ this.network.post<DepositInitiationResponse>(
 In `src/services/pawapay/payouts/index.ts`, do the same for `sendPayout` (`"/payouts"`) and `sendBulkPayout` (`"/payouts/bulk"`), each carrying a caller-supplied `payoutId`:
 
 ```ts
-this.network.post<PayoutInitiationResponse>(
+this.networkHandler.post<PawaPayTypes.PayoutInitiationResponse>(
 	"/payouts",
 	request,
 	"sending payout",
