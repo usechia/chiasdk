@@ -7,13 +7,15 @@ Model Context Protocol (MCP) server for the Chia SDK, enabling AI assistants lik
 
 ## Supported Providers
 
+- **Unified** - Provider-agnostic payment and payout tools that route across whatever is configured (4 tools)
 - **PayChangu** - Payment services in Malawi (12 tools)
 - **PawaPay** - Mobile money payments across Sub-Saharan Africa (12 tools)
 - **OneKhusa** - Enterprise payments in Malawi & Southern Africa (18 tools)
 
 ## Features
 
-- 42 comprehensive tools for payment operations
+- 48 comprehensive tools for payment operations
+- Provider-agnostic payment and payout tools that pick a provider for you
 - Support for deposits, payouts, refunds, and transfers
 - Collections and disbursements with approval workflows
 - Batch payment processing
@@ -78,7 +80,16 @@ Try commands like:
 - "What's my PawaPay wallet balance?"
 - "Create a OneKhusa batch disbursement for January salaries"
 
-## Available Tools (42 Total)
+## Available Tools (48 Total)
+
+### Unified Tools (4)
+
+Provider-agnostic tools that route across whatever providers are configured, instead of requiring you to pick one. Prefer these unless you need a specific provider.
+
+- `chia_initiate_payment` - Collect a mobile money payment, routed by country and currency
+- `chia_get_payment` - Get a payment's status (requires the `provider` returned by initiate)
+- `chia_send_payout` - Send a mobile money payout, routed by country and currency
+- `chia_get_payout` - Get a payout's status (requires the `provider` returned by send)
 
 ### PayChangu Tools (12)
 
@@ -153,6 +164,16 @@ Try commands like:
 ## Usage Examples
 
 Once configured in Claude Desktop, interact with payment providers through natural language:
+
+### Unified Examples
+
+```
+Collect a payment of 50 ZMW from 260971234567 in Zambia, reference order-123
+```
+
+```
+Check the status of payment order-123 (provider: pawapay)
+```
 
 ### PayChangu Examples
 
