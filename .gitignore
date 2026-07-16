@@ -107,3 +107,6 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.* 
+
+# Superpowers design scratch: specs and plans, not part of the docs site
+docs/superpowers/
