@@ -56,6 +56,21 @@ runAdapterContract("PayChanguAdapter", () => {
 					ErrorCode: 500,
 				},
 			}),
+		inlineRefusedPayment: () =>
+			service.initializeMobileMoneyCollection.mockResolvedValue({
+				type: "success",
+				payload: {
+					PaymentDetails: {
+						charge_id: "chg-1",
+						mobile: "265991234567",
+						amount: "50.00",
+						status: "failed",
+						created_at: "2026-07-16T00:00:00Z",
+						completed_at: null,
+					},
+					HasError: false,
+				},
+			}),
 		sampleCountry: "MWI",
 		sampleCurrency: "MWK",
 		sampleMsisdn: "265991234567",
@@ -164,6 +179,37 @@ test("reference is passed as charge_id", async () => {
 		"chg-9",
 		expect.anything(),
 	);
+});
+
+test("an inline failed collection throws no_money_moved instead of returning status failed, so the router fails over", async () => {
+	const service = makeService();
+	service.initializeMobileMoneyCollection.mockResolvedValue({
+		type: "success",
+		payload: {
+			PaymentDetails: {
+				charge_id: "chg-14",
+				mobile: "265991234567",
+				amount: "50.00",
+				status: "failed",
+				created_at: "2026-07-16T00:00:00Z",
+				completed_at: null,
+			},
+			HasError: false,
+		},
+	});
+	const adapter = new PayChanguAdapter(service);
+	const err = await adapter
+		.initiatePayment({
+			reference: "chg-14",
+			amount: "50.00",
+			currency: "MWK",
+			msisdn: "265991234567",
+			country: "MWI",
+			operator: "ref-airtel",
+		})
+		.catch((e) => e);
+	expect(err.name).toBe("ChiaProviderError");
+	expect(err.failoverSafety).toBe("no_money_moved");
 });
 
 test("sendPayout returns a ChiaPayout with requiresApproval false and a valid PayoutStatus, and passes reference through as charge_id", async () => {

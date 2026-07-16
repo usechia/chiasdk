@@ -23,6 +23,10 @@ import type { ChiaProviderAdapter } from "./types";
 
 const DECIMAL_AMOUNT = /^\d+(\.\d+)?$/;
 
+function toCurrency(value: unknown): Currency | undefined {
+	return typeof value === "string" && value ? (value as Currency) : undefined;
+}
+
 function toNumber(amount: string): number {
 	if (!DECIMAL_AMOUNT.test(amount)) {
 		throw new ChiaValidationError(`Amount "${amount}" is not a valid decimal.`, {
@@ -128,6 +132,12 @@ export class OneKhusaAdapter implements ChiaProviderAdapter {
 		if (isServiceError(result) || !("id" in result)) this.fail(result, "collection");
 
 		const mapped = paymentStatusFor(result.status);
+		if (mapped === "failed") {
+			throw new ChiaProviderError(
+				`OneKhusa refused the collection: status "${result.status}"`,
+				{ provider: "onekhusa", raw: result, failoverSafety: "no_money_moved" },
+			);
+		}
 		const status = mapped === "pending" && result.tan ? "requires_action" : mapped;
 
 		return {
@@ -157,7 +167,7 @@ export class OneKhusaAdapter implements ChiaProviderAdapter {
 			provider: "onekhusa",
 			status: paymentStatusFor(String(data.status ?? "")),
 			amount: String(data.amount ?? ""),
-			currency: String(data.currency ?? "") as Currency,
+			currency: toCurrency(data.currency),
 			attempts: [],
 			raw: result,
 		};
@@ -210,7 +220,7 @@ export class OneKhusaAdapter implements ChiaProviderAdapter {
 			provider: "onekhusa",
 			status: payoutStatusFor(String(data.status ?? "")),
 			amount: String(data.amount ?? ""),
-			currency: String(data.currency ?? "") as Currency,
+			currency: toCurrency(data.currency),
 			requiresApproval: true,
 			attempts: [],
 			raw: result,

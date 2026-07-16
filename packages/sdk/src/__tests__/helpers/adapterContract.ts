@@ -7,6 +7,7 @@ export interface ContractFixture {
 	okPayment: () => void;
 	rejectedPayment: () => void;
 	timeoutPayment: () => void;
+	inlineRefusedPayment: () => void;
 	sampleCountry: CountryCode;
 	sampleCurrency: Currency;
 	sampleMsisdn: string;
@@ -80,6 +81,23 @@ export function runAdapterContract(
 				.catch((e) => e);
 			expect(err).toBeInstanceOf(ChiaError);
 			expect(err.failoverSafety).toBe("indeterminate");
+		});
+
+		test("an inline terminal refusal at initiation throws a ChiaError marked no_money_moved", async () => {
+			const f = makeFixture();
+			f.inlineRefusedPayment();
+			const err = await f.adapter
+				.initiatePayment({
+					reference: "ref-5",
+					amount: "50.00",
+					currency: f.sampleCurrency,
+					msisdn: f.sampleMsisdn,
+					country: f.sampleCountry,
+				})
+				.catch((e) => e);
+			expect(err).toBeInstanceOf(ChiaError);
+			expect(err.failoverSafety).toBe("no_money_moved");
+			expect(err.provider).toBe(f.adapter.name);
 		});
 
 		test("never returns a ServiceError union member instead of throwing", async () => {

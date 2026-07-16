@@ -194,12 +194,20 @@ export class PayChanguAdapter implements ChiaProviderAdapter {
 		);
 
 		const details = this.unwrap(result, "collection", "PaymentDetails");
+		const status = statusFor(String(details.status ?? "pending"));
+
+		if (status === "failed") {
+			throw new ChiaProviderError(
+				`PayChangu refused the collection: status "${String(details.status)}"`,
+				{ provider: "paychangu", raw: result, failoverSafety: "no_money_moved" },
+			);
+		}
 
 		return {
 			id: String(details.charge_id ?? req.reference),
 			reference: req.reference,
 			provider: "paychangu",
-			status: statusFor(String(details.status ?? "pending")),
+			status,
 			amount: req.amount,
 			currency: req.currency,
 			msisdn: req.msisdn,
