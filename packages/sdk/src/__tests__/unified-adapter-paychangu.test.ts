@@ -165,3 +165,137 @@ test("reference is passed as charge_id", async () => {
 		expect.anything(),
 	);
 });
+
+test("sendPayout returns a ChiaPayout with requiresApproval false and a valid PayoutStatus, and passes reference through as charge_id", async () => {
+	const service = makeService();
+	service.initializeMobileMoneyPayout.mockResolvedValue({
+		type: "success",
+		payload: {
+			PayoutDetails: {
+				charge_id: "chg-10",
+				mobile: "265991234567",
+				amount: "50.00",
+				status: "successful",
+				created_at: "2026-07-16T00:00:00Z",
+				completed_at: null,
+			},
+			HasError: false,
+		},
+	});
+	const adapter = new PayChanguAdapter(service);
+	const payout = await adapter.sendPayout({
+		reference: "chg-10",
+		amount: "50.00",
+		currency: "MWK",
+		msisdn: "265991234567",
+		country: "MWI",
+		operator: "ref-airtel",
+	});
+
+	expect(payout.requiresApproval).toBe(false);
+	expect([
+		"pending",
+		"pending_approval",
+		"processing",
+		"success",
+		"failed",
+		"cancelled",
+	]).toContain(payout.status);
+	expect(service.initializeMobileMoneyPayout).toHaveBeenCalledWith(
+		"265991234567",
+		"ref-airtel",
+		"50.00",
+		"chg-10",
+		expect.anything(),
+	);
+});
+
+test("sendPayout on a PayChangu refusal throws ChiaError with failoverSafety no_money_moved", async () => {
+	const service = makeService();
+	service.initializeMobileMoneyPayout.mockResolvedValue({
+		type: "error",
+		payload: {
+			PayoutDetails: {
+				charge_id: "",
+				mobile: "",
+				amount: "",
+				status: "",
+				created_at: "",
+				completed_at: null,
+			},
+			HasError: true,
+			ErrorMessage: "invalid mobile number",
+			ErrorCode: 400,
+		},
+	});
+	const adapter = new PayChanguAdapter(service);
+	const err = await adapter
+		.sendPayout({
+			reference: "chg-11",
+			amount: "50.00",
+			currency: "MWK",
+			msisdn: "265991234567",
+			country: "MWI",
+			operator: "ref-airtel",
+		})
+		.catch((e) => e);
+
+	expect(err.failoverSafety).toBe("no_money_moved");
+});
+
+test("CRITICAL: sendPayout on an indeterminate failure throws with failoverSafety indeterminate", async () => {
+	const service = makeService();
+	service.initializeMobileMoneyPayout.mockResolvedValue({
+		type: "error",
+		payload: {
+			PayoutDetails: {
+				charge_id: "",
+				mobile: "",
+				amount: "",
+				status: "",
+				created_at: "",
+				completed_at: null,
+			},
+			HasError: true,
+			ErrorMessage: "timeout of 30000ms exceeded",
+			ErrorCode: 500,
+		},
+	});
+	const adapter = new PayChanguAdapter(service);
+	const err = await adapter
+		.sendPayout({
+			reference: "chg-12",
+			amount: "50.00",
+			currency: "MWK",
+			msisdn: "265991234567",
+			country: "MWI",
+			operator: "ref-airtel",
+		})
+		.catch((e) => e);
+
+	expect(err.failoverSafety).toBe("indeterminate");
+});
+
+test("getPayment returns a ChiaPayment with the status mapped from the verify response", async () => {
+	const service = makeService();
+	service.verifyMobileMoneyPayment.mockResolvedValue({
+		type: "success",
+		payload: {
+			PaymentDetails: {
+				charge_id: "chg-13",
+				mobile: "265991234567",
+				amount: "50.00",
+				status: "successful",
+				created_at: "2026-07-16T00:00:00Z",
+				completed_at: "2026-07-16T00:05:00Z",
+			},
+			HasError: false,
+		},
+	});
+	const adapter = new PayChanguAdapter(service);
+	const payment = await adapter.getPayment("chg-13");
+
+	expect(payment.status).toBe("success");
+	expect(payment.reference).toBe("chg-13");
+	expect(payment.amount).toBe("50.00");
+});
