@@ -28,6 +28,7 @@ import { registerPawapayConfigTools } from "./tools/pawapay/config.js";
 import { registerOneKhusaCollectionTools } from "./tools/onekhusa/collections.js";
 import { registerOneKhusaDisbursementTools } from "./tools/onekhusa/disbursements.js";
 import { registerOneKhusaConfigTools } from "./tools/onekhusa/config.js";
+import { registerUnifiedTools } from "./tools/unified.js";
 
 import { validateEnvironment, sanitizeErrorMessage } from "./utils/validation.js";
 
@@ -121,6 +122,16 @@ function registerTool(
 
 // Register all tools
 if (sdk) {
+	// Unified tools - register as soon as any single provider is configured,
+	// since the router only needs one candidate to serve a route.
+	if (
+		sdk.isServiceConfigured("paychangu") ||
+		sdk.isServiceConfigured("pawapay") ||
+		sdk.isServiceConfigured("onekhusa")
+	) {
+		registerUnifiedTools(registerTool, sdk);
+	}
+
 	// PayChangu tools
 	if (sdk.isServiceConfigured("paychangu")) {
 		registerPayChanguTools(registerTool, sdk.paychangu);
