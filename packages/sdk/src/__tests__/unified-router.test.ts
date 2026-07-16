@@ -41,12 +41,25 @@ const req: PaymentRequest = {
 	country: "ZMB",
 };
 
-test("with no providers configured, routing throws ChiaConfigError", async () => {
+test("with no providers configured, routing throws ChiaConfigError naming the real cause, not a coverage gap", async () => {
 	const router = new ProviderRouter({});
 	await expect(
 		router.route(req, (a, r) => a.initiatePayment(r as PaymentRequest)),
 	).rejects.toMatchObject({
 		name: "ChiaConfigError",
+		message: "No providers are configured. Add PSP credentials to the SDK config or environment.",
+	});
+});
+
+test("with providers configured but none supporting the route, the error names the coverage gap, not a configuration gap", async () => {
+	const router = new ProviderRouter({
+		paychangu: fakeAdapter("paychangu", { supports: false }),
+	});
+	await expect(
+		router.route(req, (a, r) => a.initiatePayment(r as PaymentRequest)),
+	).rejects.toMatchObject({
+		name: "ChiaConfigError",
+		message: `No configured provider supports ${req.currency} in ${req.country}.`,
 	});
 });
 

@@ -110,6 +110,12 @@ export class ProviderRouter {
 		const rejected = attempts.filter((a) => a.outcome === "rejected").length;
 
 		if (rejected === 0) {
+			if (candidates.length === 0) {
+				throw new ChiaConfigError(
+					"No providers are configured. Add PSP credentials to the SDK config or environment.",
+					{ attempts },
+				);
+			}
 			throw new ChiaConfigError(
 				`No configured provider supports ${req.currency} in ${req.country}.`,
 				{ attempts },
