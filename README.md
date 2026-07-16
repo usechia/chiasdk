@@ -1,29 +1,18 @@
 # Chia
 
-Subscription billing for mobile money in Africa. Chia handles payment collection, automated renewals, and merchant payouts - so businesses can focus on their product.
+Unified TypeScript tooling for African payment providers. Chia wraps PayChangu, PawaPay, and OneKhusa behind one type-safe interface.
 
-## Three Ways to Use Chia
+**Documentation: [docs.usechia.com](https://docs.usechia.com)**
 
-| Layer | What it does | Who it's for |
-|-------|-------------|--------------|
-| **[Chia Platform](https://chia.africa)** | Managed billing - sign up, create plans, share a link, get paid | Any business |
-| **[Chia SDK](./packages/sdk)** | TypeScript SDK for direct provider API access | Developers building custom integrations |
-| **[Chia MCP](./packages/mcp)** | AI assistant tools for payment operations | AI-powered workflows |
+## Packages
 
-## Quick Start: Chia Platform (No Code)
+| Package | Description | Docs |
+|---------|-------------|------|
+| **[@chiahq/sdk](./packages/sdk)** | TypeScript SDK for direct provider API access | [SDK docs](https://docs.usechia.com/docs/sdk/overview) |
+| **[@chiahq/widget](./packages/widget)** | Embeddable subscription widget - one script tag, no backend | [Widget docs](https://docs.usechia.com/docs/widget/overview) |
+| **[@chiahq/mcp](./packages/mcp)** | MCP server exposing payment operations to AI assistants | [MCP docs](https://docs.usechia.com/docs/mcp/overview) |
 
-The fastest way to start collecting subscription payments:
-
-1. **Sign up** at [chia.africa](https://chia.africa)
-2. **Create a plan** - set the name, price, and billing interval
-3. **Share your storefront link** - subscribers pay via mobile money
-4. **Get paid** - Chia collects payments and sends you your earnings weekly
-
-No provider API keys needed. No code required. Chia handles collection via PayChangu, PawaPay, and OneKhusa, tracks your balance, and disburses your earnings on a weekly schedule. A flat 3% fee per successful transaction.
-
-## Quick Start: Chia SDK (For Developers)
-
-For developers who want direct access to provider APIs with their own accounts:
+## Quick Start
 
 ```bash
 npm install @chiahq/sdk
@@ -86,6 +75,8 @@ const collection = await sdk.onekhusa.collections.initiateRequestToPay({
 });
 ```
 
+You bring your own provider credentials. See [Configuration](https://docs.usechia.com/docs/sdk/configuration) for every supported option.
+
 > Never commit production API keys to version control. Use environment variables or a secrets manager.
 
 ## Supported Providers
@@ -93,6 +84,32 @@ const collection = await sdk.onekhusa.collections.initiateRequestToPay({
 - **PayChangu** - Payment gateway with the widest coverage in Malawi (direct charge, mobile money, bank transfers)
 - **PawaPay** - Mobile money payments across 20+ African countries (deposits, payouts, refunds)
 - **OneKhusa** - Collections and disbursements focused on Malawi and Southern Africa
+
+## SDK Features
+
+**PayChangu** - Direct charge payments, mobile money collections and payouts, bank transfers, transaction verification, operator listing
+
+**PawaPay** - Deposit requests, single and bulk payouts, refunds, wallet balances, network configuration and availability checks, provider prediction
+
+**OneKhusa** - Request-to-pay collections, single and batch disbursements, approval workflows (approve, review, reject), fund transfers, transaction listing with filters
+
+## Widget
+
+Embed a subscribe flow on any site with a single script tag:
+
+```html
+<div id="subscribe-widget"></div>
+<script src="https://cdn.jsdelivr.net/npm/@chiahq/widget/dist/chia-widget.min.js"></script>
+<script>
+  Chia.init({
+    publishableKey: "pk_live_your_key_here",
+    container: "#subscribe-widget",
+    planId: "your-plan-id",
+  });
+</script>
+```
+
+See the [widget quick start](https://docs.usechia.com/docs/widget/quick-start) for configuration and events.
 
 ## MCP Server
 
@@ -103,7 +120,7 @@ npm install -g @chiahq/mcp
 npx @chiahq/mcp
 ```
 
-See the [MCP documentation](./packages/mcp) for configuration with Claude Desktop and other AI assistants.
+See the [MCP documentation](https://docs.usechia.com/docs/mcp/overview) for configuration with Claude Desktop and other AI assistants.
 
 ## Type Imports
 
@@ -117,29 +134,16 @@ import type {
 } from "@chiahq/sdk";
 ```
 
-## SDK Features
-
-**PayChangu** - Direct charge payments, mobile money collections and payouts, bank transfers, transaction verification, operator listing
-
-**PawaPay** - Deposit requests, single and bulk payouts, refunds, wallet balances, network configuration and availability checks, provider prediction
-
-**OneKhusa** - Request-to-pay collections, single and batch disbursements, approval workflows (approve, review, reject), fund transfers, transaction listing with filters
-
-## Getting Provider API Keys (SDK / BYOK Mode)
-
-If you're using the SDK directly or connecting your own provider accounts, you'll need API credentials:
-
-**PawaPay** - Create a developer account at [pawapay.io](https://www.pawapay.io/). Complete onboarding, then get your API token from the dashboard. Use the sandbox environment for testing.
-
-**PayChangu** - Create a merchant account at [paychangu.com](https://paychangu.com/). Complete business verification, then get your secret key from the dashboard. Configure webhook URLs for payment notifications.
-
-**OneKhusa** - Contact [OneKhusa](https://onekhusa.com/) for API access. You will receive an API key, secret, and organisation ID.
+Full reference: [Type Definitions](https://docs.usechia.com/docs/sdk/types).
 
 ## Project Structure
 
 ```
 packages/sdk/       TypeScript SDK
+packages/widget/    Embeddable subscription widget
 packages/mcp/       MCP server for AI assistants
+docs/               Documentation site (docs.usechia.com)
+website/            Marketing site
 examples/           Usage examples
 .github/workflows/  CI/CD and release automation
 ```
@@ -152,6 +156,9 @@ pnpm install
 
 # build the SDK
 pnpm --filter @chiahq/sdk build
+
+# build the widget
+pnpm --filter @chiahq/widget build
 
 # build the MCP server (builds SDK first)
 pnpm --filter @chiahq/sdk build && pnpm --filter @chiahq/mcp build
@@ -171,18 +178,22 @@ The project uses GitHub Actions for automated releases. Each package has its own
 | Package | Workflow | Tag format | npm package |
 |---------|----------|------------|-------------|
 | SDK | `release-sdk.yml` | `v{version}` | `@chiahq/sdk` |
+| Widget | `release-widget.yml` | `widget-v{version}` | `@chiahq/widget` |
 | MCP | `release-mcp.yml` | `mcp-v{version}` | `@chiahq/mcp` |
 
 Release types: `patch` (bug fixes), `minor` (new features), `major` (breaking changes), `beta` (pre-release).
 
+The documentation site deploys via `release-docs.yml`.
+
 ## Documentation
 
+- [Documentation site](https://docs.usechia.com) - full reference for the SDK, widget, and MCP server
 - [SDK README](./packages/sdk/README.md) - SDK overview and API reference
+- [Widget README](./packages/widget/README.md) - widget setup and configuration
 - [MCP README](./packages/mcp/README.md) - MCP server setup and usage
-- [MCP Installation Guide](./packages/mcp/INSTALLATION.md) - Detailed MCP setup
-- [API Documentation](./DOCS.md) - Full API reference
-- [Examples](./examples/) - Working code examples
-- [Changelog](./CHANGELOG.md) - Version history
+- [MCP Installation Guide](./packages/mcp/INSTALLATION.md) - detailed MCP setup
+- [Examples](./examples/) - working code examples
+- [Changelog](./CHANGELOG.md) - version history
 
 ## Contributing
 
