@@ -1,4 +1,5 @@
 import type { ChiaProviderAdapter } from "../../unified/adapters/types";
+import type { CountryCode, Currency } from "../../unified/types";
 import { ChiaError } from "../../unified/errors";
 
 export interface ContractFixture {
@@ -6,8 +7,8 @@ export interface ContractFixture {
 	okPayment: () => void;
 	rejectedPayment: () => void;
 	timeoutPayment: () => void;
-	sampleCountry: string;
-	sampleCurrency: string;
+	sampleCountry: CountryCode;
+	sampleCurrency: Currency;
 	sampleMsisdn: string;
 }
 
@@ -23,7 +24,7 @@ export function runAdapterContract(
 
 		test("supports() agrees with declared coverage", () => {
 			const { adapter, sampleCountry, sampleCurrency } = makeFixture();
-			expect(adapter.supports(sampleCountry, sampleCurrency as never)).toBe(true);
+			expect(adapter.supports(sampleCountry, sampleCurrency)).toBe(true);
 			expect(adapter.supports("XXX", sampleCurrency as never)).toBe(false);
 		});
 
@@ -33,7 +34,7 @@ export function runAdapterContract(
 			const p = await f.adapter.initiatePayment({
 				reference: "ref-1",
 				amount: "50.00",
-				currency: f.sampleCurrency as never,
+				currency: f.sampleCurrency,
 				msisdn: f.sampleMsisdn,
 				country: f.sampleCountry,
 			});
@@ -51,18 +52,18 @@ export function runAdapterContract(
 		test("a provider refusal throws ChiaError marked no_money_moved", async () => {
 			const f = makeFixture();
 			f.rejectedPayment();
-			await expect(
-				f.adapter.initiatePayment({
+			const err = await f.adapter
+				.initiatePayment({
 					reference: "ref-2",
 					amount: "50.00",
-					currency: f.sampleCurrency as never,
+					currency: f.sampleCurrency,
 					msisdn: f.sampleMsisdn,
 					country: f.sampleCountry,
-				}),
-			).rejects.toMatchObject({
-				failoverSafety: "no_money_moved",
-				provider: f.adapter.name,
-			});
+				})
+				.catch((e) => e);
+			expect(err).toBeInstanceOf(ChiaError);
+			expect(err.failoverSafety).toBe("no_money_moved");
+			expect(err.provider).toBe(f.adapter.name);
 		});
 
 		test("a timeout throws ChiaError marked indeterminate", async () => {
@@ -72,7 +73,7 @@ export function runAdapterContract(
 				.initiatePayment({
 					reference: "ref-3",
 					amount: "50.00",
-					currency: f.sampleCurrency as never,
+					currency: f.sampleCurrency,
 					msisdn: f.sampleMsisdn,
 					country: f.sampleCountry,
 				})
@@ -88,7 +89,7 @@ export function runAdapterContract(
 				.initiatePayment({
 					reference: "ref-4",
 					amount: "50.00",
-					currency: f.sampleCurrency as never,
+					currency: f.sampleCurrency,
 					msisdn: f.sampleMsisdn,
 					country: f.sampleCountry,
 				})
