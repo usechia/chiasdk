@@ -12,6 +12,7 @@ import { BaseService } from "../../utils/baseService";
 import { logger } from "../../utils/logger";
 import { createPaychanguClient } from "../../utils/providerClients";
 import { HttpClient } from "../../utils/httpClient";
+import { isServiceError } from "../../utils/serviceWrapper";
 import type { Environment } from "../../config/constants";
 import type { PayChanguAccountInfo } from "./types/account";
 import { PayChangu as PayChanguTypes } from "./types";
@@ -97,18 +98,31 @@ export class PayChangu extends BaseService {
 	): PayChanguErrorResponse {
 		logger.error(`PayChangu API Error - ${context}:`, error);
 
+		if (isServiceError(error)) {
+			return {
+				message: error.errorMessage,
+				status: "error",
+				statusCode: error.statusCode,
+			};
+		}
+
 		if (axios.isAxiosError(error) && error.response?.data) {
+			const status = error.response.status;
 			if (
 				error.response.data.status === "error" ||
 				error.response.data.status === "failed"
 			) {
-				return error.response.data as PayChanguErrorResponse;
+				return {
+					...(error.response.data as PayChanguErrorResponse),
+					statusCode: status,
+				};
 			}
 
 			return {
 				message:
 					error.response.data.message || `An error occurred during ${context}`,
 				status: "error",
+				statusCode: status,
 			};
 		}
 
@@ -127,7 +141,7 @@ export class PayChangu extends BaseService {
 		defaultPayload: T,
 	): {
 		type: "error";
-		payload: T & { HasError: true; ErrorMessage: string };
+		payload: T & { HasError: true; ErrorMessage: string; ErrorCode?: number };
 	} {
 		const safeMessage =
 			error instanceof Error
@@ -135,10 +149,22 @@ export class PayChangu extends BaseService {
 				: typeof error === "object" && error !== null && "message" in error
 					? String((error as { message: unknown }).message)
 					: `An error occurred during ${context}`;
+
+		const statusCode =
+			typeof error === "object" && error !== null && "statusCode" in error
+				? (error as { statusCode?: number }).statusCode
+				: undefined;
+
 		logger.error(`PayChangu Service Error - ${context}:`, safeMessage);
+
 		return {
 			type: "error",
-			payload: { ...defaultPayload, HasError: true, ErrorMessage: safeMessage },
+			payload: {
+				...defaultPayload,
+				HasError: true,
+				ErrorMessage: safeMessage,
+				...(statusCode !== undefined && { ErrorCode: statusCode }),
+			},
 		};
 	}
 

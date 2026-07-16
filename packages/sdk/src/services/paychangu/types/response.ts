@@ -14,6 +14,9 @@ export interface PayChanguErrorResponse {
 
 	/** Error message describing what went wrong */
 	message: string;
+
+	/** HTTP status code, when known */
+	statusCode?: number;
 }
 
 /**
