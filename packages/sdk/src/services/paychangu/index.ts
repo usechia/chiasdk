@@ -409,6 +409,8 @@ export class PayChangu extends BaseService {
 					"/mobile-money/payouts/initialize",
 					data,
 					"mobile money payout initialization",
+					{},
+					{ idempotent: true },
 				),
 			"mobile money payout initialization",
 		);
@@ -523,6 +525,8 @@ export class PayChangu extends BaseService {
 					"/mobile-money/payments/initialize",
 					data,
 					"mobile money payment initialization",
+					{},
+					{ idempotent: true },
 				),
 			"mobile money payment initialization",
 		);
