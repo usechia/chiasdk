@@ -1,7 +1,6 @@
 export interface ChiaWidgetConfig {
   publishableKey: string;
   container: string | HTMLElement;
-  mode?: "inline" | "modal" | "button";
   planId?: string;
   planSlug?: string;
   apiBaseUrl?: string;
@@ -11,14 +10,11 @@ export interface ChiaWidgetConfig {
   onClose?: () => void;
   theme?: ThemeOverrides;
   prefill?: { phone?: string; name?: string };
-  locale?: string;
-  buttonText?: string;
   redirectUrls?: {
     onSuccess?: string;
     onFailure?: string;
     onCancellation?: string;
   };
-  turnstileSiteKey?: string;
 }
 
 export interface ThemeOverrides {
@@ -105,6 +101,14 @@ export type WidgetState =
   | { step: "loading" }
   | { step: "plan-select"; plans: Plan[] }
   | { step: "phone-form"; plan: Plan }
-  | { step: "processing"; plan: Plan; intentId: string; subscriberId: string; nextAction: NextAction | null }
+  | {
+      step: "processing";
+      plan: Plan;
+      intentId: string;
+      subscriberId: string;
+      nextAction: NextAction | null;
+      connectionTrouble?: boolean;
+    }
   | { step: "success"; plan: Plan; subscriberId: string }
+  | { step: "timeout"; plan: Plan; intentId: string; subscriberId: string }
   | { step: "error"; message: string; canRetry: boolean };

@@ -30,9 +30,9 @@ The simplest integration. The widget renders directly in the container.
 
 <WidgetDemo />
 
-## CDN - modal with a trigger button
+## CDN - overlay chrome with a trigger button
 
-Initialize the widget inline, then use `open()` to show it as a modal overlay when a button is clicked.
+`open()` marks the widget to render with a full-screen backdrop and a close button the next time it draws - it does not, on its own, hide the widget until the button is clicked. The widget below is visible inline as soon as it initializes; clicking the button below only affects how it looks on its *next* render (for example, after the customer picks a plan or submits the form). If you want the widget to stay fully out of view until the trigger is clicked, hide the container yourself with CSS and reveal it at the same time you call `open()`.
 
 ```html
 <button id="usechia-trigger">Subscribe</button>
@@ -157,7 +157,7 @@ Chia.init({
     // Show fallback UI or log to error tracking
   },
   onClose: function () {
-    console.log("Modal closed");
+    console.log("Widget closed");
   },
 });
 ```

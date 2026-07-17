@@ -5,11 +5,13 @@ import { renderPhoneForm } from "./components/phone-form";
 import { renderPlanSelector } from "./components/plan-selector";
 import { renderProcessing } from "./components/processing";
 import { renderSuccess } from "./components/success";
+import { renderTimeout } from "./components/timeout";
 
 export interface WidgetCallbacks {
   onPlanSelected: (plan: Plan) => void;
   onSubscribe: (data: { phone: string; name?: string; correspondent?: string; provider?: string }) => void;
   onRetry: () => void;
+  onCheckAgain: () => void;
   onClose: () => void;
 }
 
@@ -52,10 +54,13 @@ export class WidgetRenderer {
         );
         break;
       case "processing":
-        content = renderProcessing(state.plan, state.nextAction);
+        content = renderProcessing(state.plan, state.nextAction, state.connectionTrouble);
         break;
       case "success":
         content = renderSuccess(state.plan, state.subscriberId);
+        break;
+      case "timeout":
+        content = renderTimeout(state.plan, this.callbacks.onCheckAgain);
         break;
       case "error":
         content = renderError(state.message, state.canRetry, this.callbacks.onRetry);

@@ -5,7 +5,7 @@ function getMessage(nextAction: NextAction | null): string {
 
   switch (nextAction.type) {
     case "redirect":
-      return "Complete payment in the new window...";
+      return "Complete your payment with your provider. We'll keep checking for confirmation...";
     case "ussd_prompt":
       return "Check your phone for the USSD prompt...";
     case "tan_prompt":
@@ -24,6 +24,7 @@ function getMessage(nextAction: NextAction | null): string {
 export function renderProcessing(
   _plan: Plan,
   nextAction: NextAction | null,
+  connectionTrouble?: boolean,
 ): HTMLElement {
   const container = document.createElement("div");
   container.className = "chia-center";
@@ -40,6 +41,12 @@ export function renderProcessing(
     const detail = document.createElement("small");
     detail.textContent = nextAction.message;
     container.appendChild(detail);
+  }
+
+  if (connectionTrouble) {
+    const notice = document.createElement("small");
+    notice.textContent = "Having trouble connecting. Still checking...";
+    container.appendChild(notice);
   }
 
   return container;
