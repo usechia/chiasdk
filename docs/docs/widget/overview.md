@@ -14,8 +14,10 @@ The Chia Widget (`@chiahq/widget`) is an embeddable subscription checkout you ca
 
 - **Zero dependencies** - 4.5KB gzipped, vanilla JS
 - **Shadow DOM isolated** - no CSS conflicts with your site
-- **Inline and modal** - render directly or as an overlay
+- **Renders inline immediately** - the widget mounts into your container and shows its first screen as soon as it's initialized
 - **Publishable keys** - safe for client-side use, no secrets exposed
+- **Double-submit safe** - the submit button and the subscribe handler both guard against a rapid double-tap creating two payments
+- **Bounded, resumable polling** - payment status polling times out after 120 seconds instead of hanging forever, with a "Check again" recovery step
 
 ## How it works
 
@@ -27,8 +29,10 @@ Plan select -> Phone form -> Provider select -> Payment processing -> Success
 2. The customer selects a plan (or you pre-select one via `planId`)
 3. They enter their phone number and choose a payment provider if multiple are available
 4. The widget submits a subscription request and polls for payment status
-5. The customer completes payment via USSD prompt, PIN, or redirect
+5. The customer completes payment via USSD prompt or PIN. (The server can also return a `redirect` next action, but the widget does not currently act on it automatically - see [Configuration](/docs/widget/configuration) for the current limitation.)
 6. On success, the widget shows a confirmation and fires the `onSubscribed` callback
+
+See [Configuration > Payment safety](/docs/widget/configuration#payment-safety) for what happens when a payment can't be confirmed within the polling window - it is not treated as a failure.
 
 ## Publishable keys
 

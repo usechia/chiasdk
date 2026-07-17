@@ -113,4 +113,4 @@ Chia.init({
 ## Next steps
 
 - [Configuration](/docs/widget/configuration) - All options, themes, and callbacks
-- [Examples](/docs/widget/examples) - Modal mode, React integration, custom themes
+- [Examples](/docs/widget/examples) - Overlay chrome, React integration, custom themes

@@ -42,49 +42,15 @@ import { init } from "@chiahq/widget";
 </script>
 ```
 
-## Display Modes
+## Display
 
-### Inline
-
-Renders the widget directly inside a container element on the page.
+The widget always renders inline, immediately, inside the container element you point it at - there is no separate "hidden until triggered" mode. If you want a modal-style presentation, call `widget.open()` before or shortly after `init()` so the overlay chrome (backdrop and close button) is applied on the widget's next render, and pair it with your own CSS if you need the container hidden until then. See [Instance Methods](#instance-methods) for what `open()` and `close()` actually do.
 
 ```js
 Chia.init({
   publishableKey: "pk_live_...",
   container: "#my-container",
-  mode: "inline",
   planId: "plan-uuid",
-});
-```
-
-### Modal
-
-Opens the widget as a centered overlay. Call `widget.open()` to show it and `widget.close()` to hide it.
-
-```js
-const widget = Chia.init({
-  publishableKey: "pk_live_...",
-  container: "#modal-root",
-  mode: "modal",
-  onClose: () => console.log("closed"),
-});
-
-document.querySelector("#subscribe-btn").addEventListener("click", () => {
-  widget.open();
-});
-```
-
-### Button
-
-Combines a styled trigger button with the modal. Set `mode: "button"` and provide `buttonText`.
-
-```js
-Chia.init({
-  publishableKey: "pk_live_...",
-  container: "#button-root",
-  mode: "button",
-  buttonText: "Subscribe Now",
-  planSlug: "pro-monthly",
 });
 ```
 
@@ -94,18 +60,16 @@ Chia.init({
 | --- | --- | --- | --- |
 | `publishableKey` | `string` | Yes | Your publishable API key (`pk_test_*` or `pk_live_*`) |
 | `container` | `string \| HTMLElement` | Yes | CSS selector or DOM element to mount into |
-| `mode` | `"inline" \| "modal" \| "button"` | No | Display mode. Defaults to `"inline"` |
 | `planId` | `string` | No | Show a specific plan by ID. Omit to show a plan selector |
 | `planSlug` | `string` | No | Show a specific plan by slug. Alternative to `planId` |
-| `buttonText` | `string` | No | Label for the trigger button in `"button"` mode |
 | `prefill` | `{ phone?: string; name?: string }` | No | Pre-fill the subscription form |
-| `locale` | `string` | No | Locale for number/currency formatting |
 | `theme` | `ThemeOverrides` | No | Visual customization (see below) |
 | `apiBaseUrl` | `string` | No | Override the API endpoint. Defaults to `https://api.usechia.com` |
+| `redirectUrls` | `{ onSuccess?: string; onFailure?: string; onCancellation?: string }` | No | Override the plan's post-payment redirect behavior |
 | `onReady` | `() => void` | No | Fired when the widget has loaded its configuration |
 | `onSubscribed` | `(result) => void` | No | Fired when a subscription succeeds |
 | `onError` | `(error) => void` | No | Fired on any error |
-| `onClose` | `() => void` | No | Fired when the modal is closed |
+| `onClose` | `() => void` | No | Fired when the widget is closed |
 
 ## Events and Callbacks
 
@@ -122,9 +86,11 @@ interface SubscribeResult {
 }
 ```
 
+Note: if `nextAction.type` is `"redirect"`, the widget does not navigate the customer anywhere on its own - `nextAction.redirectUrl` is not currently acted on. It shows a generic "complete your payment with your provider" message and keeps polling. This is a known gap; do not rely on the widget to open a redirect URL for you.
+
 ### onError
 
-Called on any error during loading or subscription:
+Called on any error during loading or subscription. It is **not** called when polling for payment status times out (see [Payment Safety](#payment-safety) below) - only for outright request failures such as a failed `subscribe()` call or a failed config load.
 
 ```ts
 interface WidgetError {
@@ -135,20 +101,38 @@ interface WidgetError {
 
 ### onClose
 
-Called when the user dismisses the modal (click outside, close button, or `widget.close()`).
+Called when `widget.close()` runs (close button, backdrop click if you've applied the overlay via `open()`, or calling `close()` directly).
 
 ### onReady
 
 Called once the widget has fetched its configuration and is ready to display.
+
+## Payment Safety
+
+### Duplicate submits
+
+The submit button disables itself the instant it's tapped, and `handleSubscribe` also guards re-entrancy internally, so a rapid double-tap (or an Enter-key double-submit, which bypasses a disabled button's click handler) can never send two `subscribe` requests and create two payments.
+
+### Polling timeout
+
+The widget polls for payment status every 3 seconds for up to 120 seconds (`POLL_TIMEOUT_MS`). If 3 consecutive polls fail (network trouble), it shows a small "Having trouble connecting. Still checking..." note without leaving the processing screen, and keeps polling.
+
+If the full 120 seconds elapses without a terminal status, the widget stops polling and shows an indeterminate "timeout" screen with a "Check again" button that resumes polling.
+
+**This timeout is not a payment failure.** The server is the authority on whether a payment has actually failed or expired - it reports `expired` explicitly when that happens. A client-side polling timeout only means the widget lost contact with the server; the payment may still complete or may already have succeeded. `onError` is never called for this path, and the widget never shows "failed" text for it. Do not treat this state as a failed payment - do not refund, cancel, or re-charge a customer based on it alone. Check the subscription/payment status from your backend before taking any action.
+
+### close() vs destroy()
+
+Both stop polling immediately, so no further status requests are made after either is called. `close()` clears the currently rendered widget and fires `onClose` - use it when you want to dismiss the widget but may re-initialize or reuse the container later. `destroy()` additionally tears down the widget's shadow root - use it when removing the widget from the page for good (for example, in a React `useEffect` cleanup function).
 
 ## Instance Methods
 
 ```js
 const widget = Chia.init({ ... });
 
-widget.open();    // Show the modal overlay
-widget.close();   // Hide the modal overlay
-widget.destroy(); // Remove the widget and stop polling
+widget.open();    // Apply overlay chrome (backdrop, close button) on the next render
+widget.close();   // Stop polling, clear the rendered widget, and fire onClose
+widget.destroy(); // Stop polling and remove the widget's shadow root entirely
 
 widget.update({
   planId: "new-plan-id",           // Switch to a different plan
