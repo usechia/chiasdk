@@ -1,7 +1,6 @@
 export interface ChiaWidgetConfig {
   publishableKey: string;
   container: string | HTMLElement;
-  mode?: "inline" | "modal" | "button";
   planId?: string;
   planSlug?: string;
   apiBaseUrl?: string;
@@ -11,14 +10,11 @@ export interface ChiaWidgetConfig {
   onClose?: () => void;
   theme?: ThemeOverrides;
   prefill?: { phone?: string; name?: string };
-  locale?: string;
-  buttonText?: string;
   redirectUrls?: {
     onSuccess?: string;
     onFailure?: string;
     onCancellation?: string;
   };
-  turnstileSiteKey?: string;
 }
 
 export interface ThemeOverrides {

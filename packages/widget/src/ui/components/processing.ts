@@ -5,7 +5,7 @@ function getMessage(nextAction: NextAction | null): string {
 
   switch (nextAction.type) {
     case "redirect":
-      return "Complete payment in the new window...";
+      return "Complete your payment with your provider. We'll keep checking for confirmation...";
     case "ussd_prompt":
       return "Check your phone for the USSD prompt...";
     case "tan_prompt":
