@@ -195,7 +195,7 @@ jobs:
             git add CHANGELOG.md
             git commit -m "docs: update changelog for @chiahq/mcp version ${VERSION}"
             git pull --rebase origin ${{ github.ref_name }}
-            git push origin ${{ github.ref_name }}
+            git push origin ${{ github.ref_name }} || echo "branch is protected - skipping changelog push; the published artifact and release notes are unaffected"
           fi
 
       - name: Setup npm
@@ -220,8 +220,6 @@ jobs:
         if: success()
         run: |
           VERSION=${{ steps.setup.outputs.VERSION }}
-          git tag mcp-v${VERSION}
-          git push origin mcp-v${VERSION}
 
           if [[ "${{ steps.setup.outputs.IS_BETA }}" == "true" ]]; then
             gh release create mcp-v${VERSION} \
