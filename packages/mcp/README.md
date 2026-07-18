@@ -2,8 +2,19 @@
 
 Model Context Protocol (MCP) server for the Chia SDK, enabling AI assistants like Claude to interact with African payment providers.
 
-[![npm version](https://img.shields.io/npm/v/chia-mcp.svg)](https://www.npmjs.com/package/chia-mcp)
+[![npm version](https://img.shields.io/npm/v/%40chiahq%2Fmcp.svg)](https://www.npmjs.com/package/@chiahq/mcp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+## Standalone by design
+
+The MCP server wraps [@chiahq/sdk](https://www.npmjs.com/package/@chiahq/sdk)
+and talks directly to the provider APIs with **your own credentials** - no Chia
+account or platform required. Configure the provider environment variables
+below and any MCP-capable assistant can operate payments against your own
+PayChangu, PawaPay, or OneKhusa accounts.
+
+Managed recurring billing without running your own stack is what the optional,
+separate [Chia platform](https://usechia.com) is for.
 
 ## Supported Providers
 
