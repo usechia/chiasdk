@@ -167,6 +167,8 @@ export class HttpClient {
 						url: error.config?.url,
 						method: error.config?.method?.toUpperCase(),
 						errorMessage: error.message,
+						// Without the body a 4xx says only that it failed, never why.
+						responseBody: error.response?.data,
 					});
 				} else {
 					logger.error(`${this.serviceName} API Response Error:`, {
@@ -193,6 +195,7 @@ export class HttpClient {
 				url: error.config?.url,
 				method: error.config?.method?.toUpperCase(),
 				errorMessage: error.message,
+				responseBody: error.response?.data,
 			});
 		} else {
 			logger.error(`${this.serviceName} API Error - ${context}:`, error instanceof Error ? error.message : "Unknown error");
