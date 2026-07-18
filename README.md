@@ -4,6 +4,18 @@ Unified TypeScript tooling for African payment providers. Chia wraps PayChangu, 
 
 **Documentation: [docs.usechia.com](https://docs.usechia.com)**
 
+## Standalone by design
+
+Everything in this repository works without a Chia account. Bring your own
+provider credentials (PayChangu, PawaPay, OneKhusa) and use the SDK or MCP
+server directly against the provider APIs - no platform in between.
+
+The hosted **Chia platform** ([usechia.com](https://usechia.com)) is a
+separate, optional product built on this SDK: managed recurring billing over
+mobile money - plans, hosted checkout, automatic renewals and retries,
+webhooks, and weekly payouts - for when you would rather not run that
+machinery yourself.
+
 ## Packages
 
 | Package | Description | Docs |

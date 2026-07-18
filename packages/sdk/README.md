@@ -5,19 +5,29 @@ A TypeScript SDK for integrating African mobile money payments. Unified, type-sa
 [![npm version](https://img.shields.io/npm/v/@chiahq/sdk.svg)](https://www.npmjs.com/package/@chiahq/sdk)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## Chia Platform vs SDK
+## Standalone by design
 
-For managed subscription billing, use the **Chia platform** at [usechia.com](https://usechia.com). Sign up, create a plan, share a link, and start collecting payments - no provider accounts needed.
+The SDK talks **directly to the provider APIs with your own credentials** - a
+PayChangu secret key, a PawaPay API token, or OneKhusa API credentials. There
+is no Chia account, no proxy, and no platform dependency: your requests go
+straight to the providers, and nothing here phones home.
 
-Use the **SDK directly** when you need:
+Reach for the SDK when you need:
 
-- Custom payment flows beyond subscription billing
+- Custom payment flows under your full control
 - Direct access to provider APIs (deposits, payouts, refunds, wallets)
 - Integration into an existing backend where you manage your own provider accounts
 - Batch disbursements or approval workflows (OneKhusa)
-- Provider-specific features not exposed by the platform
+- The unified payments surface: one call that routes across whichever providers you configure
 
-If you just want to bill subscribers via mobile money, the platform handles everything for you - including payment collection, retries, and weekly payouts to your account.
+## The hosted platform (optional)
+
+If what you actually want is **recurring billing** - plans, hosted checkout,
+automatic renewals and retries, failed-payment recovery, webhooks, and weekly
+payouts - the [Chia platform](https://usechia.com) runs all of that on top of
+this SDK. Sign up, create a plan, share a link; no provider accounts needed.
+The SDK remains the right tool for custom flows; the platform is the shortcut
+for subscriptions. Neither requires the other.
 
 ## Features
 

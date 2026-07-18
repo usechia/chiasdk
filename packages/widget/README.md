@@ -1,6 +1,13 @@
 # @chiahq/widget
 
-Embeddable subscription widget for [Chia](https://usechia.com). Drop a single script tag onto any website to let customers subscribe to your plans via mobile money.
+Embeddable subscription checkout for mobile money. Drop a single script tag
+onto any website and let customers subscribe to your plans.
+
+By default the widget talks to the hosted [Chia platform](https://usechia.com)
+using your publishable key - the fastest path to live recurring billing.
+Running your own backend instead? Point `apiBaseUrl` at any server that
+implements the same widget endpoints and the hosted platform drops out of the
+picture entirely.
 
 ## Installation
 
@@ -59,6 +66,7 @@ Chia.init({
 | Option | Type | Required | Description |
 | --- | --- | --- | --- |
 | `publishableKey` | `string` | Yes | Your publishable API key (`pk_test_*` or `pk_live_*`) |
+| `apiBaseUrl` | `string` | No | Backend base URL. Defaults to `https://api.usechia.com`; point it at your own server to run without the hosted platform |
 | `container` | `string \| HTMLElement` | Yes | CSS selector or DOM element to mount into |
 | `planId` | `string` | No | Show a specific plan by ID. Omit to show a plan selector |
 | `planSlug` | `string` | No | Show a specific plan by slug. Alternative to `planId` |
