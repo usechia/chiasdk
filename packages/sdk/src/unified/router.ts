@@ -7,25 +7,58 @@ import type {
 	ProviderName,
 } from "./types";
 
-const DEFAULT_ORDER: ProviderName[] = ["paychangu", "pawapay", "onekhusa"];
-
 type RoutableRequest = PaymentRequest | PayoutRequest;
+
+/**
+ * Asks the Chia platform which rail to try first for a given currency and payer.
+ * Automatic routing is the platform's value - operator eligibility (Airtel
+ * collects only from Airtel wallets), currency-based priority, downtime
+ * avoidance - so it lives behind a Chia API key rather than in this open SDK.
+ * Pinning a provider needs no decision and so needs no key.
+ */
+export type RouteResolver = (input: {
+	currency: string;
+	msisdn?: string;
+	allowedProviders: ProviderName[];
+}) => Promise<ProviderName[]>;
 
 export class ProviderRouter {
 	constructor(
 		private readonly adapters: Partial<
 			Record<ProviderName, ChiaProviderAdapter>
 		>,
+		private readonly resolveRoute?: RouteResolver,
 	) {}
 
 	adapterFor(name: ProviderName): ChiaProviderAdapter | undefined {
 		return this.adapters[name];
 	}
 
-	candidatesFor(req: RoutableRequest): ProviderName[] {
+	private configuredProviders(): ProviderName[] {
+		return (Object.keys(this.adapters) as ProviderName[]).filter(
+			(name) => this.adapters[name],
+		);
+	}
+
+	async candidatesFor(req: RoutableRequest): Promise<ProviderName[]> {
 		if (req.provider) return [req.provider];
 		if (req.providers?.length) return req.providers;
-		return DEFAULT_ORDER.filter((name) => this.adapters[name]);
+
+		// No provider named means the caller wants Chia to choose, which is the
+		// gated path. Without a key we refuse rather than falling back to a naive
+		// local order, since that local order is exactly the value being sold.
+		if (!this.resolveRoute) {
+			throw new ChiaConfigError(
+				"Automatic provider routing requires a Chia API key. Set CHIA_API_KEY, or pin a provider yourself with { provider } or { providers }.",
+			);
+		}
+
+		const order = await this.resolveRoute({
+			currency: req.currency,
+			msisdn: req.msisdn,
+			allowedProviders: this.configuredProviders(),
+		});
+		return order.filter((name) => this.adapters[name]);
 	}
 
 	async route<T extends { attempts: AttemptRecord[] }>(
@@ -35,7 +68,7 @@ export class ProviderRouter {
 			req: RoutableRequest,
 		) => Promise<T>,
 	): Promise<T> {
-		const candidates = this.candidatesFor(req);
+		const candidates = await this.candidatesFor(req);
 		const pinned = Boolean(req.provider);
 		const attempts: AttemptRecord[] = [];
 		let lastRefusal: ChiaError | undefined;

@@ -4,8 +4,19 @@ import {
 	ChiaProviderError,
 	ChiaValidationError,
 } from "../unified/errors";
-import { ProviderRouter } from "../unified/router";
-import type { PaymentRequest } from "../unified/types";
+import { ProviderRouter, type RouteResolver } from "../unified/router";
+import type { PaymentRequest, ProviderName } from "../unified/types";
+
+// Stands in for the Chia platform's routing endpoint: returns the default order
+// among whatever the SDK has configured. Router construction takes this so the
+// failover and skip tests exercise real routing; the gating of automatic
+// routing without a key is tested separately.
+const defaultResolver: RouteResolver = async ({ allowedProviders }) =>
+	(["paychangu", "pawapay", "onekhusa"] as ProviderName[]).filter((p) => allowedProviders.includes(p));
+
+function makeRouter(adapters: Partial<Record<ProviderName, ChiaProviderAdapter>>) {
+	return new ProviderRouter(adapters, defaultResolver);
+}
 
 function fakeAdapter(
 	name: any,
@@ -42,7 +53,7 @@ const req: PaymentRequest = {
 };
 
 test("with no providers configured, routing throws ChiaConfigError naming the real cause, not a coverage gap", async () => {
-	const router = new ProviderRouter({});
+	const router = makeRouter({});
 	await expect(
 		router.route(req, (a, r) => a.initiatePayment(r as PaymentRequest)),
 	).rejects.toMatchObject({
@@ -52,7 +63,7 @@ test("with no providers configured, routing throws ChiaConfigError naming the re
 });
 
 test("with providers configured but none supporting the route, the error names the coverage gap, not a configuration gap", async () => {
-	const router = new ProviderRouter({
+	const router = makeRouter({
 		paychangu: fakeAdapter("paychangu", { supports: false }),
 	});
 	await expect(
@@ -63,13 +74,30 @@ test("with providers configured but none supporting the route, the error names t
 	});
 });
 
-test("default order puts paychangu first", () => {
-	const router = new ProviderRouter({
+test("automatic routing follows the platform resolver's order", async () => {
+	const router = makeRouter({
 		pawapay: fakeAdapter("pawapay"),
 		paychangu: fakeAdapter("paychangu"),
 		onekhusa: fakeAdapter("onekhusa"),
 	});
-	expect(router.candidatesFor(req)[0]).toBe("paychangu");
+	expect((await router.candidatesFor(req))[0]).toBe("paychangu");
+});
+
+test("automatic routing without a Chia key is refused, not silently done locally", async () => {
+	// The point of the gate: no key means the SDK will not choose a provider on
+	// its own, since that choice is the platform's value.
+	const router = new ProviderRouter({
+		paychangu: fakeAdapter("paychangu"),
+		pawapay: fakeAdapter("pawapay"),
+	});
+	await expect(router.candidatesFor(req)).rejects.toMatchObject({
+		name: "ChiaConfigError",
+	});
+});
+
+test("a pinned provider needs no Chia key", async () => {
+	const router = new ProviderRouter({ paychangu: fakeAdapter("paychangu") });
+	expect(await router.candidatesFor({ ...req, provider: "paychangu" })).toEqual(["paychangu"]);
 });
 
 test("an explicit provider pins to exactly one and disables failover", async () => {
@@ -83,7 +111,7 @@ test("an explicit provider pins to exactly one and disables failover", async () 
 	});
 	const pawapay = fakeAdapter("pawapay");
 	const spy = jest.spyOn(pawapay, "initiatePayment");
-	const router = new ProviderRouter({ paychangu, pawapay });
+	const router = makeRouter({ paychangu, pawapay });
 
 	await expect(
 		router.route({ ...req, provider: "paychangu" }, (a, r) =>
@@ -93,13 +121,13 @@ test("an explicit provider pins to exactly one and disables failover", async () 
 	expect(spy).not.toHaveBeenCalled();
 });
 
-test("the providers list sets the order", () => {
-	const router = new ProviderRouter({
+test("the providers list sets the order", async () => {
+	const router = makeRouter({
 		pawapay: fakeAdapter("pawapay"),
 		paychangu: fakeAdapter("paychangu"),
 	});
 	expect(
-		router.candidatesFor({ ...req, providers: ["pawapay", "paychangu"] }),
+		await router.candidatesFor({ ...req, providers: ["pawapay", "paychangu"] }),
 	).toEqual(["pawapay", "paychangu"]);
 });
 
@@ -109,7 +137,7 @@ test("providers that do not support the route are skipped, not contacted", async
 	const pawapay = fakeAdapter("pawapay", {
 		behaviour: async () => ({ provider: "pawapay", attempts: [] }) as any,
 	});
-	const router = new ProviderRouter({ paychangu, pawapay });
+	const router = makeRouter({ paychangu, pawapay });
 
 	const result: any = await router.route(req, (a, r) =>
 		a.initiatePayment(r as PaymentRequest),
@@ -134,7 +162,7 @@ test("a no_money_moved refusal falls through to the next provider", async () => 
 	const pawapay = fakeAdapter("pawapay", {
 		behaviour: async () => ({ provider: "pawapay", attempts: [] }) as any,
 	});
-	const router = new ProviderRouter({ paychangu, pawapay });
+	const router = makeRouter({ paychangu, pawapay });
 
 	const result: any = await router.route(req, (a, r) =>
 		a.initiatePayment(r as PaymentRequest),
@@ -154,7 +182,7 @@ test("CRITICAL: an indeterminate failure aborts and never contacts a second prov
 	});
 	const pawapay = fakeAdapter("pawapay");
 	const spy = jest.spyOn(pawapay, "initiatePayment");
-	const router = new ProviderRouter({ paychangu, pawapay });
+	const router = makeRouter({ paychangu, pawapay });
 
 	await expect(
 		router.route(req, (a, r) => a.initiatePayment(r as PaymentRequest)),
@@ -173,7 +201,7 @@ test("CRITICAL: a provider error of unknown safety is treated as indeterminate a
 	});
 	const pawapay = fakeAdapter("pawapay");
 	const spy = jest.spyOn(pawapay, "initiatePayment");
-	const router = new ProviderRouter({ paychangu, pawapay });
+	const router = makeRouter({ paychangu, pawapay });
 
 	await expect(
 		router.route(req, (a, r) => a.initiatePayment(r as PaymentRequest)),
@@ -189,7 +217,7 @@ test("CRITICAL: a non-Chia exception aborts rather than falling through", async 
 	});
 	const pawapay = fakeAdapter("pawapay");
 	const spy = jest.spyOn(pawapay, "initiatePayment");
-	const router = new ProviderRouter({ paychangu, pawapay });
+	const router = makeRouter({ paychangu, pawapay });
 
 	await expect(
 		router.route(req, (a, r) => a.initiatePayment(r as PaymentRequest)),
@@ -208,7 +236,7 @@ test("a validation error falls through, since nothing was sent", async () => {
 	const pawapay = fakeAdapter("pawapay", {
 		behaviour: async () => ({ provider: "pawapay", attempts: [] }) as any,
 	});
-	const router = new ProviderRouter({ paychangu, pawapay });
+	const router = makeRouter({ paychangu, pawapay });
 
 	const result: any = await router.route(req, (a, r) =>
 		a.initiatePayment(r as PaymentRequest),
@@ -226,7 +254,7 @@ test("when every candidate refuses, ChiaRoutingError carries the full trail", as
 				});
 			},
 		});
-	const router = new ProviderRouter({
+	const router = makeRouter({
 		paychangu: mk("paychangu"),
 		pawapay: mk("pawapay"),
 	});
@@ -252,7 +280,7 @@ test("ChiaRoutingError counts only rejections in its message, not skipped provid
 				});
 			},
 		});
-	const router = new ProviderRouter({
+	const router = makeRouter({
 		paychangu: refusing("paychangu"),
 		pawapay: refusing("pawapay"),
 		onekhusa: fakeAdapter("onekhusa", { supports: false }),
@@ -282,7 +310,7 @@ test("when only one provider was attempted, its own error surfaces rather than C
 			});
 		},
 	});
-	const router = new ProviderRouter({ paychangu, pawapay, onekhusa });
+	const router = makeRouter({ paychangu, pawapay, onekhusa });
 
 	const err: any = await router
 		.route(req, (a, r) => a.initiatePayment(r as PaymentRequest))
