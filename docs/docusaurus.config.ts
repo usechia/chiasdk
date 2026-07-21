@@ -28,7 +28,10 @@ const config: Config = {
     locales: ['en'],
   },
 
-  plugins: [require.resolve('./plugins/package-versions')],
+  plugins: [
+    require.resolve('./plugins/package-versions'),
+    require.resolve('./plugins/llms-txt'),
+  ],
 
   presets: [
     [
@@ -103,9 +106,21 @@ const config: Config = {
         },
         {
           type: 'docSidebar',
+          sidebarId: 'reactSidebar',
+          position: 'left',
+          label: 'React',
+        },
+        {
+          type: 'docSidebar',
           sidebarId: 'mcpSidebar',
           position: 'left',
           label: 'MCP Server',
+        },
+        {
+          type: 'docSidebar',
+          sidebarId: 'skillSidebar',
+          position: 'left',
+          label: 'Claude Skill',
         },
         {
           href: 'https://www.npmjs.com/package/@chiahq/sdk',

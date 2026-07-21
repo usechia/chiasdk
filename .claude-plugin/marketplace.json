@@ -1,0 +1,16 @@
+{
+	"$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+	"name": "chia",
+	"description": "Claude Code plugins for building on Chia, the subscription billing platform for African mobile money.",
+	"owner": {
+		"name": "Chia",
+		"email": "support@usechia.com"
+	},
+	"plugins": [
+		{
+			"name": "chia-integration",
+			"source": "./plugins/chia-integration",
+			"description": "Teaches Claude to integrate Chia correctly: auth modes, the subscriber state machine, webhook signature verification, idempotency, and correlating Chia records with your own."
+		}
+	]
+}

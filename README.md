@@ -22,6 +22,7 @@ machinery yourself.
 |---------|-------------|------|
 | **[@chiahq/sdk](./packages/sdk)** | TypeScript SDK for direct provider API access | [SDK docs](https://docs.usechia.com/docs/sdk/overview) |
 | **[@chiahq/widget](./packages/widget)** | Embeddable subscription widget - one script tag, no backend | [Widget docs](https://docs.usechia.com/docs/widget/overview) |
+| **[@chiahq/react](./packages/react)** | React hooks and components for subscription management and the customer portal | [React docs](https://docs.usechia.com/docs/react/overview) |
 | **[@chiahq/mcp](./packages/mcp)** | MCP server exposing payment operations to AI assistants | [MCP docs](https://docs.usechia.com/docs/mcp/overview) |
 
 ## Quick Start
@@ -157,6 +158,17 @@ npx @chiahq/mcp
 
 See the [MCP documentation](https://docs.usechia.com/docs/mcp/overview) for configuration with Claude Desktop and other AI assistants.
 
+## Claude Code Skill
+
+Teaches Claude how Chia works, so it writes correct integration code instead of guessing at auth modes and endpoint shapes. Run both inside a Claude Code session:
+
+```bash
+/plugin marketplace add usechia/chiasdk
+/plugin install chia-integration@chia
+```
+
+Covers auth mode selection, the subscriber state machine, webhook signature verification, idempotency, and correlating Chia records with your own. See the [skill documentation](https://docs.usechia.com/docs/skill/overview).
+
 ## Type Imports
 
 All types are re-exported from the package root - no deep imports needed:
@@ -176,7 +188,9 @@ Full reference: [Type Definitions](https://docs.usechia.com/docs/sdk/types).
 ```
 packages/sdk/       TypeScript SDK
 packages/widget/    Embeddable subscription widget
+packages/react/     React hooks and components for subscription management
 packages/mcp/       MCP server for AI assistants
+plugins/            Claude Code plugins (the chia-integration skill)
 docs/               Documentation site (docs.usechia.com)
 website/            Marketing site
 examples/           Usage examples

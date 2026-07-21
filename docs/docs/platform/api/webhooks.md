@@ -30,8 +30,11 @@ HTTPS is required in production. HTTP is allowed in sandbox for local developmen
 | `subscriber.resumed` | Subscription resumed from pause |
 | `subscriber.cancelled` | Subscription cancelled |
 | `subscriber.past_due` | Max retries exceeded |
+| `subscriber.plan_changed` | Subscriber moved to a different plan |
 | `payment.succeeded` | Any payment collected successfully |
 | `payment.failed` | Payment failed (includes attempt number and reason) |
+| `refund.succeeded` | Refund confirmed by the provider |
+| `refund.failed` | Refund attempt failed |
 | `plan.created` | New plan created |
 | `plan.updated` | Plan modified |
 | `plan.deactivated` | Plan set to inactive |
@@ -55,6 +58,43 @@ HTTPS is required in production. HTTP is allowed in sandbox for local developmen
   }
 }
 ```
+
+### Subscriber event payloads
+
+Every `subscriber.*` event carries the same `data` shape, so you never have to make a follow-up API call just to learn what the event already knew:
+
+```json
+{
+  "id": "evt_a1b2c3d4e5f6",
+  "type": "subscriber.renewed",
+  "environment": "production",
+  "org_id": "org_...",
+  "created_at": "2026-07-20T14:30:00.000Z",
+  "data": {
+    "subscriber_id": "a1d4...",
+    "plan_id": "3f1c...",
+    "phone": "+265991234567",
+    "name": "Chikondi Banda",
+    "email": null,
+    "status": "active",
+    "metadata": { "account_id": "usr_8812" },
+    "current_period_start": "2026-07-20T14:30:00.000Z",
+    "current_period_end": "2026-08-20T14:30:00.000Z",
+    "next_billing_date": "2026-08-20T14:30:00.000Z",
+    "cancel_at_period_end": false
+  }
+}
+```
+
+| Field | Type | Description |
+|---|---|---|
+| `metadata` | `object \| null` | The metadata you supplied when the subscriber was created. Use it to correlate against your own records |
+| `current_period_start` | `string \| null` | ISO 8601 start of the paid period |
+| `current_period_end` | `string \| null` | ISO 8601 end of the paid period, i.e. when access lapses if nothing renews |
+| `next_billing_date` | `string \| null` | ISO 8601 timestamp of the next scheduled charge |
+| `cancel_at_period_end` | `boolean` | `true` when the subscriber has cancelled but retains access until `current_period_end` |
+
+Individual events may add fields on top of this shape - `subscriber.renewed`, for example, also carries payment details.
 
 ## Signature verification
 
@@ -80,23 +120,42 @@ function verifyWebhook(
     .update(`${timestamp}.${body}`)
     .digest("hex");
 
-  const sig = signature.replace("sha256=", "");
-  return timingSafeEqual(Buffer.from(sig), Buffer.from(expected));
+  const sig = Buffer.from(signature.replace("sha256=", ""), "hex");
+  const exp = Buffer.from(expected, "hex");
+
+  // timingSafeEqual throws on a length mismatch, so check length first
+  if (sig.length !== exp.length) return false;
+  return timingSafeEqual(sig, exp);
 }
 ```
+
+Compute the HMAC over the **raw request body bytes**, before any JSON parsing. Re-serializing a parsed object produces different bytes and the signature will not match.
 
 Reject deliveries where the timestamp is older than 5 minutes to prevent replay attacks.
 
 ## Delivery and retries
 
-- POST to your configured URL with JSON body
-- 5-second timeout per attempt
-- Retry schedule on failure (non-2xx response or timeout):
-  - Attempt 1: immediate
-  - Attempt 2: 30 seconds later
-  - Attempt 3: 5 minutes later
-  - Attempt 4: 30 minutes later
-- After all retries exhausted, event marked as failed
+Chia POSTs a JSON body to your configured URL and allows 5 seconds per attempt. Any non-2xx response, or a timeout, counts as a failure and schedules the next attempt.
+
+There are 6 attempts spread over roughly 8.5 hours, so a merchant outage longer than a coffee break does not lose every event fired during it:
+
+| Attempt | Delay after previous |
+|---|---|
+| 1 | immediate |
+| 2 | 30 seconds |
+| 3 | 5 minutes |
+| 4 | 30 minutes |
+| 5 | 2 hours |
+| 6 | 6 hours |
+
+After the sixth attempt fails, the delivery is marked `failed` and an alert email goes to the organization. Failed deliveries are retained and can be **replayed** individually once your endpoint is healthy again:
+
+```bash
+curl -X POST https://api.usechia.com/orgs/webhooks/{id}/deliveries/{deliveryId}/retry \
+  -H "Authorization: Bearer sk_test_..."
+```
+
+Because retries exist, your handler must be **idempotent**. Deduplicate on the event `id` (`evt_...`), which is stable across every attempt of the same event, and return 2xx as soon as the event is durably recorded rather than after downstream work completes.
 
 ## Manage webhooks
 

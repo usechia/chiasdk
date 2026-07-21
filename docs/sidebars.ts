@@ -93,6 +93,7 @@ const sidebars: SidebarsConfig = {
         'platform/api/payments',
         'platform/api/webhooks',
         'platform/api/refunds',
+        'platform/api/widget-endpoints',
       ],
     },
     {
@@ -125,6 +126,23 @@ const sidebars: SidebarsConfig = {
       label: 'Examples',
     },
   ],
+  reactSidebar: [
+    {
+      type: 'doc',
+      id: 'react/overview',
+      label: 'Overview',
+    },
+    {
+      type: 'doc',
+      id: 'react/quick-start',
+      label: 'Quick Start',
+    },
+    {
+      type: 'doc',
+      id: 'react/portal',
+      label: 'Customer Portal',
+    },
+  ],
   mcpSidebar: [
     {
       type: 'doc',
@@ -155,6 +173,13 @@ const sidebars: SidebarsConfig = {
       type: 'doc',
       id: 'mcp/troubleshooting',
       label: 'Troubleshooting',
+    },
+  ],
+  skillSidebar: [
+    {
+      type: 'doc',
+      id: 'skill/overview',
+      label: 'Claude Code Skill',
     },
   ],
 };
