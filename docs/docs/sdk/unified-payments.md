@@ -8,6 +8,8 @@ description: Route payments and payouts across providers with one call
 
 `sdk.payments` and `sdk.payouts` give you one call that routes to whichever configured
 provider can serve the request, instead of calling each provider's namespace directly.
+Automatic routing (not naming a provider, as below) requires a Chia API key - see
+[Routing](#routing).
 
 ```typescript
 const payment = await sdk.payments.initiate({
@@ -41,11 +43,32 @@ alongside `currency` - together they determine which providers can handle the re
 
 ## Routing
 
-Requests are routed by `country` and `currency`. The default order is PayChangu, then
-PawaPay, then OneKhusa. A provider that cannot serve the route is skipped without being
-contacted at all - it never receives the request.
+Automatic routing is a Chia platform feature: when you do not name a provider, the SDK
+asks Chia which rail to try first for the payer's currency and operator (Airtel collects
+only from Airtel wallets, aggregators cover the rest), then attempts providers in that
+order. That intelligence lives on the platform, so **automatic routing requires a Chia API
+key**.
 
-To use a single provider, pin it:
+```typescript
+// Requires CHIA_API_KEY (or config.platform.apiKey). Chia chooses the order.
+const payment = await sdk.payments.initiate({
+  reference: "order-123",
+  amount: "50.00",
+  currency: "ZMW",
+  msisdn: "260971234567",
+  country: "ZMB",
+});
+```
+
+:::info Breaking change in 0.2.0
+Before 0.2.0 the SDK chose the provider order locally with no key. As of 0.2.0, a call
+that does not name a provider throws `ChiaConfigError` unless a Chia API key is
+configured. Set `CHIA_API_KEY` (or pass `config.platform.apiKey`), or pin a provider as
+below. Direct provider namespaces (`sdk.pawapay`, `sdk.paychangu`, ...) are unaffected and
+never need a key.
+:::
+
+You do not need a key to name the provider yourself. Pin a single provider:
 
 ```typescript
 const payment = await sdk.payments.initiate({

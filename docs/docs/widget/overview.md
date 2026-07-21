@@ -51,6 +51,10 @@ Create publishable keys in the Chia dashboard under **Settings > API Keys**.
 - At least one subscription plan created in the dashboard
 - A publishable API key from **Settings > API Keys**
 
+## License
+
+`@chiahq/widget` is licensed under the Business Source License 1.1: free for non-production use, and for production use only against the official Chia platform. It converts to MIT on its Change Date. See the package's `LICENSE` for the full terms.
+
 ## Next steps
 
 - [Quick Start](/docs/widget/quick-start) - Get a working widget in 2 minutes
