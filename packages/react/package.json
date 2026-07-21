@@ -1,6 +1,6 @@
 {
 	"name": "@chiahq/react",
-	"version": "0.0.1",
+	"version": "0.1.0",
 	"description": "React hooks and components for customer-facing Chia subscription management",
 	"type": "module",
 	"sideEffects": false,

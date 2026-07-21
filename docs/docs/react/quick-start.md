@@ -8,7 +8,7 @@ description: "Render a subscription in a few lines"
 
 ## Wrap your app
 
-Everything reads its organization slug and API base from `ChiaProvider`.
+Everything reads its publishable key and API base from `ChiaProvider`.
 
 ```tsx
 import { ChiaProvider } from "@chiahq/react";
