@@ -18,6 +18,7 @@
 	},
 	"files": [
 		"dist",
+		"LICENSE",
 		"README.md"
 	],
 	"scripts": {
@@ -38,7 +39,7 @@
 		"africa",
 		"billing"
 	],
-	"license": "MIT",
+	"license": "BUSL-1.1",
 	"peerDependencies": {
 		"@tanstack/react-query": "^5.0.0",
 		"react": ">=18.0.0"
