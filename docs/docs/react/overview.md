@@ -38,4 +38,8 @@ npm install @chiahq/react @tanstack/react-query react
 
 Amounts arrive as `numeric(12,2)` strings like `"5000.00"`. The package keeps them as strings end to end and never parses them to floats. Use the exported `formatMoney`, `formatAmount`, and `compareAmount` helpers rather than `parseFloat`.
 
+## License
+
+`@chiahq/react` is licensed under the Business Source License 1.1: free for non-production use, and for production use only against the official Chia platform. It converts to MIT on its Change Date. See the package's `LICENSE` for the full terms.
+
 Next: [Quick Start](./quick-start.md), then the [Customer Portal](./portal.md).

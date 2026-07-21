@@ -94,6 +94,7 @@ const sidebars: SidebarsConfig = {
         'platform/api/webhooks',
         'platform/api/refunds',
         'platform/api/widget-endpoints',
+        'platform/api/embed-endpoints',
       ],
     },
     {
