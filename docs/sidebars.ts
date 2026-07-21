@@ -126,6 +126,23 @@ const sidebars: SidebarsConfig = {
       label: 'Examples',
     },
   ],
+  reactSidebar: [
+    {
+      type: 'doc',
+      id: 'react/overview',
+      label: 'Overview',
+    },
+    {
+      type: 'doc',
+      id: 'react/quick-start',
+      label: 'Quick Start',
+    },
+    {
+      type: 'doc',
+      id: 'react/portal',
+      label: 'Customer Portal',
+    },
+  ],
   mcpSidebar: [
     {
       type: 'doc',

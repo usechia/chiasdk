@@ -24,6 +24,11 @@ const SECTIONS = [
     dir: "skill",
     recursive: false,
   },
+  {
+    title: "React",
+    dir: "react",
+    recursive: false,
+  },
 ];
 
 function parseFrontmatter(raw) {

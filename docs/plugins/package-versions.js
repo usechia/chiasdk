@@ -18,6 +18,7 @@ module.exports = function packageVersionsPlugin() {
         sdk: readVersion("../../packages/sdk/package.json"),
         mcp: readVersion("../../packages/mcp/package.json"),
         widget: readVersion("../../packages/widget/package.json"),
+        react: readVersion("../../packages/react/package.json"),
       });
     },
   };

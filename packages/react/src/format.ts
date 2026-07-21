@@ -27,6 +27,30 @@ export function formatMoney(currency: string, amount: string): string {
 	return `${currency} ${formatAmount(amount)}`;
 }
 
+function magnitude(amount: string): { negative: boolean; integer: string; fraction: string } {
+	const trimmed = amount.trim();
+	const negative = trimmed.startsWith("-");
+	const unsigned = negative ? trimmed.slice(1) : trimmed;
+	const [integer = "0", fraction = ""] = unsigned.split(".");
+	return { negative, integer: integer.replace(/^0+(?=\d)/, ""), fraction };
+}
+
+/**
+ * Orders two numeric(12,2) decimal strings without ever converting to a float, so
+ * upgrade/downgrade direction stays exact. Returns -1, 0, or 1.
+ */
+export function compareAmount(a: string, b: string): number {
+	const ma = magnitude(a);
+	const mb = magnitude(b);
+	if (ma.negative !== mb.negative) return ma.negative ? -1 : 1;
+	const intLen = Math.max(ma.integer.length, mb.integer.length);
+	const fracLen = Math.max(ma.fraction.length, mb.fraction.length);
+	const ka = ma.integer.padStart(intLen, "0") + ma.fraction.padEnd(fracLen, "0");
+	const kb = mb.integer.padStart(intLen, "0") + mb.fraction.padEnd(fracLen, "0");
+	const cmp = ka < kb ? -1 : ka > kb ? 1 : 0;
+	return ma.negative ? -cmp : cmp;
+}
+
 export function intervalNoun(interval: BillingInterval | string): string {
 	switch (interval) {
 		case "daily":

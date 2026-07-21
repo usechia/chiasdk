@@ -106,6 +106,12 @@ const config: Config = {
         },
         {
           type: 'docSidebar',
+          sidebarId: 'reactSidebar',
+          position: 'left',
+          label: 'React',
+        },
+        {
+          type: 'docSidebar',
           sidebarId: 'mcpSidebar',
           position: 'left',
           label: 'MCP Server',

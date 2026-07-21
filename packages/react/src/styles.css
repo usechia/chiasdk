@@ -5,7 +5,9 @@
  */
 
 .chia-subscription,
-.chia-plans {
+.chia-plans,
+.chia-portal-login,
+.chia-plan-change {
 	color: var(--chia-text, #17191c);
 	font-family: var(--chia-font, inherit);
 }
@@ -152,4 +154,50 @@
 	width: 2rem;
 	object-fit: cover;
 	border-radius: var(--chia-radius, 0.5rem);
+}
+
+.chia-form {
+	display: grid;
+	gap: var(--chia-gap, 0.875rem);
+}
+
+.chia-field-label {
+	font-size: 0.75rem;
+	color: var(--chia-text-muted, #878e96);
+}
+
+.chia-form-hint {
+	margin: 0;
+	font-size: 0.8125rem;
+	color: var(--chia-text-muted, #878e96);
+}
+
+.chia-input {
+	width: 100%;
+	font: inherit;
+	font-size: 0.875rem;
+	padding: 0.625rem 0.75rem;
+	border-radius: var(--chia-radius, 0.5rem);
+	background: var(--chia-input-bg, transparent);
+	color: var(--chia-text, #17191c);
+	box-shadow: inset 0 0 0 1px var(--chia-border, rgb(135 142 150 / 0.3));
+	border: 0;
+}
+
+.chia-input:focus {
+	outline: none;
+	box-shadow: inset 0 0 0 1px var(--chia-accent, var(--chia-brand, #17191c));
+}
+
+.chia-plan-change-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: grid;
+	gap: var(--chia-gap, 0.875rem);
+}
+
+.chia-plan-change-option {
+	display: grid;
+	gap: 0.25rem;
 }

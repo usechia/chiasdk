@@ -14,6 +14,10 @@ export interface RequestOptions {
 	method?: "GET" | "POST";
 	signal?: AbortSignal;
 	fetchImpl?: typeof fetch;
+	/** Serialized as JSON with a Content-Type header when present. */
+	body?: unknown;
+	/** Portal session token, sent as an Authorization: Bearer header when present. */
+	token?: string;
 }
 
 function joinUrl(base: string, path: string): string {
@@ -21,13 +25,18 @@ function joinUrl(base: string, path: string): string {
 }
 
 export async function chiaRequest<T>(baseUrl: string, path: string, options: RequestOptions = {}): Promise<T> {
-	const { method = "GET", signal, fetchImpl } = options;
+	const { method = "GET", signal, fetchImpl, body: requestBody, token } = options;
 	const doFetch = fetchImpl ?? globalThis.fetch;
+
+	const headers: Record<string, string> = { Accept: "application/json" };
+	if (requestBody !== undefined) headers["Content-Type"] = "application/json";
+	if (token) headers.Authorization = `Bearer ${token}`;
 
 	const response = await doFetch(joinUrl(baseUrl, path), {
 		method,
 		signal,
-		headers: { Accept: "application/json" },
+		headers,
+		body: requestBody !== undefined ? JSON.stringify(requestBody) : undefined,
 	});
 
 	const text = await response.text();

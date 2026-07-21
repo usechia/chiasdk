@@ -58,6 +58,10 @@ export interface Subscriber {
 	currentPeriodEnd: string | null;
 	nextBillingDate: string | null;
 	cancelAtPeriodEnd: boolean;
+	/** Plan the subscriber is scheduled to move to at period end, if a deferred change is pending. */
+	pendingPlanId: string | null;
+	/** When the pending plan change takes effect. */
+	planChangeAt: string | null;
 	createdAt: string;
 }
 
@@ -84,4 +88,40 @@ export interface PayResponse {
 	paymentId: string;
 	paymentStatus: PaymentStatus;
 	nextAction: NextAction | null;
+}
+
+export interface OtpResponse {
+	success: boolean;
+	message: string;
+}
+
+export interface VerifyOtpResponse {
+	token: string;
+	expiresAt: string;
+}
+
+export interface PortalSubscription {
+	subscriber: Subscriber;
+	plan: SubscriptionPlan | null;
+}
+
+export interface PortalSubscriptionsResponse {
+	email: string;
+	allowSelfCancel: boolean;
+	subscriptions: PortalSubscription[];
+}
+
+export type PlanChangeTiming = "immediate" | "at_period_end";
+
+export type PlanChangeDirection = "upgrade" | "downgrade";
+
+export interface ChangePlanResponse {
+	subscriber: Subscriber;
+	timing: PlanChangeTiming;
+	direction: PlanChangeDirection;
+	/** Present for immediate upgrades that trigger a charge; null for deferred downgrades. */
+	payment: PayResponse | null;
+	nextAction: NextAction | null;
+	/** Decimal string from numeric(12,2), or null when nothing is charged now. */
+	proratedAmount: string | null;
 }

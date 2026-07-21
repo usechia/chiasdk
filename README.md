@@ -22,6 +22,7 @@ machinery yourself.
 |---------|-------------|------|
 | **[@chiahq/sdk](./packages/sdk)** | TypeScript SDK for direct provider API access | [SDK docs](https://docs.usechia.com/docs/sdk/overview) |
 | **[@chiahq/widget](./packages/widget)** | Embeddable subscription widget - one script tag, no backend | [Widget docs](https://docs.usechia.com/docs/widget/overview) |
+| **[@chiahq/react](./packages/react)** | React hooks and components for subscription management and the customer portal | [React docs](https://docs.usechia.com/docs/react/overview) |
 | **[@chiahq/mcp](./packages/mcp)** | MCP server exposing payment operations to AI assistants | [MCP docs](https://docs.usechia.com/docs/mcp/overview) |
 
 ## Quick Start

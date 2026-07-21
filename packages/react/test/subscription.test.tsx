@@ -18,6 +18,8 @@ function subscription(overrides: Partial<SubscriptionResponse> = {}): Subscripti
 			currentPeriodEnd: "2026-08-01T00:00:00.000Z",
 			nextBillingDate: "2026-08-01T00:00:00.000Z",
 			cancelAtPeriodEnd: false,
+			pendingPlanId: null,
+			planChangeAt: null,
 			createdAt: "2026-01-01T00:00:00.000Z",
 		},
 		plan: { name: "Pro", amount: "12500.00", currency: "MWK", interval: "monthly" },

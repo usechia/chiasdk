@@ -1,0 +1,255 @@
+import { act, renderHook, waitFor } from "@testing-library/react";
+import type { ReactNode } from "react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { useChangePlan } from "../src/hooks/use-change-plan";
+import { usePortalSession } from "../src/hooks/use-portal-session";
+import { usePortalSubscriptions } from "../src/hooks/use-portal-subscriptions";
+import { useRequestOtp } from "../src/hooks/use-request-otp";
+import { useVerifyOtp } from "../src/hooks/use-verify-otp";
+import { ChiaProvider } from "../src/index";
+import type { ChangePlanResponse, PortalSubscriptionsResponse, Subscriber } from "../src/types";
+
+// This jsdom build ships without a working localStorage, so the provider's
+// persistence path has nothing to write to. Supply an in-memory store.
+class MemoryStorage {
+	private store = new Map<string, string>();
+	get length() {
+		return this.store.size;
+	}
+	key(index: number): string | null {
+		return [...this.store.keys()][index] ?? null;
+	}
+	getItem(key: string): string | null {
+		return this.store.has(key) ? (this.store.get(key) as string) : null;
+	}
+	setItem(key: string, value: string) {
+		this.store.set(key, String(value));
+	}
+	removeItem(key: string) {
+		this.store.delete(key);
+	}
+	clear() {
+		this.store.clear();
+	}
+}
+
+if (!window.localStorage) {
+	Object.defineProperty(window, "localStorage", { value: new MemoryStorage(), configurable: true });
+}
+
+const FAR_FUTURE = "2099-01-01T00:00:00.000Z";
+const SUBSCRIBER_ID = "sub_123";
+
+interface RecordedCall {
+	url: string;
+	init: RequestInit | undefined;
+}
+
+function jsonResponse(body: unknown, status = 200) {
+	return Promise.resolve({
+		ok: status >= 200 && status < 300,
+		status,
+		text: () => Promise.resolve(JSON.stringify(body)),
+	} as Response);
+}
+
+function makeFetch(handler: (url: string, init: RequestInit | undefined) => Promise<Response>) {
+	const calls: RecordedCall[] = [];
+	const fn = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+		const url = String(input);
+		calls.push({ url, init });
+		return handler(url, init);
+	}) as unknown as typeof fetch;
+	return { fn, calls };
+}
+
+function wrapper(fetchImpl: typeof fetch, orgSlug = "acme") {
+	return ({ children }: { children: ReactNode }) => (
+		<ChiaProvider apiBaseUrl="https://api.test" fetchImpl={fetchImpl} orgSlug={orgSlug}>
+			{children}
+		</ChiaProvider>
+	);
+}
+
+function authHeader(init: RequestInit | undefined): string | undefined {
+	return (init?.headers as Record<string, string> | undefined)?.Authorization;
+}
+
+function seedSession(orgSlug: string, token: string) {
+	window.localStorage.setItem(`chia.portal.${orgSlug}`, JSON.stringify({ token, expiresAt: FAR_FUTURE }));
+}
+
+function subscriber(overrides: Partial<Subscriber> = {}): Subscriber {
+	return {
+		id: SUBSCRIBER_ID,
+		status: "active",
+		phone: "+265991000000",
+		name: "Ada",
+		currentPeriodStart: "2026-07-01T00:00:00.000Z",
+		currentPeriodEnd: "2026-08-01T00:00:00.000Z",
+		nextBillingDate: "2026-08-01T00:00:00.000Z",
+		cancelAtPeriodEnd: false,
+		pendingPlanId: null,
+		planChangeAt: null,
+		createdAt: "2026-01-01T00:00:00.000Z",
+		...overrides,
+	};
+}
+
+beforeEach(() => {
+	vi.clearAllMocks();
+	window.localStorage.clear();
+});
+
+describe("otp flow", () => {
+	it("verifies a code, stores the token, and reports authenticated", async () => {
+		const { fn } = makeFetch((url) => {
+			if (url.endsWith("/portal/request-otp")) return jsonResponse({ success: true, message: "sent" });
+			if (url.endsWith("/portal/verify-otp")) return jsonResponse({ token: "tok_abc", expiresAt: FAR_FUTURE });
+			return jsonResponse({});
+		});
+
+		const { result } = renderHook(
+			() => ({ request: useRequestOtp(), verify: useVerifyOtp(), session: usePortalSession() }),
+			{ wrapper: wrapper(fn) },
+		);
+
+		expect(result.current.session.isAuthenticated).toBe(false);
+
+		await act(async () => {
+			await result.current.request.mutateAsync({ email: "ada@example.com" });
+		});
+		await act(async () => {
+			await result.current.verify.mutateAsync({ email: "ada@example.com", code: "123456" });
+		});
+
+		await waitFor(() => expect(result.current.session.isAuthenticated).toBe(true));
+		expect(result.current.session.token).toBe("tok_abc");
+		expect(result.current.session.expiresAt).toBe(FAR_FUTURE);
+	});
+});
+
+describe("session persistence", () => {
+	it("restores the token on remount and clears it on signOut", async () => {
+		seedSession("acme", "tok_restored");
+		const { fn } = makeFetch(() => jsonResponse({}));
+
+		const { result } = renderHook(() => usePortalSession(), { wrapper: wrapper(fn) });
+
+		expect(result.current.isAuthenticated).toBe(true);
+		expect(result.current.token).toBe("tok_restored");
+
+		act(() => {
+			result.current.signOut();
+		});
+
+		await waitFor(() => expect(result.current.isAuthenticated).toBe(false));
+		expect(window.localStorage.getItem("chia.portal.acme")).toBeNull();
+	});
+
+	it("persists a verified token to localStorage", async () => {
+		const { fn } = makeFetch((url) => {
+			if (url.endsWith("/portal/verify-otp")) return jsonResponse({ token: "tok_persist", expiresAt: FAR_FUTURE });
+			return jsonResponse({});
+		});
+
+		const { result } = renderHook(() => useVerifyOtp(), { wrapper: wrapper(fn) });
+
+		await act(async () => {
+			await result.current.mutateAsync({ email: "ada@example.com", code: "123456" });
+		});
+
+		const stored = window.localStorage.getItem("chia.portal.acme");
+		expect(stored).not.toBeNull();
+		expect(JSON.parse(stored ?? "{}")).toMatchObject({ token: "tok_persist", expiresAt: FAR_FUTURE });
+	});
+});
+
+describe("usePortalSubscriptions", () => {
+	it("stays disabled and never fetches while logged out", async () => {
+		const { fn, calls } = makeFetch(() => jsonResponse({}));
+
+		const { result } = renderHook(() => usePortalSubscriptions(), { wrapper: wrapper(fn) });
+
+		expect(result.current.fetchStatus).toBe("idle");
+		expect(calls).toHaveLength(0);
+	});
+
+	it("sends the Bearer token once authenticated", async () => {
+		seedSession("acme", "tok_seed");
+		const body: PortalSubscriptionsResponse = {
+			email: "ada@example.com",
+			allowSelfCancel: true,
+			subscriptions: [{ subscriber: subscriber(), plan: null }],
+		};
+		const { fn, calls } = makeFetch(() => jsonResponse(body));
+
+		const { result } = renderHook(() => usePortalSubscriptions(), { wrapper: wrapper(fn) });
+
+		await waitFor(() => expect(result.current.data).toBeTruthy());
+		expect(result.current.data?.email).toBe("ada@example.com");
+
+		const call = calls.find((c) => c.url.endsWith("/portal/subscriptions"));
+		expect(authHeader(call?.init)).toBe("Bearer tok_seed");
+	});
+});
+
+describe("useChangePlan", () => {
+	it("fires onNextAction for an immediate upgrade without navigating, and attaches the token", async () => {
+		seedSession("acme", "tok_change");
+		const originalHref = window.location.href;
+		const upgrade: ChangePlanResponse = {
+			subscriber: subscriber(),
+			timing: "immediate",
+			direction: "upgrade",
+			payment: { paymentId: "pay_1", paymentStatus: "requires_action", nextAction: null },
+			nextAction: {
+				type: "redirect",
+				label: "Continue to Airtel",
+				message: "Finish the payment on the provider page.",
+				redirectUrl: "https://provider.test/checkout/abc",
+			},
+			proratedAmount: "5000.00",
+		};
+		const { fn, calls } = makeFetch(() => jsonResponse(upgrade));
+		const onNextAction = vi.fn();
+
+		const { result } = renderHook(() => useChangePlan(SUBSCRIBER_ID, { onNextAction }), { wrapper: wrapper(fn) });
+
+		await act(async () => {
+			await result.current.mutateAsync({ planId: "plan_pro", timing: "immediate" });
+		});
+
+		await waitFor(() => expect(onNextAction).toHaveBeenCalledTimes(1));
+		expect(onNextAction.mock.calls[0]?.[0]).toMatchObject({ type: "redirect" });
+		expect(window.location.href).toBe(originalHref);
+
+		const call = calls.find((c) => c.url.endsWith("/change-plan"));
+		expect(authHeader(call?.init)).toBe("Bearer tok_change");
+		expect(JSON.parse((call?.init?.body as string) ?? "{}")).toEqual({ planId: "plan_pro", timing: "immediate" });
+	});
+
+	it("does not fire onNextAction for a deferred downgrade", async () => {
+		seedSession("acme", "tok_change");
+		const downgrade: ChangePlanResponse = {
+			subscriber: subscriber({ pendingPlanId: "plan_basic", planChangeAt: "2026-08-01T00:00:00.000Z" }),
+			timing: "at_period_end",
+			direction: "downgrade",
+			payment: null,
+			nextAction: null,
+			proratedAmount: null,
+		};
+		const { fn } = makeFetch(() => jsonResponse(downgrade));
+		const onNextAction = vi.fn();
+
+		const { result } = renderHook(() => useChangePlan(SUBSCRIBER_ID, { onNextAction }), { wrapper: wrapper(fn) });
+
+		await act(async () => {
+			await result.current.mutateAsync({ planId: "plan_basic", timing: "at_period_end" });
+		});
+
+		await waitFor(() => expect(result.current.isSuccess).toBe(true));
+		expect(onNextAction).not.toHaveBeenCalled();
+		expect(result.current.data?.subscriber.pendingPlanId).toBe("plan_basic");
+	});
+});
