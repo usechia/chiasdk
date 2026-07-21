@@ -40,6 +40,9 @@ curl -X POST https://api.usechia.com/plans \
 | `interval` | string | yes | Billing frequency: `daily`, `weekly`, or `monthly` |
 | `provider` | string | yes | Payment provider: `paychangu`, `pawapay`, or `onekhusa` |
 | `gracePeriodDays` | `integer` | no | Dunning window in days, 1-30. Default `7`. See [Grace period and dunning](#grace-period-and-dunning) |
+| `prorationMode` | string | no | How a mid-cycle plan change is priced: `"none"` (charge the full new price and reset the period) or `"credit_unused"` (credit the unused remainder of the current period against the new charge). Default `"none"` |
+| `allowUpgrade` | boolean | no | Whether subscribers may move to this plan when it costs more than their current one. Default `true` |
+| `allowDowngrade` | boolean | no | Whether subscribers may move to this plan when it costs less than their current one. Default `true` |
 | `checkoutFields` | object | no | Which fields appear on the checkout form. Phone is always required. `{ email?: "required" \| "optional", name?: "required" \| "optional" }` |
 | `postPaymentBehavior` | object | no | What happens after payment. `{ onSuccess?: { action: "stay" \| "redirect", url?: string }, onFailure?: { action: "stay" \| "redirect", url?: string }, onCancellation?: { action: "stay" \| "redirect", url?: string } }`. Default: all `"stay"` |
 

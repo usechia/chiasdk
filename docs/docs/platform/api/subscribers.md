@@ -105,6 +105,34 @@ Two cancellation modes:
 - **Immediate**: Stops the subscription and all future billing immediately
 - **At period end**: Keeps access until the current billing period ends, then cancels
 
+## Change plan
+
+```
+POST /subscribers/{subscriberId}/change-plan
+```
+
+```bash
+curl -X POST https://api.usechia.com/subscribers/{subscriberId}/change-plan \
+  -H "Authorization: Bearer sk_test_..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "planId": "...",
+    "timing": "immediate"
+  }'
+```
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `planId` | string | Yes | The plan to move to |
+| `timing` | `"immediate" \| "at_period_end"` | No | Defaults to `immediate` for an upgrade, `at_period_end` for a downgrade |
+
+The move is only allowed if the target plan permits that direction (`allowUpgrade` / `allowDowngrade`). Direction is decided by comparing amounts after currency normalization.
+
+- **Immediate** (the upgrade default) charges now and returns a `nextAction` for the mobile-money prompt. With `prorationMode: "credit_unused"` on the target plan, the unused remainder of the current period is credited against the charge.
+- **At period end** (the downgrade default) schedules the change with no charge; the subscriber reports `pendingPlanId` and `planChangeAt` until it applies.
+
+A `subscriber.plan_changed` [webhook](./webhooks.md) fires when the change is scheduled (`pending: true`) and again when it takes effect. This endpoint requires a secret key; the same operation is available to a signed-in customer via the [embed API](./embed-endpoints.md).
+
 ## Subscriber statuses
 
 | Status | Description |

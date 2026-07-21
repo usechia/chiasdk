@@ -45,6 +45,23 @@ curl -X DELETE https://api.usechia.com/orgs/api-keys/{keyId} \
   -H "Authorization: Bearer sk_test_..."
 ```
 
+### Publishable keys
+
+Pass `type: "publishable"` to create a `pk_` key for browser use (the [widget](./widget-endpoints.md) and [embed](./embed-endpoints.md) APIs). A publishable key can be restricted to a set of origins with `allowedOrigins`; a request whose `Origin` is not on the list is rejected. Leave it empty to allow any origin.
+
+```bash
+curl -X POST https://api.usechia.com/orgs/api-keys \
+  -H "Authorization: Bearer sk_test_..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "environment": "production",
+    "type": "publishable",
+    "allowedOrigins": ["https://yourapp.com", "https://checkout.yourapp.com"]
+  }'
+```
+
+Each origin is canonicalized to `scheme://host[:port]` - a path or trailing slash is dropped, so `https://yourapp.com/` and `https://yourapp.com` are the same. Up to 20 origins.
+
 ### Key security
 
 - Keys are hashed (SHA-256) before storage. The full key is shown only once at creation.
