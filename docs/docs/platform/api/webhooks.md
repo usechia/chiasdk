@@ -96,6 +96,18 @@ Every `subscriber.*` event carries the same `data` shape, so you never have to m
 
 Individual events may add fields on top of this shape - `subscriber.renewed`, for example, also carries payment details.
 
+`subscriber.plan_changed` adds the fields below. It fires twice for a deferred (at-period-end) change: once when it is scheduled (`pending: true`) and once when it takes effect (no `pending` field). An immediate change fires it once.
+
+| Field | Type | Description |
+|---|---|---|
+| `previous_plan_id` | string | The plan the subscriber was on |
+| `new_plan_id` | string | The plan they moved (or are moving) to |
+| `timing` | `"immediate" \| "at_period_end"` | Whether the change applied now or is scheduled for the period end |
+| `proration_mode` | `"none" \| "credit_unused"` | The target plan's proration mode |
+| `pending` | `boolean` | Present and `true` only on the scheduling event for a deferred change; absent when the change has taken effect |
+
+`refund.succeeded` and `refund.failed` payloads carry `subscriber_id` alongside `refund_id`, `payment_id`, `amount`, `currency`, and `provider`.
+
 ## Signature verification
 
 Each delivery includes an HMAC-SHA256 signature for verification:
