@@ -366,7 +366,16 @@ export class ChiaSDK {
 		if (this._paychangu) adapters.paychangu = new PayChanguAdapter(this._paychangu);
 		if (this._onekhusa) adapters.onekhusa = new OneKhusaAdapter(this._onekhusa);
 
-		const router = new ProviderRouter(adapters);
+		// A Chia key enables automatic routing (the router calls the platform to
+		// choose a provider); without one, the unified layer still works for
+		// caller-pinned providers but refuses to choose on its own.
+		const platform = this._platform;
+		const resolveRoute = platform
+			? (input: { currency: string; msisdn?: string; allowedProviders: ProviderName[] }) =>
+					platform.resolveRoute(input) as Promise<ProviderName[]>
+			: undefined;
+
+		const router = new ProviderRouter(adapters, resolveRoute);
 		this._payments = new Payments(router);
 		this._payouts = new Payouts(router);
 	}

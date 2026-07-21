@@ -59,6 +59,8 @@ test("a successful payments.initiate resolves through the real Payments -> route
 		},
 	} as any);
 
+	// Pins the provider so the chain runs without a Chia key: automatic routing
+	// now requires one, which is covered separately.
 	const payment = await sdk.payments.initiate({
 		reference: "chg-1",
 		amount: "50.00",
@@ -66,6 +68,7 @@ test("a successful payments.initiate resolves through the real Payments -> route
 		msisdn: "265991234567",
 		country: "MWI",
 		operator: "ref-airtel",
+		provider: "paychangu",
 	});
 
 	expect(payment.provider).toBe("paychangu");

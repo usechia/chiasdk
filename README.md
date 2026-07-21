@@ -256,4 +256,10 @@ If you discover a security vulnerability, please report it responsibly. See the 
 
 ## License
 
-This project is licensed under the MIT License. See [LICENSE](./LICENSE) for the full text.
+Licensing is per package:
+
+- **`@chiahq/sdk` and `@chiahq/mcp`** are MIT. See [LICENSE](./LICENSE).
+- **`@chiahq/widget` and `@chiahq/react`** are Business Source License 1.1
+  (BUSL-1.1): free for non-production use, and for production use only against
+  the official Chia platform. Each converts to MIT on its Change Date. See the
+  `LICENSE` file in those packages for the full terms.

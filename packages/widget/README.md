@@ -228,4 +228,7 @@ Build outputs:
 
 ## License
 
-MIT
+Business Source License 1.1 (BUSL-1.1). You may use this package in production
+only when it connects to the official Chia platform. Non-production use is
+otherwise permitted, and the license converts to MIT on the Change Date. See
+[LICENSE](./LICENSE) for the full terms, including the Additional Use Grant.
