@@ -6,7 +6,7 @@ description: "React hooks and components for subscription management"
 
 # React
 
-`@chiahq/react` is a React library for building customer-facing subscription management: viewing a subscription, paying an outstanding balance, cancelling, logging in over email, and changing plans. It wraps the public storefront and portal endpoints, so it runs in the browser with no secret key.
+`@chiahq/react` is a React library for building customer-facing subscription management: viewing a subscription, paying an outstanding balance, cancelling, logging in over email, and changing plans. It talks to Chia's `pk_`-gated embed API with your **publishable key**, so it runs safely in the browser with no secret key.
 
 It is headless-first. Hooks carry the data and mutations; the components are unstyled by default and themed with CSS custom properties, so they inherit your design rather than fight it.
 
@@ -30,7 +30,7 @@ npm install @chiahq/react @tanstack/react-query react
 
 ## What it does not do
 
-- It never holds a secret (`sk_`) key. Everything runs against the public `/s/:orgSlug/*` routes.
+- It never holds a secret (`sk_`) key. It authenticates with a **publishable (`pk_`) key** against the `/embed/v1` API; the key can be origin-restricted to your domains, and the organization is derived from it.
 - It never navigates on its own. When a mobile-money action is required (a USSD prompt, a redirect), the hook hands you a `nextAction` and you decide what to do with it.
 - It does not bundle React or a query client. It detects a host `QueryClientProvider` and only creates its own as a fallback.
 

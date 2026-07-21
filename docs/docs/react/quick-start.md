@@ -16,14 +16,14 @@ import "@chiahq/react/styles.css"; // optional default styling
 
 function App() {
 	return (
-		<ChiaProvider orgSlug="acme">
+		<ChiaProvider publishableKey="pk_live_...">
 			<Billing />
 		</ChiaProvider>
 	);
 }
 ```
 
-`apiBaseUrl` defaults to `https://api.usechia.com`. Pass `fetchImpl` to supply a fetch in environments without a global one, or in tests.
+`publishableKey` is required - get one from the Chia dashboard. It is safe to ship in the browser, can be restricted to your domains, and the organization is derived from it (there is no `orgSlug`). `apiBaseUrl` defaults to `https://api.usechia.com`. Pass `fetchImpl` to supply a fetch in environments without a global one, or in tests.
 
 If your app already has a `QueryClientProvider`, the package reuses it. If not, it creates one internally, so you do not have to set up TanStack Query yourself.
 
