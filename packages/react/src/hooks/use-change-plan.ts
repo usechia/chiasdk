@@ -18,23 +18,23 @@ export interface ChangePlanVariables {
 }
 
 export function useChangePlan(subscriberId: string | undefined, options: UseChangePlanOptions = {}) {
-	const { orgSlug, request, sessionToken } = useChia();
+	const { publishableKey, request, sessionToken } = useChia();
 	const queryClient = useQueryClient();
 	const { onNextAction } = options;
 
 	return useMutation<ChangePlanResponse, unknown, ChangePlanVariables>({
 		mutationFn: ({ planId, timing }) =>
-			request<ChangePlanResponse>(`/s/${orgSlug}/subscription/${subscriberId}/change-plan`, {
+			request<ChangePlanResponse>(`/embed/v1/subscription/${subscriberId}/change-plan`, {
 				method: "POST",
 				body: timing ? { planId, timing } : { planId },
-				token: sessionToken ?? undefined,
+				subscriberToken: sessionToken ?? undefined,
 			}),
 		onSuccess: (result) => {
 			if (result.nextAction && result.nextAction.type !== "none") {
 				onNextAction?.(result.nextAction, result);
 			}
-			queryClient.invalidateQueries({ queryKey: ["chia-subscription", orgSlug, subscriberId] });
-			queryClient.invalidateQueries({ queryKey: ["chia-portal-subscriptions", orgSlug] });
+			queryClient.invalidateQueries({ queryKey: ["chia-subscription", publishableKey, subscriberId] });
+			queryClient.invalidateQueries({ queryKey: ["chia-portal-subscriptions", publishableKey] });
 		},
 	});
 }

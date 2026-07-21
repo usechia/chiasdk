@@ -12,18 +12,22 @@ export interface UsePayOutstandingOptions {
 }
 
 export function usePayOutstanding(subscriberId: string | undefined, options: UsePayOutstandingOptions = {}) {
-	const { orgSlug, request } = useChia();
+	const { publishableKey, request, sessionToken } = useChia();
 	const queryClient = useQueryClient();
 	const { onNextAction } = options;
 
 	return useMutation<PayResponse>({
-		mutationFn: () => request<PayResponse>(`/s/${orgSlug}/subscription/${subscriberId}/pay`, { method: "POST" }),
+		mutationFn: () =>
+			request<PayResponse>(`/embed/v1/subscription/${subscriberId}/pay`, {
+				method: "POST",
+				subscriberToken: sessionToken ?? undefined,
+			}),
 		onSuccess: (result) => {
 			if (result.nextAction && result.nextAction.type !== "none") {
 				onNextAction?.(result.nextAction, result);
 			}
 			if (result.paymentStatus === "success") {
-				queryClient.invalidateQueries({ queryKey: ["chia-subscription", orgSlug, subscriberId] });
+				queryClient.invalidateQueries({ queryKey: ["chia-subscription", publishableKey, subscriberId] });
 			}
 		},
 	});

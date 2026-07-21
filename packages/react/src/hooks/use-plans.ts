@@ -3,10 +3,10 @@ import { useChia } from "../provider";
 import type { PlansResponse } from "../types";
 
 export function usePlans() {
-	const { orgSlug, request } = useChia();
+	const { publishableKey, request } = useChia();
 	return useQuery<PlansResponse>({
-		queryKey: ["chia-plans", orgSlug],
-		queryFn: ({ signal }) => request<PlansResponse>(`/s/${orgSlug}/plans`, { signal }),
-		enabled: !!orgSlug,
+		queryKey: ["chia-plans", publishableKey],
+		queryFn: ({ signal }) => request<PlansResponse>("/embed/v1/plans", { signal }),
+		enabled: !!publishableKey,
 	});
 }
