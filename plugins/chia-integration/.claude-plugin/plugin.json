@@ -1,0 +1,12 @@
+{
+	"name": "chia-integration",
+	"description": "Teaches Claude to integrate Chia correctly: auth modes, the subscriber state machine, webhook signature verification, idempotency, and correlating Chia records with your own.",
+	"version": "0.1.0",
+	"author": {
+		"name": "Chia",
+		"email": "support@usechia.com"
+	},
+	"homepage": "https://docs.usechia.com",
+	"repository": "https://github.com/usechia/chiasdk",
+	"license": "MIT"
+}
