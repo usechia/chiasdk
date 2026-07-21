@@ -5,7 +5,7 @@ import { chiaRequest, type RequestOptions } from "./client";
 export const DEFAULT_API_BASE_URL = "https://api.usechia.com";
 
 export interface ChiaContextValue {
-	orgSlug: string;
+	publishableKey: string;
 	apiBaseUrl: string;
 	request: <T>(path: string, options?: RequestOptions) => Promise<T>;
 	sessionToken: string | null;
@@ -29,14 +29,14 @@ interface StoredSession {
 	expiresAt: string;
 }
 
-function storageKey(orgSlug: string): string {
-	return `chia.portal.${orgSlug}`;
+function storageKey(publishableKey: string): string {
+	return `chia.portal.${publishableKey}`;
 }
 
-function readStoredSession(orgSlug: string): StoredSession | null {
+function readStoredSession(publishableKey: string): StoredSession | null {
 	if (typeof window === "undefined") return null;
 	try {
-		const raw = window.localStorage.getItem(storageKey(orgSlug));
+		const raw = window.localStorage.getItem(storageKey(publishableKey));
 		if (!raw) return null;
 		const parsed = JSON.parse(raw) as StoredSession;
 		if (parsed && typeof parsed.token === "string") return parsed;
@@ -47,7 +47,8 @@ function readStoredSession(orgSlug: string): StoredSession | null {
 }
 
 export interface ChiaProviderProps {
-	orgSlug: string;
+	/** Chia publishable key (pk_...). Required. Get one from the Chia dashboard. */
+	publishableKey: string;
 	apiBaseUrl?: string;
 	/** Override for environments without a global fetch, or for testing. */
 	fetchImpl?: typeof fetch;
@@ -66,7 +67,12 @@ function useHostQueryClient(): QueryClient | null {
 	}
 }
 
-export function ChiaProvider({ orgSlug, apiBaseUrl = DEFAULT_API_BASE_URL, fetchImpl, children }: ChiaProviderProps) {
+export function ChiaProvider({
+	publishableKey,
+	apiBaseUrl = DEFAULT_API_BASE_URL,
+	fetchImpl,
+	children,
+}: ChiaProviderProps) {
 	const hostClient = useHostQueryClient();
 	const [fallbackClient] = useState(
 		() =>
@@ -75,7 +81,7 @@ export function ChiaProvider({ orgSlug, apiBaseUrl = DEFAULT_API_BASE_URL, fetch
 			}),
 	);
 
-	const [session, setSession] = useState<StoredSession | null>(() => readStoredSession(orgSlug));
+	const [session, setSession] = useState<StoredSession | null>(() => readStoredSession(publishableKey));
 
 	const setToken = useCallback(
 		(token: string, expiresAt: string) => {
@@ -83,36 +89,42 @@ export function ChiaProvider({ orgSlug, apiBaseUrl = DEFAULT_API_BASE_URL, fetch
 			setSession(next);
 			if (typeof window === "undefined") return;
 			try {
-				window.localStorage.setItem(storageKey(orgSlug), JSON.stringify(next));
+				window.localStorage.setItem(storageKey(publishableKey), JSON.stringify(next));
 			} catch {
 				// Storage may be unavailable (private mode, quota); the in-memory session still works.
 			}
 		},
-		[orgSlug],
+		[publishableKey],
 	);
 
 	const clearToken = useCallback(() => {
 		setSession(null);
 		if (typeof window === "undefined") return;
 		try {
-			window.localStorage.removeItem(storageKey(orgSlug));
+			window.localStorage.removeItem(storageKey(publishableKey));
 		} catch {
 			// Storage may be unavailable; clearing in-memory state is enough.
 		}
-	}, [orgSlug]);
+	}, [publishableKey]);
 
 	const value = useMemo<ChiaContextValue>(
 		() => ({
-			orgSlug,
+			publishableKey,
 			apiBaseUrl,
+			// The publishable key is the pk_ Authorization on every call; subscriber-scoped
+			// calls add the session token separately via subscriberToken.
 			request: (path, options) =>
-				chiaRequest(apiBaseUrl, path, { ...options, fetchImpl: options?.fetchImpl ?? fetchImpl }),
+				chiaRequest(apiBaseUrl, path, {
+					...options,
+					token: publishableKey,
+					fetchImpl: options?.fetchImpl ?? fetchImpl,
+				}),
 			sessionToken: session?.token ?? null,
 			sessionExpiresAt: session?.expiresAt ?? null,
 			setToken,
 			clearToken,
 		}),
-		[orgSlug, apiBaseUrl, fetchImpl, session, setToken, clearToken],
+		[publishableKey, apiBaseUrl, fetchImpl, session, setToken, clearToken],
 	);
 
 	const inner = <ChiaContext.Provider value={value}>{children}</ChiaContext.Provider>;

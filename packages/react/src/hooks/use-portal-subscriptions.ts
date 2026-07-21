@@ -3,15 +3,15 @@ import { useChia } from "../provider";
 import type { PortalSubscriptionsResponse } from "../types";
 
 export function usePortalSubscriptions() {
-	const { orgSlug, request, sessionToken } = useChia();
+	const { publishableKey, request, sessionToken } = useChia();
 
 	return useQuery<PortalSubscriptionsResponse>({
-		queryKey: ["chia-portal-subscriptions", orgSlug],
+		queryKey: ["chia-portal-subscriptions", publishableKey],
 		queryFn: ({ signal }) =>
-			request<PortalSubscriptionsResponse>(`/s/${orgSlug}/portal/subscriptions`, {
+			request<PortalSubscriptionsResponse>("/embed/v1/portal/subscriptions", {
 				signal,
-				token: sessionToken ?? undefined,
+				subscriberToken: sessionToken ?? undefined,
 			}),
-		enabled: !!orgSlug && sessionToken !== null,
+		enabled: !!publishableKey && sessionToken !== null,
 	});
 }

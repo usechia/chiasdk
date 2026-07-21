@@ -6,6 +6,16 @@ import { ChiaProvider, SubscriptionManager } from "../src/index";
 import type { NextAction, PayResponse, SubscriptionResponse } from "../src/types";
 
 const SUBSCRIBER_ID = "sub_123";
+const PUBLISHABLE_KEY = "pk_test_acme";
+
+interface RecordedCall {
+	url: string;
+	init: RequestInit | undefined;
+}
+
+function header(init: RequestInit | undefined, name: string): string | undefined {
+	return (init?.headers as Record<string, string> | undefined)?.[name];
+}
 
 function subscription(overrides: Partial<SubscriptionResponse> = {}): SubscriptionResponse {
 	return {
@@ -37,16 +47,19 @@ function jsonResponse(body: unknown) {
 }
 
 function makeFetch(routes: { subscription: SubscriptionResponse; pay?: PayResponse }) {
-	return vi.fn((input: RequestInfo | URL) => {
+	const calls: RecordedCall[] = [];
+	const fn = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
 		const url = String(input);
+		calls.push({ url, init });
 		if (url.endsWith("/pay") && routes.pay) return jsonResponse(routes.pay);
 		return jsonResponse(routes.subscription);
 	}) as unknown as typeof fetch;
+	return { fn, calls };
 }
 
 function renderWidget(fetchImpl: typeof fetch, props: Partial<{ onNextAction: (a: NextAction) => void }> = {}) {
 	return render(
-		<ChiaProvider apiBaseUrl="https://api.test" fetchImpl={fetchImpl} orgSlug="acme">
+		<ChiaProvider apiBaseUrl="https://api.test" fetchImpl={fetchImpl} publishableKey={PUBLISHABLE_KEY}>
 			<SubscriptionManager subscriberId={SUBSCRIBER_ID} {...props} />
 		</ChiaProvider>,
 	);
@@ -58,26 +71,42 @@ beforeEach(() => {
 
 describe("allowSelfCancel", () => {
 	it("does not render cancel when the server says self-cancel is off", async () => {
-		renderWidget(makeFetch({ subscription: subscription({ allowSelfCancel: false }) }));
+		renderWidget(makeFetch({ subscription: subscription({ allowSelfCancel: false }) }).fn);
 
 		await screen.findByText("Pro");
 		expect(screen.queryByRole("button", { name: /cancel subscription/i })).toBeNull();
 	});
 
 	it("renders cancel when the server allows it", async () => {
-		renderWidget(makeFetch({ subscription: subscription({ allowSelfCancel: true }) }));
+		renderWidget(makeFetch({ subscription: subscription({ allowSelfCancel: true }) }).fn);
 
 		expect(await screen.findByRole("button", { name: /cancel subscription/i })).toBeTruthy();
 	});
 
 	it("confirms in-place instead of calling window.confirm", async () => {
 		const confirmSpy = vi.spyOn(window, "confirm");
-		renderWidget(makeFetch({ subscription: subscription() }));
+		renderWidget(makeFetch({ subscription: subscription() }).fn);
 
 		await userEvent.click(await screen.findByRole("button", { name: /cancel subscription/i }));
 
 		expect(confirmSpy).not.toHaveBeenCalled();
 		expect(screen.getByRole("button", { name: /yes, cancel/i })).toBeTruthy();
+	});
+});
+
+describe("publishable key", () => {
+	it("sends the pk_ key as the Authorization bearer on every call", async () => {
+		const { fn, calls } = makeFetch({ subscription: subscription() });
+		renderWidget(fn);
+
+		await screen.findByText("Pro");
+
+		const subCall = calls.find((c) => c.url.endsWith(`/embed/v1/subscription/${SUBSCRIBER_ID}`));
+		expect(subCall?.url).toBe(`https://api.test/embed/v1/subscription/${SUBSCRIBER_ID}`);
+		expect(header(subCall?.init, "Authorization")).toBe(`Bearer ${PUBLISHABLE_KEY}`);
+		for (const call of calls) {
+			expect(header(call.init, "Authorization")).toBe(`Bearer ${PUBLISHABLE_KEY}`);
+		}
 	});
 });
 
@@ -95,8 +124,8 @@ describe("host QueryClient", () => {
 			<QueryClientProvider client={hostClient}>
 				<ChiaProvider
 					apiBaseUrl="https://api.test"
-					fetchImpl={makeFetch({ subscription: subscription() })}
-					orgSlug="acme"
+					fetchImpl={makeFetch({ subscription: subscription() }).fn}
+					publishableKey={PUBLISHABLE_KEY}
 				>
 					<Probe />
 				</ChiaProvider>
@@ -107,7 +136,7 @@ describe("host QueryClient", () => {
 	});
 
 	it("creates a fallback client when the host has none", async () => {
-		renderWidget(makeFetch({ subscription: subscription() }));
+		renderWidget(makeFetch({ subscription: subscription() }).fn);
 
 		expect(await screen.findByText("Pro")).toBeTruthy();
 	});
@@ -132,7 +161,7 @@ describe("nextAction", () => {
 			makeFetch({
 				subscription: subscription({ subscriber: { ...subscription().subscriber, status: "past_due" } }),
 				pay,
-			}),
+			}).fn,
 			{ onNextAction },
 		);
 

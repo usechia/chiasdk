@@ -3,13 +3,17 @@ import { useChia } from "../provider";
 import type { CancelResponse } from "../types";
 
 export function useCancelSubscription(subscriberId: string | undefined) {
-	const { orgSlug, request } = useChia();
+	const { publishableKey, request, sessionToken } = useChia();
 	const queryClient = useQueryClient();
 
 	return useMutation<CancelResponse>({
-		mutationFn: () => request<CancelResponse>(`/s/${orgSlug}/subscription/${subscriberId}/cancel`, { method: "POST" }),
+		mutationFn: () =>
+			request<CancelResponse>(`/embed/v1/subscription/${subscriberId}/cancel`, {
+				method: "POST",
+				subscriberToken: sessionToken ?? undefined,
+			}),
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["chia-subscription", orgSlug, subscriberId] });
+			queryClient.invalidateQueries({ queryKey: ["chia-subscription", publishableKey, subscriberId] });
 		},
 	});
 }

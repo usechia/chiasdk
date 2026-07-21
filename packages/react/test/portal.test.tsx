@@ -39,6 +39,7 @@ if (!window.localStorage) {
 
 const FAR_FUTURE = "2099-01-01T00:00:00.000Z";
 const SUBSCRIBER_ID = "sub_123";
+const PUBLISHABLE_KEY = "pk_test_acme";
 
 interface RecordedCall {
 	url: string;
@@ -63,9 +64,9 @@ function makeFetch(handler: (url: string, init: RequestInit | undefined) => Prom
 	return { fn, calls };
 }
 
-function wrapper(fetchImpl: typeof fetch, orgSlug = "acme") {
+function wrapper(fetchImpl: typeof fetch, publishableKey = PUBLISHABLE_KEY) {
 	return ({ children }: { children: ReactNode }) => (
-		<ChiaProvider apiBaseUrl="https://api.test" fetchImpl={fetchImpl} orgSlug={orgSlug}>
+		<ChiaProvider apiBaseUrl="https://api.test" fetchImpl={fetchImpl} publishableKey={publishableKey}>
 			{children}
 		</ChiaProvider>
 	);
@@ -75,8 +76,12 @@ function authHeader(init: RequestInit | undefined): string | undefined {
 	return (init?.headers as Record<string, string> | undefined)?.Authorization;
 }
 
-function seedSession(orgSlug: string, token: string) {
-	window.localStorage.setItem(`chia.portal.${orgSlug}`, JSON.stringify({ token, expiresAt: FAR_FUTURE }));
+function subscriberTokenHeader(init: RequestInit | undefined): string | undefined {
+	return (init?.headers as Record<string, string> | undefined)?.["X-Chia-Subscriber-Token"];
+}
+
+function seedSession(publishableKey: string, token: string) {
+	window.localStorage.setItem(`chia.portal.${publishableKey}`, JSON.stringify({ token, expiresAt: FAR_FUTURE }));
 }
 
 function subscriber(overrides: Partial<Subscriber> = {}): Subscriber {
@@ -131,7 +136,7 @@ describe("otp flow", () => {
 
 describe("session persistence", () => {
 	it("restores the token on remount and clears it on signOut", async () => {
-		seedSession("acme", "tok_restored");
+		seedSession(PUBLISHABLE_KEY, "tok_restored");
 		const { fn } = makeFetch(() => jsonResponse({}));
 
 		const { result } = renderHook(() => usePortalSession(), { wrapper: wrapper(fn) });
@@ -144,7 +149,7 @@ describe("session persistence", () => {
 		});
 
 		await waitFor(() => expect(result.current.isAuthenticated).toBe(false));
-		expect(window.localStorage.getItem("chia.portal.acme")).toBeNull();
+		expect(window.localStorage.getItem(`chia.portal.${PUBLISHABLE_KEY}`)).toBeNull();
 	});
 
 	it("persists a verified token to localStorage", async () => {
@@ -159,7 +164,7 @@ describe("session persistence", () => {
 			await result.current.mutateAsync({ email: "ada@example.com", code: "123456" });
 		});
 
-		const stored = window.localStorage.getItem("chia.portal.acme");
+		const stored = window.localStorage.getItem(`chia.portal.${PUBLISHABLE_KEY}`);
 		expect(stored).not.toBeNull();
 		expect(JSON.parse(stored ?? "{}")).toMatchObject({ token: "tok_persist", expiresAt: FAR_FUTURE });
 	});
@@ -175,8 +180,8 @@ describe("usePortalSubscriptions", () => {
 		expect(calls).toHaveLength(0);
 	});
 
-	it("sends the Bearer token once authenticated", async () => {
-		seedSession("acme", "tok_seed");
+	it("sends the pk_ bearer and the subscriber token header once authenticated", async () => {
+		seedSession(PUBLISHABLE_KEY, "tok_seed");
 		const body: PortalSubscriptionsResponse = {
 			email: "ada@example.com",
 			allowSelfCancel: true,
@@ -189,14 +194,15 @@ describe("usePortalSubscriptions", () => {
 		await waitFor(() => expect(result.current.data).toBeTruthy());
 		expect(result.current.data?.email).toBe("ada@example.com");
 
-		const call = calls.find((c) => c.url.endsWith("/portal/subscriptions"));
-		expect(authHeader(call?.init)).toBe("Bearer tok_seed");
+		const call = calls.find((c) => c.url.endsWith("/embed/v1/portal/subscriptions"));
+		expect(authHeader(call?.init)).toBe(`Bearer ${PUBLISHABLE_KEY}`);
+		expect(subscriberTokenHeader(call?.init)).toBe("tok_seed");
 	});
 });
 
 describe("useChangePlan", () => {
 	it("fires onNextAction for an immediate upgrade without navigating, and attaches the token", async () => {
-		seedSession("acme", "tok_change");
+		seedSession(PUBLISHABLE_KEY, "tok_change");
 		const originalHref = window.location.href;
 		const upgrade: ChangePlanResponse = {
 			subscriber: subscriber(),
@@ -225,12 +231,14 @@ describe("useChangePlan", () => {
 		expect(window.location.href).toBe(originalHref);
 
 		const call = calls.find((c) => c.url.endsWith("/change-plan"));
-		expect(authHeader(call?.init)).toBe("Bearer tok_change");
+		expect(call?.url).toBe(`https://api.test/embed/v1/subscription/${SUBSCRIBER_ID}/change-plan`);
+		expect(authHeader(call?.init)).toBe(`Bearer ${PUBLISHABLE_KEY}`);
+		expect(subscriberTokenHeader(call?.init)).toBe("tok_change");
 		expect(JSON.parse((call?.init?.body as string) ?? "{}")).toEqual({ planId: "plan_pro", timing: "immediate" });
 	});
 
 	it("does not fire onNextAction for a deferred downgrade", async () => {
-		seedSession("acme", "tok_change");
+		seedSession(PUBLISHABLE_KEY, "tok_change");
 		const downgrade: ChangePlanResponse = {
 			subscriber: subscriber({ pendingPlanId: "plan_basic", planChangeAt: "2026-08-01T00:00:00.000Z" }),
 			timing: "at_period_end",

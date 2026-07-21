@@ -8,13 +8,17 @@ export interface UseSubscriptionOptions {
 }
 
 export function useSubscription(subscriberId: string | undefined, options: UseSubscriptionOptions = {}) {
-	const { orgSlug, request } = useChia();
+	const { publishableKey, request, sessionToken } = useChia();
 	const { refetchInterval = false } = options;
 
 	return useQuery<SubscriptionResponse>({
-		queryKey: ["chia-subscription", orgSlug, subscriberId],
-		queryFn: ({ signal }) => request<SubscriptionResponse>(`/s/${orgSlug}/subscription/${subscriberId}`, { signal }),
-		enabled: !!orgSlug && !!subscriberId,
+		queryKey: ["chia-subscription", publishableKey, subscriberId],
+		queryFn: ({ signal }) =>
+			request<SubscriptionResponse>(`/embed/v1/subscription/${subscriberId}`, {
+				signal,
+				subscriberToken: sessionToken ?? undefined,
+			}),
+		enabled: !!publishableKey && !!subscriberId,
 		refetchInterval,
 	});
 }

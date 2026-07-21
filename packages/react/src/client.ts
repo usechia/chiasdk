@@ -16,8 +16,10 @@ export interface RequestOptions {
 	fetchImpl?: typeof fetch;
 	/** Serialized as JSON with a Content-Type header when present. */
 	body?: unknown;
-	/** Portal session token, sent as an Authorization: Bearer header when present. */
+	/** Chia publishable key, sent as an Authorization: Bearer header when present. */
 	token?: string;
+	/** Subscriber session token, sent as an X-Chia-Subscriber-Token header when present. */
+	subscriberToken?: string;
 }
 
 function joinUrl(base: string, path: string): string {
@@ -25,12 +27,13 @@ function joinUrl(base: string, path: string): string {
 }
 
 export async function chiaRequest<T>(baseUrl: string, path: string, options: RequestOptions = {}): Promise<T> {
-	const { method = "GET", signal, fetchImpl, body: requestBody, token } = options;
+	const { method = "GET", signal, fetchImpl, body: requestBody, token, subscriberToken } = options;
 	const doFetch = fetchImpl ?? globalThis.fetch;
 
 	const headers: Record<string, string> = { Accept: "application/json" };
 	if (requestBody !== undefined) headers["Content-Type"] = "application/json";
 	if (token) headers.Authorization = `Bearer ${token}`;
+	if (subscriberToken) headers["X-Chia-Subscriber-Token"] = subscriberToken;
 
 	const response = await doFetch(joinUrl(baseUrl, path), {
 		method,

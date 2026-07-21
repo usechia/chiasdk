@@ -13,8 +13,16 @@ npm install @chiahq/react
 ```
 
 `react` and `@tanstack/react-query` are peer dependencies. The package ships no HTTP
-client and no toast library: it talks to the public storefront API with `fetch` and
-returns errors to you.
+client and no toast library: it talks to the Chia embed API with `fetch` and returns
+errors to you.
+
+## A Chia publishable key is required
+
+This package will not function without a Chia publishable key. Create one in the Chia
+dashboard and pass it to `ChiaProvider` as `publishableKey`. The key (a `pk_...` value)
+is sent as `Authorization: Bearer <publishableKey>` on every request, and the
+organization is derived from it: there is no `orgSlug` any more. Publishable keys may be
+origin-restricted, so a key only works from the domains you allow in the dashboard.
 
 ## Quick start
 
@@ -24,7 +32,7 @@ import "@chiahq/react/styles.css"; // optional
 
 export function BillingPage({ subscriberId }: { subscriberId: string }) {
 	return (
-		<ChiaProvider orgSlug="acme">
+		<ChiaProvider publishableKey="pk_live_...">
 			<SubscriptionManager
 				subscriberId={subscriberId}
 				onNextAction={(nextAction) => {
@@ -42,7 +50,7 @@ export function BillingPage({ subscriberId }: { subscriberId: string }) {
 `apiBaseUrl` defaults to `https://api.usechia.com`. Point it elsewhere for local work:
 
 ```tsx
-<ChiaProvider orgSlug="acme" apiBaseUrl="http://localhost:3001">
+<ChiaProvider publishableKey="pk_test_..." apiBaseUrl="http://localhost:3001">
 ```
 
 ## Works with your existing QueryClient
@@ -53,7 +61,7 @@ found does it create a private fallback. It never replaces a client you supplied
 
 ```tsx
 <QueryClientProvider client={myClient}>
-	<ChiaProvider orgSlug="acme">
+	<ChiaProvider publishableKey="pk_live_...">
 		<App />
 	</ChiaProvider>
 </QueryClientProvider>
@@ -96,12 +104,15 @@ function Billing({ subscriberId }: { subscriberId: string }) {
 
 | Hook | Endpoint |
 | --- | --- |
-| `usePlans()` | `GET /s/:orgSlug/plans` |
-| `useSubscription(subscriberId, options?)` | `GET /s/:orgSlug/subscription/:subscriberId` |
-| `useCancelSubscription(subscriberId)` | `POST /s/:orgSlug/subscription/:subscriberId/cancel` |
-| `usePayOutstanding(subscriberId, options?)` | `POST /s/:orgSlug/subscription/:subscriberId/pay` |
+| `usePlans()` | `GET /embed/v1/plans` |
+| `useSubscription(subscriberId, options?)` | `GET /embed/v1/subscription/:subscriberId` |
+| `useCancelSubscription(subscriberId)` | `POST /embed/v1/subscription/:subscriberId/cancel` |
+| `usePayOutstanding(subscriberId, options?)` | `POST /embed/v1/subscription/:subscriberId/pay` |
 
-Mutations invalidate `["chia-subscription", orgSlug, subscriberId]` on success.
+Every request carries the publishable key as `Authorization: Bearer <publishableKey>`.
+Subscriber-scoped calls also carry the portal session token in a separate
+`X-Chia-Subscriber-Token` header. Mutations invalidate
+`["chia-subscription", publishableKey, subscriberId]` on success.
 
 ## Cancellation is server-gated
 
@@ -155,19 +166,6 @@ when the brand is too light for white text to be readable on it.
 
 `incomplete`, `awaiting_customer_action`, `trialing`, `active`, `renewal_pending`,
 `paused`, `cancelled`, `past_due`.
-
-## Not yet available
-
-The following are being built and are deliberately absent from this release. Their API
-contracts are not final, so nothing here should be treated as forthcoming in a specific
-shape:
-
-- **Plan changes** -- there is no `useChangePlan`. The change-plan endpoint is still in
-  development.
-- **Customer portal** -- there is no `usePortalSession` or hosted portal component.
-
-Both will land in a later minor version once their endpoints stabilize. Do not build
-against a guessed shape in the meantime.
 
 ## License
 
