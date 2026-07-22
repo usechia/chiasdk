@@ -174,9 +174,16 @@ describe("HttpClient retry logic", () => {
 		const gap1 = timestamps[1] - timestamps[0];
 		const gap2 = timestamps[2] - timestamps[1];
 		const gap3 = timestamps[3] - timestamps[2];
-		expect(gap1).toBeGreaterThanOrEqual(5);
-		expect(gap2).toBeGreaterThan(gap1 * 0.8);
-		expect(gap3).toBeGreaterThan(gap2 * 0.8);
+
+		// Each gap is checked against its own scheduled delay (10ms * 2^attempt, plus up to
+		// 10% jitter) rather than against the previously measured gap. Comparing measured
+		// gaps to each other couples them: a gap stretched by scheduler noise raises the bar
+		// the next one has to clear, which can fail even though the backoff is correct. A
+		// sleep never returns early, so these lower bounds fail only if the backoff is wrong.
+		expect(gap1).toBeGreaterThanOrEqual(8);
+		expect(gap2).toBeGreaterThanOrEqual(18);
+		expect(gap3).toBeGreaterThanOrEqual(36);
+		expect(gap3).toBeGreaterThan(gap1);
 	});
 
 	it("works with default retry config", async () => {
