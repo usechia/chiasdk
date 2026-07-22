@@ -1,5 +1,5 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useChia } from "../provider";
+import { useStoreMutation } from "../internal/hooks";
+import { useChia, useChiaStore } from "../provider";
 import type { ChangePlanResponse, NextAction, PlanChangeTiming } from "../types";
 
 export interface UseChangePlanOptions {
@@ -19,10 +19,10 @@ export interface ChangePlanVariables {
 
 export function useChangePlan(subscriberId: string | undefined, options: UseChangePlanOptions = {}) {
 	const { publishableKey, request, sessionToken } = useChia();
-	const queryClient = useQueryClient();
+	const store = useChiaStore();
 	const { onNextAction } = options;
 
-	return useMutation<ChangePlanResponse, unknown, ChangePlanVariables>({
+	return useStoreMutation<ChangePlanResponse, ChangePlanVariables>({
 		mutationFn: ({ planId, timing }) =>
 			request<ChangePlanResponse>(`/embed/v1/subscription/${subscriberId}/change-plan`, {
 				method: "POST",
@@ -30,11 +30,13 @@ export function useChangePlan(subscriberId: string | undefined, options: UseChan
 				subscriberToken: sessionToken ?? undefined,
 			}),
 		onSuccess: (result) => {
+			// Invalidate before handing control to the host: onNextAction is merchant code,
+			// and a throw there must not leave the cache stale.
+			store.invalidate(`chia-subscription:${publishableKey}:${subscriberId}`);
+			store.invalidate(`chia-portal-subscriptions:${publishableKey}`);
 			if (result.nextAction && result.nextAction.type !== "none") {
 				onNextAction?.(result.nextAction, result);
 			}
-			queryClient.invalidateQueries({ queryKey: ["chia-subscription", publishableKey, subscriberId] });
-			queryClient.invalidateQueries({ queryKey: ["chia-portal-subscriptions", publishableKey] });
 		},
 	});
 }

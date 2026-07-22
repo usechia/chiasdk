@@ -13,6 +13,7 @@ export { usePortalSubscriptions } from "./hooks/use-portal-subscriptions";
 export { useRequestOtp } from "./hooks/use-request-otp";
 export { type UseSubscriptionOptions, useSubscription } from "./hooks/use-subscription";
 export { useVerifyOtp } from "./hooks/use-verify-otp";
+export type { MutateCallbacks, MutationResult, QueryResult } from "./internal/hooks";
 export {
 	type ChiaContextValue,
 	ChiaProvider,

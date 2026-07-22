@@ -1,11 +1,11 @@
-import { useMutation } from "@tanstack/react-query";
+import { useStoreMutation } from "../internal/hooks";
 import { useChia } from "../provider";
 import type { OtpResponse } from "../types";
 
 export function useRequestOtp() {
 	const { request } = useChia();
 
-	return useMutation<OtpResponse, unknown, { email: string }>({
+	return useStoreMutation<OtpResponse, { email: string }>({
 		mutationFn: ({ email }) =>
 			request<OtpResponse>("/embed/v1/portal/request-otp", { method: "POST", body: { email } }),
 	});

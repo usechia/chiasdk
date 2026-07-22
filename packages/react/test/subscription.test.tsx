@@ -1,6 +1,6 @@
-import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
 import { render, screen, waitFor } from "@testing-library/react";
 import { userEvent } from "@testing-library/user-event";
+import { StrictMode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ChiaProvider, SubscriptionManager } from "../src/index";
 import type { NextAction, PayResponse, SubscriptionResponse } from "../src/types";
@@ -110,35 +110,110 @@ describe("publishable key", () => {
 	});
 });
 
-describe("host QueryClient", () => {
-	it("reuses a host client rather than replacing it", async () => {
-		const hostClient = new QueryClient();
-		let seen: QueryClient | null = null;
+describe("query failures", () => {
+	function failingFetch(status: number, body: unknown) {
+		return vi.fn(() =>
+			Promise.resolve({
+				ok: false,
+				status,
+				text: () => Promise.resolve(JSON.stringify(body)),
+			} as Response),
+		) as unknown as typeof fetch;
+	}
 
-		function Probe() {
-			seen = useQueryClient();
-			return null;
-		}
+	it("renders the error state when the subscription request fails", async () => {
+		renderWidget(failingFetch(500, { error: "upstream down" }));
 
-		render(
-			<QueryClientProvider client={hostClient}>
-				<ChiaProvider
-					apiBaseUrl="https://api.test"
-					fetchImpl={makeFetch({ subscription: subscription() }).fn}
-					publishableKey={PUBLISHABLE_KEY}
-				>
-					<Probe />
-				</ChiaProvider>
-			</QueryClientProvider>,
-		);
-
-		expect(seen).toBe(hostClient);
+		expect(await screen.findByRole("alert")).toBeTruthy();
+		expect(screen.queryByText("Pro")).toBeNull();
 	});
 
-	it("creates a fallback client when the host has none", async () => {
+	it("hands the failure to renderError so the host can display it", async () => {
+		render(
+			<ChiaProvider
+				apiBaseUrl="https://api.test"
+				fetchImpl={failingFetch(500, { error: "upstream down" })}
+				publishableKey={PUBLISHABLE_KEY}
+			>
+				<SubscriptionManager
+					subscriberId={SUBSCRIBER_ID}
+					renderError={(error) => <div>caught: {error instanceof Error ? error.message : "unknown"}</div>}
+				/>
+			</ChiaProvider>,
+		);
+
+		expect(await screen.findByText("caught: upstream down")).toBeTruthy();
+	});
+
+	it("leaves the loading state once a failure settles", async () => {
+		renderWidget(failingFetch(500, { error: "upstream down" }));
+
+		await waitFor(() => {
+			expect(screen.queryByText("Loading subscription...")).toBeNull();
+		});
+	});
+});
+
+describe("standalone setup", () => {
+	it("renders without any provider beyond ChiaProvider", async () => {
 		renderWidget(makeFetch({ subscription: subscription() }).fn);
 
 		expect(await screen.findByText("Pro")).toBeTruthy();
+	});
+});
+
+describe("cache scope", () => {
+	it("makes one request when several components share a query", async () => {
+		const { fn, calls } = makeFetch({ subscription: subscription() });
+
+		render(
+			<ChiaProvider apiBaseUrl="https://api.test" fetchImpl={fn} publishableKey={PUBLISHABLE_KEY}>
+				<SubscriptionManager subscriberId={SUBSCRIBER_ID} />
+				<SubscriptionManager subscriberId={SUBSCRIBER_ID} />
+				<SubscriptionManager subscriberId={SUBSCRIBER_ID} />
+			</ChiaProvider>,
+		);
+
+		await waitFor(() => {
+			expect(screen.getAllByText("Pro")).toHaveLength(3);
+		});
+		expect(calls.filter((c) => c.url === `https://api.test/embed/v1/subscription/${SUBSCRIBER_ID}`)).toHaveLength(1);
+	});
+
+	it("makes one request under StrictMode's double mount", async () => {
+		const { fn, calls } = makeFetch({ subscription: subscription() });
+
+		render(
+			<StrictMode>
+				<ChiaProvider apiBaseUrl="https://api.test" fetchImpl={fn} publishableKey={PUBLISHABLE_KEY}>
+					<SubscriptionManager subscriberId={SUBSCRIBER_ID} />
+				</ChiaProvider>
+			</StrictMode>,
+		);
+
+		expect(await screen.findByText("Pro")).toBeTruthy();
+		expect(calls.filter((c) => c.url === `https://api.test/embed/v1/subscription/${SUBSCRIBER_ID}`)).toHaveLength(1);
+	});
+
+	it("keeps separate caches for two providers on one page", async () => {
+		const { fn, calls } = makeFetch({ subscription: subscription() });
+
+		render(
+			<>
+				<ChiaProvider apiBaseUrl="https://api.test" fetchImpl={fn} publishableKey={PUBLISHABLE_KEY}>
+					<SubscriptionManager subscriberId={SUBSCRIBER_ID} />
+				</ChiaProvider>
+				<ChiaProvider apiBaseUrl="https://api.test" fetchImpl={fn} publishableKey={PUBLISHABLE_KEY}>
+					<SubscriptionManager subscriberId={SUBSCRIBER_ID} />
+				</ChiaProvider>
+			</>,
+		);
+
+		await waitFor(() => {
+			expect(screen.getAllByText("Pro")).toHaveLength(2);
+		});
+		// Two stores means no sharing: each provider fetches for itself.
+		expect(calls.filter((c) => c.url === `https://api.test/embed/v1/subscription/${SUBSCRIBER_ID}`)).toHaveLength(2);
 	});
 });
 

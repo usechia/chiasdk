@@ -2,9 +2,11 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useChangePlan } from "../src/hooks/use-change-plan";
+import { usePlans } from "../src/hooks/use-plans";
 import { usePortalSession } from "../src/hooks/use-portal-session";
 import { usePortalSubscriptions } from "../src/hooks/use-portal-subscriptions";
 import { useRequestOtp } from "../src/hooks/use-request-otp";
+import { useSubscription } from "../src/hooks/use-subscription";
 import { useVerifyOtp } from "../src/hooks/use-verify-otp";
 import { ChiaProvider } from "../src/index";
 import type { ChangePlanResponse, PortalSubscriptionsResponse, Subscriber } from "../src/types";
@@ -152,6 +154,32 @@ describe("session persistence", () => {
 		expect(window.localStorage.getItem(`chia.portal.${PUBLISHABLE_KEY}`)).toBeNull();
 	});
 
+	it("drops cached subscriber data on signOut but keeps the public plan list", async () => {
+		seedSession(PUBLISHABLE_KEY, "tok_seed");
+		const { fn } = makeFetch((url) => {
+			if (url.endsWith("/portal/subscriptions")) {
+				return jsonResponse({ email: "ada@example.com", allowSelfCancel: true, subscriptions: [] });
+			}
+			return jsonResponse({ plans: [{ id: "plan_pro", name: "Pro" }] });
+		});
+
+		const { result } = renderHook(
+			() => ({ subs: usePortalSubscriptions(), plans: usePlans(), session: usePortalSession() }),
+			{ wrapper: wrapper(fn) },
+		);
+
+		await waitFor(() => expect(result.current.subs.data?.email).toBe("ada@example.com"));
+		await waitFor(() => expect(result.current.plans.data).toBeTruthy());
+
+		act(() => {
+			result.current.session.signOut();
+		});
+
+		await waitFor(() => expect(result.current.session.isAuthenticated).toBe(false));
+		expect(result.current.subs.data).toBeUndefined();
+		expect(result.current.plans.data).toBeTruthy();
+	});
+
 	it("persists a verified token to localStorage", async () => {
 		const { fn } = makeFetch((url) => {
 			if (url.endsWith("/portal/verify-otp")) return jsonResponse({ token: "tok_persist", expiresAt: FAR_FUTURE });
@@ -176,7 +204,8 @@ describe("usePortalSubscriptions", () => {
 
 		const { result } = renderHook(() => usePortalSubscriptions(), { wrapper: wrapper(fn) });
 
-		expect(result.current.fetchStatus).toBe("idle");
+		expect(result.current.isLoading).toBe(false);
+		expect(result.current.data).toBeUndefined();
 		expect(calls).toHaveLength(0);
 	});
 
@@ -201,6 +230,57 @@ describe("usePortalSubscriptions", () => {
 });
 
 describe("useChangePlan", () => {
+	it("still invalidates the subscription when onNextAction throws", async () => {
+		seedSession(PUBLISHABLE_KEY, "tok_change");
+		const reported = vi.spyOn(console, "error").mockImplementation(() => {});
+		try {
+			const upgrade: ChangePlanResponse = {
+				subscriber: subscriber(),
+				timing: "immediate",
+				direction: "upgrade",
+				payment: { paymentId: "pay_1", paymentStatus: "requires_action", nextAction: null },
+				nextAction: {
+					type: "redirect",
+					label: "Continue to Airtel",
+					message: "Finish the payment on the provider page.",
+					redirectUrl: "https://provider.test/checkout/abc",
+				},
+				proratedAmount: "5000.00",
+			};
+			const { fn, calls } = makeFetch((url) =>
+				url.endsWith("/change-plan")
+					? jsonResponse(upgrade)
+					: jsonResponse({ subscriber: subscriber(), plan: null, allowSelfCancel: true }),
+			);
+			const onNextAction = vi.fn(() => {
+				throw new Error("router not mounted");
+			});
+			const subscriptionUrl = `https://api.test/embed/v1/subscription/${SUBSCRIBER_ID}`;
+
+			const { result } = renderHook(
+				() => ({
+					sub: useSubscription(SUBSCRIBER_ID),
+					change: useChangePlan(SUBSCRIBER_ID, { onNextAction }),
+				}),
+				{ wrapper: wrapper(fn) },
+			);
+
+			await waitFor(() => expect(result.current.sub.data).toBeDefined());
+			const before = calls.filter((c) => c.url === subscriptionUrl).length;
+
+			await act(async () => {
+				await result.current.change.mutateAsync({ planId: "plan_pro", timing: "immediate" });
+			});
+
+			expect(onNextAction).toHaveBeenCalledTimes(1);
+			await waitFor(() => {
+				expect(calls.filter((c) => c.url === subscriptionUrl).length).toBeGreaterThan(before);
+			});
+		} finally {
+			reported.mockRestore();
+		}
+	});
+
 	it("fires onNextAction for an immediate upgrade without navigating, and attaches the token", async () => {
 		seedSession(PUBLISHABLE_KEY, "tok_change");
 		const originalHref = window.location.href;
