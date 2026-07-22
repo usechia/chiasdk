@@ -11,8 +11,10 @@ import { useVerifyOtp } from "../src/hooks/use-verify-otp";
 import { ChiaProvider } from "../src/index";
 import type { ChangePlanResponse, PortalSubscriptionsResponse, Subscriber } from "../src/types";
 
-// This jsdom build ships without a working localStorage, so the provider's
-// persistence path has nothing to write to. Supply an in-memory store.
+// The provider persists the portal session to localStorage, and what `window.localStorage`
+// resolves to varies by environment: this jsdom build has none, while the CI runner exposes
+// something that is truthy but missing `clear`. Installing this store unconditionally makes
+// the tests depend on one known implementation instead of whatever the host provides.
 class MemoryStorage {
 	private store = new Map<string, string>();
 	get length() {
@@ -35,9 +37,7 @@ class MemoryStorage {
 	}
 }
 
-if (!window.localStorage) {
-	Object.defineProperty(window, "localStorage", { value: new MemoryStorage(), configurable: true });
-}
+Object.defineProperty(window, "localStorage", { value: new MemoryStorage(), configurable: true });
 
 const FAR_FUTURE = "2099-01-01T00:00:00.000Z";
 const SUBSCRIBER_ID = "sub_123";
