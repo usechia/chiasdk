@@ -110,3 +110,4 @@ dist
 
 # Superpowers design scratch: specs and plans, not part of the docs site
 docs/superpowers/
+.verify/

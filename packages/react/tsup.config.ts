@@ -9,7 +9,7 @@ export default defineConfig({
 	sourcemap: true,
 	treeshake: true,
 	target: "es2021",
-	external: ["react", "react-dom", "@tanstack/react-query"],
+	external: ["react", "react-dom"],
 	onSuccess: async () => {
 		copyFileSync("src/styles.css", "dist/styles.css");
 	},

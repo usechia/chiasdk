@@ -12,8 +12,8 @@ redirect hijacking.
 npm install @chiahq/react
 ```
 
-`react` and `@tanstack/react-query` are peer dependencies. The package ships no HTTP
-client and no toast library: it talks to the Chia embed API with `fetch` and returns
+`react` is the only peer dependency. The package ships no HTTP client, no data-fetching
+library and no toast library: it talks to the Chia embed API with `fetch` and returns
 errors to you.
 
 ## A Chia publishable key is required
@@ -53,19 +53,20 @@ export function BillingPage({ subscriberId }: { subscriberId: string }) {
 <ChiaProvider publishableKey="pk_test_..." apiBaseUrl="http://localhost:3001">
 ```
 
-## Works with your existing QueryClient
+## Caching
 
-If your app already renders a `QueryClientProvider`, `ChiaProvider` detects it and uses
-your client. Your cache, your retry policy, your devtools. Only when no host client is
-found does it create a private fallback. It never replaces a client you supplied.
+`ChiaProvider` creates its own cache, scoped to that provider. Queries are keyed by
+publishable key. Components sharing a key share one request rather than each issuing their
+own, and a mutation invalidates the queries it affects. Nothing to configure and no query
+client to wire in.
 
-```tsx
-<QueryClientProvider client={myClient}>
-	<ChiaProvider publishableKey="pk_live_...">
-		<App />
-	</ChiaProvider>
-</QueryClientProvider>
-```
+Two providers on one page keep separate caches, so a test or a preview pane never shares
+state with the live tree.
+
+What it does not do: there is no retry, no request cancellation on unmount, and no
+background refetch on window focus. If you need those, run the hooks' `mutateAsync` and the
+returned state inside your own layer, or keep using a full data-fetching library alongside
+this package.
 
 ## Hooks
 

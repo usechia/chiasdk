@@ -1,17 +1,18 @@
-import { useQuery } from "@tanstack/react-query";
-import { useChia } from "../provider";
+import { useStoreQuery } from "../internal/hooks";
+import { useChia, useChiaStore } from "../provider";
 import type { PortalSubscriptionsResponse } from "../types";
 
 export function usePortalSubscriptions() {
 	const { publishableKey, request, sessionToken } = useChia();
+	const store = useChiaStore();
 
-	return useQuery<PortalSubscriptionsResponse>({
-		queryKey: ["chia-portal-subscriptions", publishableKey],
-		queryFn: ({ signal }) =>
+	return useStoreQuery<PortalSubscriptionsResponse>(store, {
+		key: `chia-portal-subscriptions:${publishableKey}`,
+		enabled: !!publishableKey && sessionToken !== null,
+		fetcher: (signal) =>
 			request<PortalSubscriptionsResponse>("/embed/v1/portal/subscriptions", {
 				signal,
 				subscriberToken: sessionToken ?? undefined,
 			}),
-		enabled: !!publishableKey && sessionToken !== null,
 	});
 }

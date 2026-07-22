@@ -1,5 +1,5 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useChia } from "../provider";
+import { useStoreMutation } from "../internal/hooks";
+import { useChia, useChiaStore } from "../provider";
 import type { NextAction, PayResponse } from "../types";
 
 export interface UsePayOutstandingOptions {
@@ -13,21 +13,23 @@ export interface UsePayOutstandingOptions {
 
 export function usePayOutstanding(subscriberId: string | undefined, options: UsePayOutstandingOptions = {}) {
 	const { publishableKey, request, sessionToken } = useChia();
-	const queryClient = useQueryClient();
+	const store = useChiaStore();
 	const { onNextAction } = options;
 
-	return useMutation<PayResponse>({
+	return useStoreMutation<PayResponse, void>({
 		mutationFn: () =>
 			request<PayResponse>(`/embed/v1/subscription/${subscriberId}/pay`, {
 				method: "POST",
 				subscriberToken: sessionToken ?? undefined,
 			}),
 		onSuccess: (result) => {
+			// Invalidate before handing control to the host: onNextAction is merchant code,
+			// and a throw there must not leave the cache stale.
+			if (result.paymentStatus === "success") {
+				store.invalidate(`chia-subscription:${publishableKey}:${subscriberId}`);
+			}
 			if (result.nextAction && result.nextAction.type !== "none") {
 				onNextAction?.(result.nextAction, result);
-			}
-			if (result.paymentStatus === "success") {
-				queryClient.invalidateQueries({ queryKey: ["chia-subscription", publishableKey, subscriberId] });
 			}
 		},
 	});

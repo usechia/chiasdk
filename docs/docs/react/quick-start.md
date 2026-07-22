@@ -25,7 +25,7 @@ function App() {
 
 `publishableKey` is required - get one from the Chia dashboard. It is safe to ship in the browser, can be restricted to your domains, and the organization is derived from it (there is no `orgSlug`). `apiBaseUrl` defaults to `https://api.usechia.com`. Pass `fetchImpl` to supply a fetch in environments without a global one, or in tests.
 
-If your app already has a `QueryClientProvider`, the package reuses it. If not, it creates one internally, so you do not have to set up TanStack Query yourself.
+`ChiaProvider` is the only provider you need. It creates its own cache internally, so there is no query client to set up and nothing to wire in alongside it.
 
 ## Show a subscription
 

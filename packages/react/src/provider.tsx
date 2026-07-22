@@ -1,6 +1,6 @@
-import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
 import { createContext, type ReactNode, useCallback, useContext, useMemo, useState } from "react";
 import { chiaRequest, type RequestOptions } from "./client";
+import { createStore, type Store } from "./internal/store";
 
 export const DEFAULT_API_BASE_URL = "https://api.usechia.com";
 
@@ -16,12 +16,25 @@ export interface ChiaContextValue {
 
 const ChiaContext = createContext<ChiaContextValue | null>(null);
 
+// Deliberately a separate context, and deliberately not re-exported from the package root.
+// The cache is an implementation detail: putting it on ChiaContextValue would publish every
+// store method as supported API on a package that has not committed to one yet.
+const ChiaStoreContext = createContext<Store | null>(null);
+
 export function useChia(): ChiaContextValue {
 	const value = useContext(ChiaContext);
 	if (!value) {
 		throw new Error("useChia must be used inside a <ChiaProvider>.");
 	}
 	return value;
+}
+
+export function useChiaStore(): Store {
+	const store = useContext(ChiaStoreContext);
+	if (!store) {
+		throw new Error("Chia hooks must be used inside a <ChiaProvider>.");
+	}
+	return store;
 }
 
 interface StoredSession {
@@ -55,32 +68,13 @@ export interface ChiaProviderProps {
 	children: ReactNode;
 }
 
-// useQueryClient reads context unconditionally and only throws when the value is
-// missing, so the hook order stays stable across renders whether or not a host
-// QueryClientProvider is present.
-function useHostQueryClient(): QueryClient | null {
-	try {
-		// biome-ignore lint/correctness/useHookAtTopLevel: useQueryClient reads context unconditionally and only throws when the value is missing, so hook order stays stable whether or not the host rendered a QueryClientProvider.
-		return useQueryClient();
-	} catch {
-		return null;
-	}
-}
-
 export function ChiaProvider({
 	publishableKey,
 	apiBaseUrl = DEFAULT_API_BASE_URL,
 	fetchImpl,
 	children,
 }: ChiaProviderProps) {
-	const hostClient = useHostQueryClient();
-	const [fallbackClient] = useState(
-		() =>
-			new QueryClient({
-				defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: false } },
-			}),
-	);
-
+	const [store] = useState(createStore);
 	const [session, setSession] = useState<StoredSession | null>(() => readStoredSession(publishableKey));
 
 	const setToken = useCallback(
@@ -99,13 +93,17 @@ export function ChiaProvider({
 
 	const clearToken = useCallback(() => {
 		setSession(null);
+		// Drop everything the session could see. Plans are public catalogue data with no
+		// subscriber in them, so they stay cached and a signed-out portal still renders.
+		store.clear(`chia-portal-subscriptions:${publishableKey}`);
+		store.clear(`chia-subscription:${publishableKey}`);
 		if (typeof window === "undefined") return;
 		try {
 			window.localStorage.removeItem(storageKey(publishableKey));
 		} catch {
 			// Storage may be unavailable; clearing in-memory state is enough.
 		}
-	}, [publishableKey]);
+	}, [publishableKey, store]);
 
 	const value = useMemo<ChiaContextValue>(
 		() => ({
@@ -127,8 +125,9 @@ export function ChiaProvider({
 		[publishableKey, apiBaseUrl, fetchImpl, session, setToken, clearToken],
 	);
 
-	const inner = <ChiaContext.Provider value={value}>{children}</ChiaContext.Provider>;
-
-	if (hostClient) return inner;
-	return <QueryClientProvider client={fallbackClient}>{inner}</QueryClientProvider>;
+	return (
+		<ChiaStoreContext.Provider value={store}>
+			<ChiaContext.Provider value={value}>{children}</ChiaContext.Provider>
+		</ChiaStoreContext.Provider>
+	);
 }

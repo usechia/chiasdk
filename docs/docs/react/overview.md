@@ -13,10 +13,10 @@ It is headless-first. Hooks carry the data and mutations; the components are uns
 ## Install
 
 ```bash
-npm install @chiahq/react @tanstack/react-query react
+npm install @chiahq/react react
 ```
 
-`react` and `@tanstack/react-query` are peer dependencies - the package uses your copy rather than bundling its own.
+`react` is the only peer dependency - the package uses your copy rather than bundling its own.
 
 ## What it does
 
@@ -32,7 +32,7 @@ npm install @chiahq/react @tanstack/react-query react
 
 - It never holds a secret (`sk_`) key. It authenticates with a **publishable (`pk_`) key** against the `/embed/v1` API; the key can be origin-restricted to your domains, and the organization is derived from it.
 - It never navigates on its own. When a mobile-money action is required (a USSD prompt, a redirect), the hook hands you a `nextAction` and you decide what to do with it.
-- It does not bundle React or a query client. It detects a host `QueryClientProvider` and only creates its own as a fallback.
+- It does not bundle React, and it does not require a data-fetching library. Caching, polling and invalidation are handled by a small store created inside `ChiaProvider`, scoped to that provider.
 
 ## Money is strings
 

@@ -1,5 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
-import { useChia } from "../provider";
+import { useStoreQuery } from "../internal/hooks";
+import { useChia, useChiaStore } from "../provider";
 import type { SubscriptionResponse } from "../types";
 
 export interface UseSubscriptionOptions {
@@ -9,16 +9,17 @@ export interface UseSubscriptionOptions {
 
 export function useSubscription(subscriberId: string | undefined, options: UseSubscriptionOptions = {}) {
 	const { publishableKey, request, sessionToken } = useChia();
+	const store = useChiaStore();
 	const { refetchInterval = false } = options;
 
-	return useQuery<SubscriptionResponse>({
-		queryKey: ["chia-subscription", publishableKey, subscriberId],
-		queryFn: ({ signal }) =>
+	return useStoreQuery<SubscriptionResponse>(store, {
+		key: `chia-subscription:${publishableKey}:${subscriberId}`,
+		enabled: !!publishableKey && !!subscriberId,
+		refetchInterval,
+		fetcher: (signal) =>
 			request<SubscriptionResponse>(`/embed/v1/subscription/${subscriberId}`, {
 				signal,
 				subscriberToken: sessionToken ?? undefined,
 			}),
-		enabled: !!publishableKey && !!subscriberId,
-		refetchInterval,
 	});
 }
