@@ -46,6 +46,14 @@ jobs:
           git config --global user.name "github-actions[bot]"
           pnpm install --frozen-lockfile
 
+      # Runs before the version bump so a failure cannot leave a stray version commit behind.
+      - name: Test React Package
+        run: |
+          cd packages/react
+          pnpm lint
+          pnpm typecheck
+          pnpm test
+
       - name: Setup Release Environment
         id: setup
         run: |

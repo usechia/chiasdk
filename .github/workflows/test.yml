@@ -1,0 +1,50 @@
+name: Test
+
+# Every other workflow here is workflow_dispatch only, so until now nothing ran on a pull
+# request and no test result gated anything.
+#
+# Scope note: `pnpm -r lint` is deliberately not run repo-wide yet. packages/sdk has never
+# been linted successfully - its biome.json is written for biome 2.x while the installed
+# biome is 1.5.3, and it has no `files` exclusion so it also scans dist/. Making it pass
+# needs a package-wide formatting pass (~50 files), which belongs in its own branch. Until
+# then this workflow lints only the packages that are clean, rather than being red on
+# arrival, because a permanently red pipeline gets ignored.
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v5
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 25
+          cache: pnpm
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Test
+        run: pnpm -r test
+
+      - name: Typecheck
+        run: pnpm -r typecheck
+
+      - name: Lint the react package
+        run: |
+          cd packages/react
+          pnpm lint
