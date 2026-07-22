@@ -20,16 +20,16 @@ curl -X POST https://api.usechia.com/refunds \
   -H "Content-Type: application/json" \
   -d '{
     "paymentId": "payment-uuid",
-    "amount": 5000,
+    "amount": "5000.00",
     "reason": "Customer requested cancellation"
   }'
 ```
 
 | Field | Type | Required | Description |
 |---|---|---|---|
-| `paymentId` | `string` | Yes | ID of the payment to refund |
-| `amount` | `number` | No | Partial refund amount. Defaults to full payment amount |
-| `reason` | `string` | No | Reason for the refund |
+| `paymentId` | `string` (uuid) | Yes | ID of the payment to refund |
+| `amount` | `string` | No | Partial refund amount as a decimal string in major currency units, e.g. `"5000.00"`. A JSON number is rejected with `400`. Defaults to the full payment amount |
+| `reason` | `string` | No | Reason for the refund, up to 500 characters |
 
 ## List refunds
 

@@ -17,9 +17,9 @@ Chia is a managed subscription billing platform for mobile money in Africa. Busi
 5. Chia collects payments, handles renewals, retries, and reconciliation
 6. You receive your earnings weekly via mobile money
 
-Chia collects payments through its own provider accounts (PayChangu, PawaPay, OneKhusa), tracks each merchant's balance, and disburses earnings on a configurable schedule (weekly by default). A flat 3% fee is deducted per successful transaction.
+Chia collects payments through its own provider accounts (PayChangu, PawaPay, OneKhusa), tracks each merchant's balance, and disburses earnings on a configurable schedule (weekly by default). A flat 5.5% fee is deducted per successful transaction.
 
-**Example:** A gym in Lilongwe creates a "Monthly Membership" plan for MWK 5,000. They share their storefront link. Members subscribe by entering their phone number and confirming via USSD. Chia collects MWK 5,000 each month, deducts 3% (MWK 150), and sends the gym MWK 4,850. The gym sees their balance, transactions, and payout history in the dashboard.
+**Example:** A gym in Lilongwe creates a "Monthly Membership" plan for MWK 5,000. They share their storefront link. Members subscribe by entering their phone number and confirming via USSD. Chia collects MWK 5,000 each month, deducts 5.5% (MWK 275), and sends the gym MWK 4,725. The gym sees their balance, transactions, and payout history in the dashboard.
 
 ## Key features
 
@@ -48,16 +48,21 @@ Each organization has two fully isolated environments: **sandbox** and **product
 | `+265000EXPI00` | Expires after timeout |
 | `+265000ACTN00` | Requires customer action (simulates USSD prompt) |
 
-**Production** requires agreement to terms of service and payout details configured. The first 5 production subscribers are free.
+**Production** requires agreement to terms of service and payout details configured.
 
 ## Pricing
 
-**3% per successful transaction.** No monthly minimums, no per-subscriber fees, no setup costs.
+**5.5% per successful transaction, all-inclusive.** One flat rate. No monthly minimums, no per-subscriber fees, no setup costs, and no separate payout fee.
 
-| Tier | Details |
-|---|---|
-| Free | First 5 active production subscribers - no fees |
-| Standard | 3% per successful transaction |
-| Enterprise | Custom pricing - contact us |
+The fee covers provider collection charges (which vary by rail), provider payout charges, and the platform itself, so your net is the same regardless of which provider ends up handling a payment:
 
-Only successful payments are charged. Failed, expired, and cancelled payments cost nothing. Retry attempts that eventually succeed are charged once.
+```
+Plan price:          MWK 10,000
+Chia fee (5.5%):    -MWK    550
+                    ───────────────
+You receive:         MWK  9,450
+```
+
+You always receive exactly 94.5% of every successful renewal. Only successful payments are charged - failed, expired, and cancelled payments cost nothing, and retry attempts that eventually succeed are charged once.
+
+Large volumes can be negotiated - [contact us](https://usechia.com).

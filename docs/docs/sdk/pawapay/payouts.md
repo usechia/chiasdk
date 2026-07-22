@@ -103,6 +103,8 @@ if (!isServiceError(status)) {
 ```typescript
 import type { PawaPayTypes } from "@chiahq/sdk";
 
-type PayoutTransaction = PawaPayTypes.PayoutTransaction;
+type PayoutRequest = PawaPayTypes.PayoutRequest;
+type PayoutInitiationResponse = PawaPayTypes.PayoutInitiationResponse;
+type PayoutStatusResponse = PawaPayTypes.PayoutStatusResponse;
 type BulkPayoutResponse = PawaPayTypes.BulkPayoutResponse;
 ```

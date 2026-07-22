@@ -18,26 +18,31 @@ Request mobile money deposits from customers across Sub-Saharan Africa.
 
 <DepositPlayground />
 
-## Create a Deposit Session
+## Request a Deposit
+
+Charge a customer's mobile money wallet directly. The customer approves on their handset.
 
 ```typescript
 import { isServiceError } from "@chiahq/sdk";
 
-const deposit = await sdk.pawapay.payments.initiatePayment({
+const deposit = await sdk.pawapay.deposits.sendDeposit({
   depositId: "unique-deposit-id",
   amount: "100.00",
-  msisdn: "260971234567",
-  country: "ZMB",
-  returnUrl: "https://your-app.com/callback",
-  statementDescription: "Online purchase",
-  language: "EN",
-  reason: "Payment for goods"
+  currency: "ZMW",
+  payer: {
+    type: "MMO",
+    accountDetails: {
+      phoneNumber: "260971234567",
+      provider: "AIRTEL_ZMB"
+    }
+  }
 });
 
 if (isServiceError(deposit)) {
   console.error(deposit.errorMessage);
 } else {
-  console.log("Redirect URL:", deposit.redirectUrl);
+  console.log("Status:", deposit.status);     // "ACCEPTED" | "REJECTED" | "DUPLICATE_IGNORED"
+  console.log("Next step:", deposit.nextStep); // "FINAL_STATUS" | "GET_AUTH_URL" | "REDIRECT_TO_AUTH_URL"
 }
 ```
 
@@ -46,26 +51,61 @@ if (isServiceError(deposit)) {
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `depositId` | string | Yes | Unique identifier for the deposit |
-| `amount` | string | Yes | Amount to charge |
-| `msisdn` | string | Yes | Customer phone number (with country code) |
-| `country` | string | Yes | ISO 3166-1 alpha-3 country code |
-| `returnUrl` | string | Yes | URL to redirect after payment |
-| `statementDescription` | string | Yes | Description shown on customer statement |
-| `language` | string | No | Language for payment UI (EN, FR, etc.) |
-| `reason` | string | No | Reason for the payment |
+| `amount` | string | Yes | Amount to charge, as a decimal string |
+| `currency` | string | Yes | Currency code, e.g. `ZMW` |
+| `payer` | object | Yes | `{ type, accountDetails: { phoneNumber, provider } }` |
+| `preAuthorisationCode` | string | No | Pre-authorisation code, where the operator supports it |
+| `successfulUrl` | string | No | URL to send the customer to on success |
+| `failedUrl` | string | No | URL to send the customer to on failure |
 
-## Get Deposit Details
+## Create a Hosted Payment Page
+
+Instead of charging directly, hand the customer to a PawaPay-hosted page that collects the details and returns them to you.
 
 ```typescript
 import { isServiceError } from "@chiahq/sdk";
 
-const details = await sdk.pawapay.deposits.getDeposit(depositId);
+const session = await sdk.pawapay.payments.initiatePayment({
+  depositId: "unique-deposit-id",
+  returnUrl: "https://your-app.com/callback",
+  amount: "100.00",
+  msisdn: "260971234567",
+  country: "ZMB",
+  language: "EN",
+  reason: "Payment for goods"
+});
 
-if (!isServiceError(details)) {
-  const deposit = details[0];
-  console.log("Status:", deposit?.status);
-  console.log("Requested:", deposit?.requestedAmount);
-  console.log("Deposited:", deposit?.depositedAmount);
+if (isServiceError(session)) {
+  console.error(session.errorMessage);
+} else {
+  console.log("Redirect URL:", session.redirectUrl);
+}
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `depositId` | string | Yes | Unique identifier for the deposit |
+| `returnUrl` | string | Yes | URL to redirect to after payment |
+| `amount` | string | No | Pre-fill the amount |
+| `msisdn` | string | No | Pre-fill the customer phone number |
+| `country` | string | No | ISO 3166-1 alpha-3 country code |
+| `language` | string | No | Language for the payment page (EN, FR, etc.) |
+| `reason` | string | No | Reason for the payment |
+
+## Get Deposit Details
+
+`getDeposit` returns a single deposit record, not a list.
+
+```typescript
+import { isServiceError } from "@chiahq/sdk";
+
+const deposit = await sdk.pawapay.deposits.getDeposit(depositId);
+
+if (!isServiceError(deposit)) {
+  console.log("Status:", deposit.status);   // "COMPLETED" | "FAILED" | "PROCESSING" | ...
+  console.log("Amount:", deposit.amount);
+  console.log("Currency:", deposit.currency);
+  console.log("Customer message:", deposit.customerMessage);
 }
 ```
 
@@ -107,12 +147,14 @@ if (!isServiceError(response)) {
 ```typescript
 import type { PawaPayTypes } from "@chiahq/sdk";
 
-// Deposit session request
-type DepositRequest = PawaPayTypes.PaymentData;
-
-// Deposit session response
-type DepositResponse = PawaPayTypes.InitiatePaymentResponse;
+// Direct deposit
+type DepositRequest = PawaPayTypes.DepositRequest;
+type DepositResponse = PawaPayTypes.DepositInitiationResponse;
 
 // Deposit details
-type DepositDetails = PawaPayTypes.PaymentTransaction[];
+type DepositDetails = PawaPayTypes.DepositStatusResponse;
+
+// Hosted payment page
+type PageRequest = PawaPayTypes.PaymentPageRequest;
+type PageResponse = PawaPayTypes.PaymentPageResponse;
 ```

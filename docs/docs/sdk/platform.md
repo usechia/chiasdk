@@ -50,7 +50,7 @@ Create and manage subscription plans.
 ```typescript
 const plan = await sdk.platform.plans.create({
   name: "Pro Monthly",
-  amount: 10000,
+  amount: "10000.00",
   currency: "MWK",
   interval: "monthly",
   provider: "paychangu",
@@ -71,14 +71,14 @@ await sdk.platform.plans.delete(plan.id);
 | Field | Type | Required | Description |
 |---|---|---|---|
 | `name` | `string` | Yes | Display name for subscribers |
-| `amount` | `number` | Yes | Price per billing cycle |
+| `amount` | `string` | Yes | Price per billing cycle, as a decimal string in major units, e.g. `"10000.00"`. A number is rejected by the API |
 | `currency` | `string` | Yes | Currency code (MWK, KES, ZMW, etc.) |
 | `interval` | `"daily" \| "weekly" \| "monthly"` | Yes | Billing frequency |
-| `provider` | `"paychangu" \| "pawapay" \| "onekhusa"` | Yes | Payment provider for this plan |
+| `provider` | `"paychangu" \| "pawapay" \| "onekhusa" \| "airtel"` | Yes | Payment provider for this plan |
 | `description` | `string` | No | Plan description |
 | `metadata` | `Record<string, unknown>` | No | Custom key-value data |
-| `checkoutFields` | `{ email?: "required" \| "optional", name?: "required" \| "optional" }` | No | Which fields are required on the checkout form (phone is always required) |
-| `postPaymentBehavior` | `{ onSuccess?: { action: "stay" \| "redirect", url?: string }, onFailure?: ..., onCancellation?: ... }` | No | What happens after payment succeeds, fails, or is cancelled. Default: all `"stay"` |
+| `checkoutFields` | `{ email: "required" \| "optional", name: "required" \| "optional" }` | No | Which fields are required on the checkout form (phone is always required). If supplied, **both** keys are required |
+| `postPaymentBehavior` | `{ onSuccess: Action, onFailure: Action, onCancellation: Action }` | No | What happens after payment succeeds, fails, or is cancelled. If supplied, **all three** keys are required. Omit for the default of `"stay"` everywhere |
 
 ## Subscriptions
 
@@ -91,14 +91,19 @@ const intent = await sdk.platform.subscriptions.create({
   name: "John Doe",
 });
 
-console.log(intent.status);         // "created" | "requires_action" | "processing" | ...
-console.log(intent.nextActionType); // "redirect" | "ussd_prompt" | "pin_prompt" | null
-console.log(intent.subscriberId);   // set once subscription is active
+console.log(intent.intentId);           // the id to poll with
+console.log(intent.subscriptionStatus); // "awaiting_customer_action" | "trialing" | "active" | ...
+console.log(intent.paymentStatus);      // "requires_action" | "processing" | "success" | ...
+console.log(intent.nextAction);         // what the customer must do next, or null
 
 const intents = await sdk.platform.subscriptions.list();
 
-const status = await sdk.platform.subscriptions.get(intent.id);
+const status = await sdk.platform.subscriptions.get(intent.intentId);
 ```
+
+:::note Two different shapes
+`create()` returns a `StartSubscriptionResult` - the outcome of the first charge attempt (`intentId`, `subscriptionStatus`, `paymentStatus`, `nextAction`). `get()` returns the stored `SubscriptionIntent` record (`id`, `status`, `nextActionType`, `nextActionPayload`, timestamps). They share only `subscriberId` and `paymentId`, so do not expect `create()` to hand back an intent record.
+:::
 
 | Field | Type | Required | Description |
 |---|---|---|---|
@@ -110,6 +115,7 @@ const status = await sdk.platform.subscriptions.get(intent.id);
 | `customerReference` | `string` | No | Your reference for this customer |
 | `returnUrl` | `string` | No | Redirect URL after hosted checkout |
 | `redirectUrls` | `{ onSuccess?: string, onFailure?: string, onCancellation?: string }` | No | Override plan-level post-payment redirect behavior for this intent |
+| `turnstileToken` | `string` | No | Browser callers only. A secret-key SDK call is exempt - leave it unset |
 | `metadata` | `Record<string, unknown>` | No | Custom key-value data |
 
 :::note Turnstile not required for SDK calls

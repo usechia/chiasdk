@@ -3,14 +3,22 @@ import {
 	wrapServiceCall,
 	type ServiceResult,
 } from "../../utils/serviceWrapper";
-import type { CreateSubscriptionRequest, SubscriptionIntent } from "./types";
+import type { CreateSubscriptionRequest, StartSubscriptionResult, SubscriptionIntent } from "./types";
 
 export class SubscriptionsService {
 	constructor(private readonly client: HttpClient) {}
 
-	async create(data: CreateSubscriptionRequest): Promise<ServiceResult<SubscriptionIntent>> {
+	// Creating and reading a single intent live under /public, the
+	// API-key-authenticated checkout surface. Only the merchant-scoped list is
+	// served at the bare /subscription-intents prefix.
+	async create(data: CreateSubscriptionRequest): Promise<ServiceResult<StartSubscriptionResult>> {
 		return wrapServiceCall(
-			() => this.client.post<SubscriptionIntent>("/subscription-intents", data, "creating subscription"),
+			() =>
+				this.client.post<StartSubscriptionResult>(
+					"/public/subscription-intents",
+					data,
+					"creating subscription",
+				),
 			this.client.handleApiError.bind(this.client),
 			"creating subscription",
 		);
@@ -26,7 +34,11 @@ export class SubscriptionsService {
 
 	async get(intentId: string): Promise<ServiceResult<SubscriptionIntent>> {
 		return wrapServiceCall(
-			() => this.client.get<SubscriptionIntent>(`/subscription-intents/${intentId}`, "getting subscription"),
+			() =>
+				this.client.get<SubscriptionIntent>(
+					`/public/subscription-intents/${intentId}`,
+					"getting subscription",
+				),
 			this.client.handleApiError.bind(this.client),
 			"getting subscription",
 		);

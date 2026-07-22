@@ -103,5 +103,5 @@ console.log("Completed at:", details.completedAt);
 import type { OneKhusaTypes } from "@chiahq/sdk";
 
 type CollectionResponse = OneKhusaTypes.CollectionResponse;
-type TransactionsResponse = OneKhusaTypes.TransactionsResponse;
+type TransactionsResponse = OneKhusaTypes.CollectionTransactionsResponse;
 ```
