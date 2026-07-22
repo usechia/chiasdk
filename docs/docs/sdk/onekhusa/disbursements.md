@@ -182,7 +182,8 @@ const transactions = await sdk.onekhusa.disbursements.getBatchTransactions(batch
 ```typescript
 import type { OneKhusaTypes } from "@chiahq/sdk";
 
-type DisbursementResponse = OneKhusaTypes.DisbursementResponse;
-type BatchResponse = OneKhusaTypes.BatchResponse;
+type DisbursementResponse = OneKhusaTypes.SingleDisbursementResponse;
+type BatchResponse = OneKhusaTypes.BatchDisbursementResponse;
+type BatchesResponse = OneKhusaTypes.BatchesResponse;
 type BatchTransactionsResponse = OneKhusaTypes.BatchTransactionsResponse;
 ```

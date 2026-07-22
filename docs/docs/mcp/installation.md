@@ -26,8 +26,16 @@ This is the recommended approach for Claude Desktop configuration.
 
 ## Verify Installation
 
+Installing globally puts a `chia-mcp` binary on your PATH:
+
 ```bash
-@chiahq/mcp --version
+which chia-mcp
+```
+
+The server speaks the Model Context Protocol over stdio and has no CLI flags - running `chia-mcp` directly will simply wait for a client on stdin, which is what Claude Desktop connects to. To confirm the installed version:
+
+```bash
+npm list -g @chiahq/mcp
 ```
 
 ## Requirements

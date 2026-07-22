@@ -27,47 +27,36 @@ The key prefix determines which environment the request operates in. Sandbox key
 
 ### Managing keys
 
-Create and manage API keys in **Settings > API Keys** or via the API:
+Create and manage API keys in **Settings > API Keys**.
 
-```bash
-# Create a key
-curl -X POST https://api.usechia.com/orgs/api-keys \
-  -H "Authorization: Bearer sk_test_..." \
-  -H "Content-Type: application/json" \
-  -d '{"environment": "sandbox"}'
+:::warning Key management is dashboard-only
+The `/orgs/api-keys` endpoints authenticate with a **dashboard session**, not an API key. A request carrying `Authorization: Bearer sk_...` is rejected with `401` - an API key cannot mint, list, or revoke API keys, deliberately, so that a leaked key cannot be used to issue more.
 
-# List keys
-curl https://api.usechia.com/orgs/api-keys \
-  -H "Authorization: Bearer sk_test_..."
+The same applies to `sdk.platform.apiKeys.*` in the SDK: those methods send the configured API key and will fail against a live environment.
+:::
 
-# Revoke a key
-curl -X DELETE https://api.usechia.com/orgs/api-keys/{keyId} \
-  -H "Authorization: Bearer sk_test_..."
+For reference, the endpoints behind the dashboard are:
+
+```
+POST   /orgs/api-keys           create a key
+GET    /orgs/api-keys           list keys
+DELETE /orgs/api-keys/{keyId}   revoke a key
 ```
 
 ### Publishable keys
 
-Pass `type: "publishable"` to create a `pk_` key for browser use (the [widget](./widget-endpoints.md) and [embed](./embed-endpoints.md) APIs). A publishable key can be restricted to a set of origins with `allowedOrigins`; a request whose `Origin` is not on the list is rejected. Leave it empty to allow any origin.
+Choose **Publishable** when creating a key to get a `pk_` key for browser use (the [widget](./widget-endpoints.md) and [embed](./embed-endpoints.md) APIs). A publishable key can be restricted to a set of origins; a request whose `Origin` is not on the list is rejected with `403`, and a restricted key with no `Origin` header at all is also rejected. Leave the list empty to allow any origin.
 
-```bash
-curl -X POST https://api.usechia.com/orgs/api-keys \
-  -H "Authorization: Bearer sk_test_..." \
-  -H "Content-Type: application/json" \
-  -d '{
-    "environment": "production",
-    "type": "publishable",
-    "allowedOrigins": ["https://yourapp.com", "https://checkout.yourapp.com"]
-  }'
-```
+The create call takes `{ environment, type: "publishable", allowedOrigins, label }`, where `allowedOrigins` accepts up to 20 entries such as `https://yourapp.com` and `https://checkout.yourapp.com`.
 
 Each origin is canonicalized to `scheme://host[:port]` - a path or trailing slash is dropped, so `https://yourapp.com/` and `https://yourapp.com` are the same. Up to 20 origins.
 
 ### Key security
 
 - Keys are hashed (SHA-256) before storage. The full key is shown only once at creation.
-- Keys can be revoked but not deleted (audit trail).
-- Each organization can have up to 10 active keys per environment.
+- Keys can be revoked but not deleted (audit trail). A revoked key stops authenticating immediately.
 - The prefix and last 4 characters are stored for identification.
+- Key management requires a dashboard session; an API key cannot issue or revoke keys.
 
 ## Environment header
 

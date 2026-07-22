@@ -32,9 +32,9 @@ import type {
 import type { PawaPayTypes } from "@chiahq/sdk";
 
 // Access nested types
-type DepositRequest = PawaPayTypes.PaymentData;
-type DepositResponse = PawaPayTypes.InitiatePaymentResponse;
-type PayoutRequest = PawaPayTypes.PayoutTransaction;
+type DepositRequest = PawaPayTypes.DepositRequest;
+type DepositResponse = PawaPayTypes.DepositInitiationResponse;
+type PayoutRequest = PawaPayTypes.PayoutRequest;
 type WalletBalances = PawaPayTypes.WalletBalancesResponse;
 ```
 

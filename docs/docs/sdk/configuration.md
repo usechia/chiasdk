@@ -63,7 +63,13 @@ ONEKHUSA_API_KEY=your-onekhusa-api-key
 ONEKHUSA_API_SECRET=your-onekhusa-api-secret
 ONEKHUSA_ORGANISATION_ID=your-organisation-id
 ONEKHUSA_ENVIRONMENT=DEVELOPMENT
+
+# Chia platform - enables automatic provider routing and sdk.platform.*
+CHIA_API_KEY=sk_test_your-chia-key
+CHIA_API_BASE_URL=https://api.usechia.com
 ```
+
+`CHIA_API_KEY` is what unlocks automatic routing in [`sdk.payments`](/docs/sdk/unified-payments#routing). Without it the unified API still works, but only when you name the provider yourself - a call that leaves the choice to Chia throws `ChiaConfigError`. It is equivalent to passing `platform: { apiKey }` in the config object. `CHIA_API_BASE_URL` is optional and only needed to point at a non-production API.
 
 You can override the `.env` path:
 
