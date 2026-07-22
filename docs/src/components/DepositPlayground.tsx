@@ -10,7 +10,7 @@ const defaultValues = {
   nodeEnv: "development",
 };
 
-export default function DepositPlayground(): JSX.Element {
+export default function DepositPlayground(): React.JSX.Element {
   const [values, setValues] = useState(defaultValues);
   const [copied, setCopied] = useState(false);
 
