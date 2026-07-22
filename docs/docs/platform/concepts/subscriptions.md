@@ -12,7 +12,8 @@ Every subscription in Chia follows a defined state machine. Understanding these 
 
 ```
 incomplete -> awaiting_customer_action -> active -> renewal_pending -> past_due
-                                           |                            |
+      |                                    |                            |
+      +-> trialing ---------------------> +|                            |
                                            +-> paused                   |
                                            +-> cancelled <--------------+
 ```
@@ -24,6 +25,10 @@ Customer started the signup process but has not completed the first payment. A s
 ### awaiting_customer_action
 
 The payment provider requires the customer to take an action: dial a USSD code, enter a PIN, approve on their phone, or visit a redirect URL. The `nextAction` on the subscription intent tells your client exactly what to show.
+
+### trialing
+
+The plan carries a `trialPeriodDays` and no payment has been taken yet. Subscribing to a trial plan skips the first charge entirely: the intent comes back already `succeeded` with no `nextAction`, and the subscriber sits in `trialing` until the trial ends, at which point the first renewal is attempted and the subscription moves to `active`.
 
 ### active
 

@@ -44,7 +44,7 @@ Create a subscription plan from the dashboard:
 - **Currency** - MWK, KES, ZMW, or other supported currencies
 - **Interval** - daily, weekly, or monthly
 
-Or create plans via the API:
+Or create plans via the API. `amount` is a decimal string, and at least one provider is required:
 
 ```bash
 curl -X POST https://api.usechia.com/plans \
@@ -52,9 +52,10 @@ curl -X POST https://api.usechia.com/plans \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Monthly Membership",
-    "amount": 5000,
+    "amount": "5000.00",
     "currency": "MWK",
-    "interval": "monthly"
+    "interval": "monthly",
+    "provider": "paychangu"
   }'
 ```
 
@@ -123,9 +124,10 @@ const sdk = ChiaSDK.initialize({
 // Create a plan
 const plan = await sdk.platform.plans.create({
   name: "Monthly Membership",
-  amount: 5000,
+  amount: "5000.00",
   currency: "MWK",
-  interval: "monthly"
+  interval: "monthly",
+  provider: "paychangu"
 })
 
 // Start a subscription
@@ -149,4 +151,4 @@ When you're ready to collect real payments:
 3. Agree to terms of service
 4. Create a production API key (if using the API)
 
-Your first 5 production subscribers are free, so you can verify the full flow with real payments before committing.
+Chia takes 5.5% of each successful payment, all-inclusive - see [Pricing](/docs/platform/overview#pricing). Nothing is charged on failed, expired, or cancelled payments, so you can verify the full flow before committing to volume.

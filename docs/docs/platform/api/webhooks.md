@@ -10,12 +10,25 @@ Configure webhook endpoints to receive real-time events about your subscribers a
 
 ## Configure a webhook
 
-```bash
-curl -X POST https://api.usechia.com/orgs/webhooks \
-  -H "Authorization: Bearer sk_test_..." \
-  -H "Content-Type: application/json" \
-  -d '{"url": "https://your-app.com/webhooks/chia"}'
+Add your endpoint under **Settings > Webhooks** in the dashboard.
+
+:::warning Webhook configuration is dashboard-only
+Creating, listing, editing, deleting and test-pinging webhook configs authenticate with a **dashboard session**, not an API key. A request carrying `Authorization: Bearer sk_...` is rejected with `401`.
+
+Inspecting and replaying *deliveries* is the exception - those two endpoints do accept an API key, because replaying a backlog after an outage is a scripting job. They are the only examples on this page shown with `sk_`.
+:::
+
+The configuration endpoints behind the dashboard are:
+
 ```
+POST   /orgs/webhooks        create      { url, events? }
+GET    /orgs/webhooks        list
+PATCH  /orgs/webhooks/{id}   update      { url?, enabled?, events? }
+DELETE /orgs/webhooks/{id}   delete
+POST   /orgs/webhooks/{id}/test   send a test ping
+```
+
+Omit `events` to receive every event type, or pass a list of the types below (`"*"` also means all).
 
 HTTPS is required in production. HTTP is allowed in sandbox for local development.
 
@@ -46,18 +59,24 @@ HTTPS is required in production. HTTP is allowed in sandbox for local developmen
   "id": "evt_a1b2c3d4e5f6",
   "type": "payment.succeeded",
   "environment": "production",
-  "org_id": "org_...",
+  "org_id": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
   "created_at": "2026-03-31T14:30:00Z",
   "data": {
-    "subscriber_id": "sub_...",
-    "payment_id": "pay_...",
+    "subscriber_id": "a1d4b2e8-3f65-4c11-9d02-8b7a5e6c1f30",
+    "payment_id": "c02f7a91-5b3d-4e88-a71c-6d9f204e3b55",
     "amount": 5000,
     "currency": "MWK",
     "provider": "paychangu",
-    "plan_id": "plan_..."
+    "plan_id": "3f1c0d9e-4a2b-4c6d-8e1f-90ab12cd34ef",
+    "kind": "renewal",
+    "metadata": { "account_id": "usr_8812" }
   }
 }
 ```
+
+Every id except the event `id` is a bare UUID. Only the event id carries the `evt_` prefix.
+
+`amount` on `payment.*` events is a JSON **number**. Elsewhere in the REST API monetary fields are decimal strings - see [Money](./plans.md#money).
 
 ### Subscriber event payloads
 
@@ -68,11 +87,11 @@ Every `subscriber.*` event carries the same `data` shape, so you never have to m
   "id": "evt_a1b2c3d4e5f6",
   "type": "subscriber.renewed",
   "environment": "production",
-  "org_id": "org_...",
+  "org_id": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
   "created_at": "2026-07-20T14:30:00.000Z",
   "data": {
-    "subscriber_id": "a1d4...",
-    "plan_id": "3f1c...",
+    "subscriber_id": "a1d4b2e8-3f65-4c11-9d02-8b7a5e6c1f30",
+    "plan_id": "3f1c0d9e-4a2b-4c6d-8e1f-90ab12cd34ef",
     "phone": "+265991234567",
     "name": "Chikondi Banda",
     "email": null,
@@ -171,25 +190,11 @@ Because retries exist, your handler must be **idempotent**. Deduplicate on the e
 
 ## Manage webhooks
 
+Creating, updating, deleting and test-pinging a webhook config are done from **Settings > Webhooks** in the dashboard - see the warning at the top of this page.
+
+Deliveries are the part you can script with an API key:
+
 ```bash
-# List webhook configs
-curl https://api.usechia.com/orgs/webhooks \
-  -H "Authorization: Bearer sk_test_..."
-
-# Update a webhook
-curl -X PATCH https://api.usechia.com/orgs/webhooks/{id} \
-  -H "Authorization: Bearer sk_test_..." \
-  -H "Content-Type: application/json" \
-  -d '{"enabled": false}'
-
-# Delete a webhook
-curl -X DELETE https://api.usechia.com/orgs/webhooks/{id} \
-  -H "Authorization: Bearer sk_test_..."
-
-# Send a test ping
-curl -X POST https://api.usechia.com/orgs/webhooks/{id}/test \
-  -H "Authorization: Bearer sk_test_..."
-
 # View delivery log
 curl https://api.usechia.com/orgs/webhooks/{id}/deliveries \
   -H "Authorization: Bearer sk_test_..."

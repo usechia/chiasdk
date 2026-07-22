@@ -5,10 +5,11 @@ export interface PlatformConfig {
 
 export interface CreatePlanRequest {
 	name: string;
-	amount: number;
+	/** Decimal string in major currency units, e.g. "5000.00". The API rejects a JSON number. */
+	amount: string;
 	currency: string;
 	interval: "daily" | "weekly" | "monthly";
-	provider: "paychangu" | "pawapay" | "onekhusa";
+	provider: "paychangu" | "pawapay" | "onekhusa" | "airtel";
 	description?: string;
 	metadata?: Record<string, unknown>;
 }
@@ -19,7 +20,7 @@ export interface Plan {
 	amount: string;
 	currency: string;
 	interval: "daily" | "weekly" | "monthly";
-	provider: "paychangu" | "pawapay" | "onekhusa";
+	provider: "paychangu" | "pawapay" | "onekhusa" | "airtel";
 	description: string | null;
 	metadata: Record<string, unknown> | null;
 	createdAt: string;
@@ -45,16 +46,54 @@ export interface CreateSubscriptionRequest {
 	planId: string;
 	phone: string;
 	name?: string;
+	/** Required by the API when the plan sets checkoutFields.email to "required". */
+	email?: string;
 	correspondent?: string;
 	customerReference?: string;
 	returnUrl?: string;
 	metadata?: Record<string, unknown>;
-	turnstileToken: string;
+	/** Browser callers only. A secret-key call is exempt and does not need one. */
+	turnstileToken?: string;
 	redirectUrls?: {
 		onSuccess?: string;
 		onFailure?: string;
 		onCancellation?: string;
 	};
+}
+
+export type NextActionType =
+	| "redirect"
+	| "tan_prompt"
+	| "ussd_prompt"
+	| "pin_prompt"
+	| "wait_for_webhook"
+	| "none";
+
+export interface SubscriptionNextAction {
+	type: NextActionType;
+	label: string;
+	message?: string;
+	redirectUrl?: string;
+	providerReference?: string;
+	ussdCode?: string;
+	tan?: string;
+	expiresAt?: string;
+	metadata?: Record<string, unknown>;
+}
+
+/**
+ * What creating a subscription returns. Deliberately not `SubscriptionIntent`:
+ * the create endpoint reports the outcome of the first charge attempt, while
+ * fetching an intent later returns the stored record. The two share only
+ * `subscriberId` and `paymentId`.
+ */
+export interface StartSubscriptionResult {
+	intentId: string;
+	subscriberId?: string;
+	paymentId?: string;
+	subscriptionStatus: SubscriberStatus;
+	paymentStatus: PaymentStatus;
+	nextAction: SubscriptionNextAction | null;
 }
 
 export interface SubscriptionIntent {
@@ -79,6 +118,7 @@ export interface SubscriptionIntent {
 export type SubscriberStatus =
 	| "incomplete"
 	| "awaiting_customer_action"
+	| "trialing"
 	| "active"
 	| "renewal_pending"
 	| "paused"
@@ -111,9 +151,10 @@ export type PaymentStatus =
 	| "success"
 	| "failed"
 	| "expired"
-	| "cancelled";
+	| "cancelled"
+	| "refunded";
 
-export type PaymentKind = "initial" | "renewal" | "manual_retry";
+export type PaymentKind = "initial" | "renewal" | "manual_retry" | "plan_change";
 
 export interface Payment {
 	id: string;
