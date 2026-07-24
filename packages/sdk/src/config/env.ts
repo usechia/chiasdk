@@ -18,6 +18,7 @@ export interface EnvConfig {
 	ONEKHUSA_API_KEY: string;
 	ONEKHUSA_API_SECRET: string;
 	ONEKHUSA_ORGANISATION_ID: string;
+	ONEKHUSA_MERCHANT_ACCOUNT_NUMBER: number;
 	ONEKHUSA_ENVIRONMENT?: Environment;
 }
 
@@ -99,6 +100,9 @@ export function loadEnvConfig(): EnvConfig {
 	config.ONEKHUSA_API_KEY = process.env.ONEKHUSA_API_KEY || "";
 	config.ONEKHUSA_API_SECRET = process.env.ONEKHUSA_API_SECRET || "";
 	config.ONEKHUSA_ORGANISATION_ID = process.env.ONEKHUSA_ORGANISATION_ID || "";
+	config.ONEKHUSA_MERCHANT_ACCOUNT_NUMBER = Number(
+		process.env.ONEKHUSA_MERCHANT_ACCOUNT_NUMBER || 0,
+	);
 	config.ONEKHUSA_ENVIRONMENT =
 		(process.env.ONEKHUSA_ENVIRONMENT as Environment) ||
 		DEFAULT_CONFIG.ONEKHUSA_ENVIRONMENT;
@@ -151,6 +155,9 @@ export function validatePSPConfig(
 			}
 			if (!config.ONEKHUSA_ORGANISATION_ID) {
 				result.missingFields.push("ONEKHUSA_ORGANISATION_ID");
+			}
+			if (!config.ONEKHUSA_MERCHANT_ACCOUNT_NUMBER) {
+				result.missingFields.push("ONEKHUSA_MERCHANT_ACCOUNT_NUMBER");
 			}
 			break;
 		default:

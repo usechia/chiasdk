@@ -19,8 +19,8 @@ const PROVIDER_URLS = {
 		production: "https://api.onekhusa.com/live/v1",
 		sandbox: "https://api.onekhusa.com/sandbox/v1",
 		tokenUrl: {
-			production: "https://api.onekhusa.com/live/oauth/token",
-			sandbox: "https://api.onekhusa.com/sandbox/oauth/token",
+			production: "https://api.onekhusa.com/live/v1/account/getAccessToken",
+			sandbox: "https://api.onekhusa.com/sandbox/v1/account/getAccessToken",
 		},
 	},
 } as const;
@@ -89,11 +89,11 @@ export function getOneKhusaTokenUrl(
 ): string {
 	if (environment === "PRODUCTION") {
 		return customProductionUrl
-			? `${customProductionUrl}/oauth/token`
+			? `${customProductionUrl}/account/getAccessToken`
 			: PROVIDER_URLS.onekhusa.tokenUrl.production;
 	}
 	return customSandboxUrl
-		? `${customSandboxUrl}/oauth/token`
+		? `${customSandboxUrl}/account/getAccessToken`
 		: PROVIDER_URLS.onekhusa.tokenUrl.sandbox;
 }
 

@@ -42,27 +42,37 @@ beforeEach(() => {
 });
 
 test("a timed-out OneKhusa collection is sent exactly once", async () => {
-	const sdk = new OneKhusa("key", "secret", "org");
+	const sdk = new OneKhusa({
+		apiKey: "key",
+		apiSecret: "secret",
+		organisationId: "org",
+		merchantAccountNumber: 12345678,
+	});
 	const instance = lastAxiosInstance();
 
 	instance.post.mockImplementation((url: string) => {
-		if (url.includes("token")) {
+		if (url.includes("getAccessToken")) {
 			return Promise.resolve({
-				data: { access_token: "t", expires_in: 3600, token_type: "Bearer" },
+				data: {
+					accessToken: "t",
+					expiresOn: new Date(Date.now() + 300000).toISOString(),
+					expiryInMinutes: 5,
+				},
 			});
 		}
 		return Promise.reject(makeTimeoutError());
 	});
 
 	await sdk.collections.initiateRequestToPay({
-		amount: 50,
-		currency: "MWK",
-		phone: "265991234567",
-		paymentMethod: "MOBILE_MONEY",
+		merchantAccountNumber: 12345678,
+		transactionAmount: 50,
+		transactionDescription: "test",
+		referenceNumber: "REF12345",
+		capturedBy: "ops@example.com",
 	});
 
 	const posts = instance.post.mock.calls.filter(
-		(c: any[]) => typeof c[0] === "string" && c[0].includes("request-to-pay"),
+		(c: any[]) => typeof c[0] === "string" && c[0].includes("requestToPay"),
 	);
 	expect(posts.length).toBe(1);
 }, 30000);

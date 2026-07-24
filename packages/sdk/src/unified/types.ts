@@ -43,7 +43,12 @@ export interface ProviderOptions {
 		lastName?: string;
 	};
 	onekhusa?: {
-		paymentMethod?: "MOBILE_MONEY" | "BANK_TRANSFER";
+		/** Email of the operator capturing the transaction. Required by OneKhusa. */
+		capturedBy?: string;
+		/** Payment channel id, from OneKhusa's connectors list. Required for payouts. */
+		connectorId?: number;
+		/** Overrides the merchant account the SDK was configured with. */
+		merchantAccountNumber?: number;
 	};
 }
 

@@ -42,32 +42,31 @@ function toNumber(amount: string): number {
 	return n;
 }
 
-function paymentStatusFor(status: string): PaymentStatus {
-	switch (status) {
-		case "COMPLETED":
+/** OneKhusa reports outcomes as single-letter codes, not words. */
+function paymentStatusFor(code: string): PaymentStatus {
+	switch (code) {
+		case "S":
 			return "success";
-		case "FAILED":
+		case "F":
 			return "failed";
-		case "CANCELLED":
+		case "R":
 			return "cancelled";
-		case "EXPIRED":
-			return "expired";
 		default:
 			return "pending";
 	}
 }
 
-function payoutStatusFor(status: string): PayoutStatus {
-	switch (status) {
-		case "COMPLETED":
+function payoutStatusFor(code: string): PayoutStatus {
+	switch (code) {
+		case "S":
 			return "success";
-		case "FAILED":
-		case "REJECTED":
+		case "F":
+		case "X":
 			return "failed";
-		case "CANCELLED":
+		case "N":
 			return "cancelled";
-		case "APPROVED":
-		case "PROCESSING":
+		case "A":
+		case "P":
 			return "processing";
 		default:
 			return "pending_approval";
@@ -100,6 +99,32 @@ export class OneKhusaAdapter implements ChiaProviderAdapter {
 		}
 	}
 
+	private merchantAccount(options: PaymentRequest["providerOptions"]): number {
+		return (
+			options?.onekhusa?.merchantAccountNumber ??
+			this.service.merchantAccountNumber
+		);
+	}
+
+	/**
+	 * OneKhusa requires an operator email on every captured transaction and
+	 * rejects the request without one, so this fails loudly rather than
+	 * inventing a value.
+	 */
+	private requireCapturedBy(
+		options: PaymentRequest["providerOptions"],
+	): string {
+		const capturedBy =
+			options?.onekhusa?.capturedBy ?? this.service.defaultCapturedBy;
+		if (!capturedBy) {
+			throw new ChiaValidationError(
+				"OneKhusa requires an operator email: set defaultCapturedBy on the SDK config, or pass providerOptions.onekhusa.capturedBy.",
+				{ provider: "onekhusa" },
+			);
+		}
+		return capturedBy;
+	}
+
 	private fail(raw: unknown, context: string): never {
 		if (isServiceError(raw)) {
 			throw new ChiaProviderError(`OneKhusa ${context}: ${raw.errorMessage}`, {
@@ -115,59 +140,66 @@ export class OneKhusaAdapter implements ChiaProviderAdapter {
 		});
 	}
 
+	/**
+	 * OneKhusa collections are pull-based: this reserves a timed account number
+	 * (TAN) that the customer pays into from their own banking or wallet app.
+	 * Nothing is pushed to `req.msisdn`, and the payment can only settle via the
+	 * collection webhook - so the result is always `requires_action`.
+	 */
 	async initiatePayment(req: PaymentRequest): Promise<ChiaPayment> {
 		this.assertCurrency(req.currency);
 		const amount = toNumber(req.amount);
+		const capturedBy = this.requireCapturedBy(req.providerOptions);
 
 		const result = await this.service.collections.initiateRequestToPay({
-			amount,
-			currency: req.currency as OneKhusaCurrency,
-			phone: req.msisdn,
-			paymentMethod: req.providerOptions?.onekhusa?.paymentMethod ?? "MOBILE_MONEY",
-			reference: req.reference,
-			description: req.description,
-			metadata: req.metadata,
+			merchantAccountNumber: this.merchantAccount(req.providerOptions),
+			transactionAmount: amount,
+			transactionDescription: req.description ?? req.reference,
+			referenceNumber: req.reference,
+			capturedBy,
 		});
 
-		if (isServiceError(result) || !("id" in result)) this.fail(result, "collection");
-
-		const mapped = paymentStatusFor(result.status);
-		if (mapped === "failed") {
-			throw new ChiaProviderError(
-				`OneKhusa refused the collection: status "${result.status}"`,
-				{ provider: "onekhusa", raw: result, failoverSafety: "no_money_moved" },
-			);
+		if (isServiceError(result) || !("timedAccountNumber" in result)) {
+			this.fail(result, "collection");
 		}
-		const status = mapped === "pending" && result.tan ? "requires_action" : mapped;
 
 		return {
-			id: result.id,
+			// The TAN is not addressable by getPayment; the merchant reference is
+			// what comes back on the webhook, so it stays the handle.
+			id: req.reference,
 			reference: req.reference,
 			provider: "onekhusa",
-			status,
+			status: "requires_action",
 			amount: req.amount,
 			currency: req.currency,
 			msisdn: req.msisdn,
-			nextAction: result.tan
-				? { type: "tan_prompt", tan: result.tan }
-				: { type: "wait_for_webhook" },
+			nextAction: { type: "tan_prompt", tan: result.timedAccountNumber },
 			attempts: [],
-			createdAt: result.createdAt,
 			raw: result,
 		};
 	}
 
+	/** `id` must be a OneKhusa transactionReferenceNumber, known only after settlement. */
 	async getPayment(id: string): Promise<ChiaPayment> {
-		const result = await this.service.collections.getTransaction(id);
+		const result = await this.service.collections.getTransaction({
+			merchantAccountNumber: this.service.merchantAccountNumber,
+			transactionReferenceNumber: id,
+		});
 		if (isServiceError(result)) this.fail(result, "get collection");
-		const data = result as unknown as Record<string, unknown>;
+
 		return {
 			id,
-			reference: String(data.reference ?? id),
+			reference: String(result.transaction?.transactionReferenceNumber ?? id),
 			provider: "onekhusa",
-			status: paymentStatusFor(String(data.status ?? "")),
-			amount: String(data.amount ?? ""),
-			currency: toCurrency(data.currency),
+			status: paymentStatusFor(result.transaction?.transactionStatusCode ?? ""),
+			// What the customer paid, not what the merchant nets. OneKhusa deducts
+			// its fee before crediting, so amountReceived is short of the amount
+			// requested and would read as an underpayment against the plan price.
+			// The fee and net are still on `raw` for reconciliation.
+			amount: String(result.source?.amountSent ?? ""),
+			currency: toCurrency(
+				result.source?.currencyCode ?? result.beneficiary?.currencyCode,
+			),
 			attempts: [],
 			raw: result,
 		};
@@ -183,44 +215,59 @@ export class OneKhusaAdapter implements ChiaProviderAdapter {
 		this.assertCurrency(req.currency);
 		const amount = toNumber(req.amount);
 
+		const connectorId = req.providerOptions?.onekhusa?.connectorId;
+		if (!connectorId) {
+			throw new ChiaValidationError(
+				"OneKhusa payouts require providerOptions.onekhusa.connectorId. List them with sdk.onekhusa.getConnectors().",
+				{ provider: "onekhusa" },
+			);
+		}
+
 		const result = await this.service.disbursements.addSingle({
-			amount,
-			currency: req.currency as OneKhusaCurrency,
-			recipient: { name: req.recipientName, phone: req.msisdn },
-			paymentMethod: req.providerOptions?.onekhusa?.paymentMethod ?? "MOBILE_MONEY",
-			reference: req.reference,
-			description: req.description,
-			metadata: req.metadata,
+			merchantAccountNumber: this.merchantAccount(req.providerOptions),
+			beneficiaryName: req.recipientName,
+			connectorId,
+			beneficiaryAccountNumber: req.msisdn,
+			transactionDescription: req.description,
+			transactionAmount: amount,
+			sourceReferenceNumber: req.reference,
+			capturedBy: req.providerOptions?.onekhusa?.capturedBy,
 		});
 
-		if (isServiceError(result) || !("id" in result)) this.fail(result, "disbursement");
+		if (isServiceError(result) || !("transactionReferenceNumber" in result)) {
+			this.fail(result, "disbursement");
+		}
 
 		return {
-			id: result.id,
+			id: result.transactionReferenceNumber,
 			reference: req.reference,
 			provider: "onekhusa",
-			status: payoutStatusFor(result.status),
+			// A new disbursement always lands unapproved; the approval endpoints
+			// move it forward.
+			status: "pending_approval",
 			amount: req.amount,
 			currency: req.currency,
 			msisdn: req.msisdn,
 			requiresApproval: true,
 			attempts: [],
-			createdAt: result.createdAt,
 			raw: result,
 		};
 	}
 
 	async getPayout(id: string): Promise<ChiaPayout> {
-		const result = await this.service.disbursements.getSingle(id);
+		const result = await this.service.disbursements.getSingleTransaction({
+			merchantAccountNumber: this.service.merchantAccountNumber,
+			transactionReferenceNumber: id,
+		});
 		if (isServiceError(result)) this.fail(result, "get disbursement");
-		const data = result as unknown as Record<string, unknown>;
+
 		return {
 			id,
-			reference: String(data.reference ?? id),
+			reference: String(result.source?.sourceReferenceNumber ?? id),
 			provider: "onekhusa",
-			status: payoutStatusFor(String(data.status ?? "")),
-			amount: String(data.amount ?? ""),
-			currency: toCurrency(data.currency),
+			status: payoutStatusFor(result.transaction?.transactionStatusCode ?? ""),
+			amount: String(result.beneficiary?.amountReceived ?? ""),
+			currency: toCurrency(result.beneficiary?.currencyCode),
 			requiresApproval: true,
 			attempts: [],
 			raw: result,

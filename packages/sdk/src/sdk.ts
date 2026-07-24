@@ -78,6 +78,10 @@ export interface SDKConfig {
 		apiSecret: string;
 		/** OneKhusa organisation ID */
 		organisationId: string;
+		/** Merchant account number the access token is scoped to */
+		merchantAccountNumber: number;
+		/** Operator email stamped on captured transactions */
+		defaultCapturedBy?: string;
 		/** Optional environment setting (defaults to DEVELOPMENT) */
 		environment?: Environment;
 		/** Optional custom base URL for sandbox environment */
@@ -398,12 +402,16 @@ export class ChiaSDK {
 		// Initialize OneKhusa if configured
 		const onekhusaValidation = validatePSPConfig(this.envConfig, "onekhusa");
 		if (onekhusaValidation.isValid) {
-			this._onekhusa = new OneKhusa(
-				this.envConfig.ONEKHUSA_API_KEY,
-				this.envConfig.ONEKHUSA_API_SECRET,
-				this.envConfig.ONEKHUSA_ORGANISATION_ID,
-				this.envConfig.ONEKHUSA_ENVIRONMENT as "DEVELOPMENT" | "PRODUCTION",
-			);
+			this._onekhusa = new OneKhusa({
+				apiKey: this.envConfig.ONEKHUSA_API_KEY,
+				apiSecret: this.envConfig.ONEKHUSA_API_SECRET,
+				organisationId: this.envConfig.ONEKHUSA_ORGANISATION_ID,
+				merchantAccountNumber:
+					this.envConfig.ONEKHUSA_MERCHANT_ACCOUNT_NUMBER,
+				environment: this.envConfig.ONEKHUSA_ENVIRONMENT as
+					| "DEVELOPMENT"
+					| "PRODUCTION",
+			});
 		}
 
 		const chiaApiKey = process.env.CHIA_API_KEY;
@@ -438,16 +446,19 @@ export class ChiaSDK {
 		if (
 			this.config.onekhusa?.apiKey &&
 			this.config.onekhusa?.apiSecret &&
-			this.config.onekhusa?.organisationId
+			this.config.onekhusa?.organisationId &&
+			this.config.onekhusa?.merchantAccountNumber
 		) {
-			this._onekhusa = new OneKhusa(
-				this.config.onekhusa.apiKey,
-				this.config.onekhusa.apiSecret,
-				this.config.onekhusa.organisationId,
-				this.config.onekhusa.environment,
-				this.config.onekhusa.sandboxUrl,
-				this.config.onekhusa.productionUrl,
-			);
+			this._onekhusa = new OneKhusa({
+				apiKey: this.config.onekhusa.apiKey,
+				apiSecret: this.config.onekhusa.apiSecret,
+				organisationId: this.config.onekhusa.organisationId,
+				merchantAccountNumber: this.config.onekhusa.merchantAccountNumber,
+				defaultCapturedBy: this.config.onekhusa.defaultCapturedBy,
+				environment: this.config.onekhusa.environment,
+				sandboxUrl: this.config.onekhusa.sandboxUrl,
+				productionUrl: this.config.onekhusa.productionUrl,
+			});
 		}
 
 		if (this.config.platform?.apiKey) {
