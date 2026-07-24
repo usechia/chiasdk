@@ -1,10 +1,15 @@
 import axios from "axios";
 import { logger } from "../../utils/logger";
 import { getOneKhusaTokenUrl } from "../../utils/providerClients";
-import type { CachedToken, TokenResponse } from "./types/auth";
+import type { CachedToken, TokenRequest, TokenResponse } from "./types/auth";
 import type { OneKhusaEnvironment } from "./types/common";
 
+/**
+ * OneKhusa tokens live for 5 minutes. Refreshing 30s early keeps a request
+ * from being issued against a token that expires mid-flight.
+ */
 const REFRESH_BUFFER_MS = 30 * 1000;
+const DEFAULT_TTL_MINUTES = 5;
 
 export class OneKhusaTokenManager {
 	private cachedToken: CachedToken | null = null;
@@ -14,6 +19,8 @@ export class OneKhusaTokenManager {
 	constructor(
 		private readonly apiKey: string,
 		private readonly apiSecret: string,
+		private readonly organisationId: string,
+		private readonly merchantAccountNumber: number,
 		environment: OneKhusaEnvironment = "DEVELOPMENT",
 		sandboxUrl?: string,
 		productionUrl?: string,
@@ -33,8 +40,7 @@ export class OneKhusaTokenManager {
 		this.refreshPromise = this.fetchNewToken();
 
 		try {
-			const token = await this.refreshPromise;
-			return token;
+			return await this.refreshPromise;
 		} finally {
 			this.refreshPromise = null;
 		}
@@ -45,65 +51,54 @@ export class OneKhusaTokenManager {
 			return false;
 		}
 
-		const now = Date.now();
-		const expiresAt = this.cachedToken.expiresAt - REFRESH_BUFFER_MS;
-		return now < expiresAt;
+		return Date.now() < this.cachedToken.expiresAt - REFRESH_BUFFER_MS;
 	}
 
 	private async fetchNewToken(): Promise<string> {
 		logger.debug("OneKhusa: Fetching new access token");
 
+		const body: TokenRequest = {
+			apiKey: this.apiKey,
+			apiSecret: this.apiSecret,
+			organisationId: this.organisationId,
+			merchantAccountNumber: this.merchantAccountNumber,
+		};
+
 		try {
-			const response = await axios.post<TokenResponse>(
-				this.tokenUrl,
-				new URLSearchParams({
-					grant_type: "client_credentials",
-					client_id: this.apiKey,
-					client_secret: this.apiSecret,
-				}),
-				{
-					headers: {
-						"Content-Type": "application/x-www-form-urlencoded",
-					},
+			const response = await axios.post<TokenResponse>(this.tokenUrl, body, {
+				headers: {
+					"Content-Type": "application/json",
+					"Accept-Language": "en",
 				},
-			);
+			});
 
-			const { access_token, expires_in } = response.data;
-
-			const expiresAt = this.parseTokenExpiration(access_token, expires_in);
+			const { accessToken, expiresOn, expiryInMinutes } = response.data;
 
 			this.cachedToken = {
-				accessToken: access_token,
-				expiresAt,
+				accessToken,
+				expiresAt: this.resolveExpiry(expiresOn, expiryInMinutes),
 			};
 
 			logger.debug("OneKhusa: Token obtained successfully");
-			return access_token;
+			return accessToken;
 		} catch (error) {
 			logger.error("OneKhusa: Failed to obtain access token", error);
 			throw error;
 		}
 	}
 
-	private parseTokenExpiration(
-		token: string,
-		defaultExpiresIn: number,
-	): number {
-		try {
-			const parts = token.split(".");
-			if (parts.length === 3) {
-				const payload = JSON.parse(Buffer.from(parts[1], "base64").toString());
-				if (payload.exp) {
-					return payload.exp * 1000;
-				}
-			}
-		} catch {
-			logger.debug(
-				"OneKhusa: Could not parse JWT expiration, using expires_in",
-			);
+	/**
+	 * Prefer the absolute `expiresOn` the API returns; fall back to the relative
+	 * TTL if it is missing or unparseable.
+	 */
+	private resolveExpiry(expiresOn: string, expiryInMinutes: number): number {
+		const parsed = Date.parse(expiresOn);
+		if (!Number.isNaN(parsed)) {
+			return parsed;
 		}
 
-		return Date.now() + defaultExpiresIn * 1000;
+		const minutes = expiryInMinutes || DEFAULT_TTL_MINUTES;
+		return Date.now() + minutes * 60 * 1000;
 	}
 
 	clearToken(): void {

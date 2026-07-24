@@ -1,14 +1,14 @@
 export interface TokenRequest {
-	grant_type: "client_credentials";
-	client_id: string;
-	client_secret: string;
+	apiKey: string;
+	apiSecret: string;
+	organisationId: string;
+	merchantAccountNumber: number;
 }
 
 export interface TokenResponse {
-	access_token: string;
-	token_type: string;
-	expires_in: number;
-	scope?: string;
+	accessToken: string;
+	expiresOn: string;
+	expiryInMinutes: number;
 }
 
 export interface CachedToken {

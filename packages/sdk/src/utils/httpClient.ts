@@ -213,8 +213,12 @@ export class HttpClient {
 					message?: string;
 					error?: string;
 					status?: string;
+					// RFC7807 problem details, used by OneKhusa.
+					detail?: string;
+					title?: string;
 				};
-				errorMessage = data.message || data.error || errorMessage;
+				errorMessage =
+					data.message || data.error || data.detail || data.title || errorMessage;
 				errorObject = JSON.stringify(data);
 			} catch {
 				errorMessage = `Failed to parse error response during ${context}`;

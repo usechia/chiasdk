@@ -1,32 +1,50 @@
 import { OneKhusaAdapter } from "../unified/adapters/onekhusa";
 import { runAdapterContract } from "./helpers/adapterContract";
 
+const MERCHANT = 12345678;
+
 function makeService() {
 	return {
-		collections: { initiateRequestToPay: jest.fn(), getTransaction: jest.fn() },
-		disbursements: { addSingle: jest.fn(), getSingle: jest.fn() },
+		merchantAccountNumber: MERCHANT,
+		defaultCapturedBy: "ops@example.com",
+		collections: {
+			initiateRequestToPay: jest.fn(),
+			getTransaction: jest.fn(),
+		},
+		disbursements: {
+			addSingle: jest.fn(),
+			getSingleTransaction: jest.fn(),
+		},
 	} as any;
 }
+
+/** Shape returned by POST /collections/requestToPay/initiate. */
+function tanResponse(timedAccountNumber = "11005533") {
+	return {
+		merchantAccountNumber: MERCHANT,
+		timedAccountNumber,
+		expiryDate: "2026-01-05T10:01:56.412Z",
+		expiryInMinutes: 15,
+	};
+}
+
+const BASE_REQUEST = {
+	reference: "ref-1",
+	amount: "50.00",
+	currency: "MWK" as const,
+	msisdn: "265991234567",
+	country: "MWI" as const,
+};
 
 runAdapterContract("OneKhusaAdapter", () => {
 	const service = makeService();
 	return {
 		adapter: new OneKhusaAdapter(service),
 		okPayment: () =>
-			service.collections.initiateRequestToPay.mockResolvedValue({
-				id: "col-1",
-				tan: "123456",
-				amount: 50,
-				currency: "MWK",
-				status: "PENDING",
-				phone: "265991234567",
-				paymentMethod: "MOBILE_MONEY",
-				createdAt: "2026-07-16T00:00:00Z",
-				updatedAt: "2026-07-16T00:00:00Z",
-			}),
+			service.collections.initiateRequestToPay.mockResolvedValue(tanResponse()),
 		rejectedPayment: () =>
 			service.collections.initiateRequestToPay.mockResolvedValue({
-				errorMessage: "invalid phone",
+				errorMessage: "Validation failed",
 				statusCode: 400,
 				errorObject: "{}",
 			}),
@@ -36,17 +54,13 @@ runAdapterContract("OneKhusaAdapter", () => {
 				statusCode: 500,
 				errorObject: "{}",
 			}),
+		// OneKhusa cannot refuse inline: initiate either reserves a TAN or errors.
+		// A 402 business-rule rejection is the closest equivalent.
 		inlineRefusedPayment: () =>
 			service.collections.initiateRequestToPay.mockResolvedValue({
-				id: "col-1",
-				tan: "123456",
-				amount: 50,
-				currency: "MWK",
-				status: "FAILED",
-				phone: "265991234567",
-				paymentMethod: "MOBILE_MONEY",
-				createdAt: "2026-07-16T00:00:00Z",
-				updatedAt: "2026-07-16T00:00:00Z",
+				errorMessage: "Merchant account is suspended",
+				statusCode: 402,
+				errorObject: "{}",
 			}),
 		sampleCountry: "MWI",
 		sampleCurrency: "MWK",
@@ -54,154 +68,212 @@ runAdapterContract("OneKhusaAdapter", () => {
 	};
 });
 
-test("resolveOperator is a no-op, since OneKhusa routes by paymentMethod", async () => {
+test("resolveOperator is a no-op, since OneKhusa routes by connector", async () => {
 	const adapter = new OneKhusaAdapter(makeService());
 	await expect(adapter.resolveOperator("265991234567", "MWI")).resolves.toBe("");
 });
 
-test("string amount is converted to a number on the wire", async () => {
+test("sends the documented request-to-pay body, not a phone-push payload", async () => {
 	const service = makeService();
-	service.collections.initiateRequestToPay.mockResolvedValue({
-		id: "col-1", tan: "1", amount: 50, currency: "MWK", status: "PENDING",
-		phone: "265991234567", paymentMethod: "MOBILE_MONEY",
-		createdAt: "x", updatedAt: "x",
-	});
+	service.collections.initiateRequestToPay.mockResolvedValue(tanResponse());
 	const adapter = new OneKhusaAdapter(service);
-	await adapter.initiatePayment({
-		reference: "ref-1", amount: "50.00", currency: "MWK",
-		msisdn: "265991234567", country: "MWI",
+
+	await adapter.initiatePayment({ ...BASE_REQUEST, description: "TV purchase" });
+
+	expect(service.collections.initiateRequestToPay).toHaveBeenCalledWith({
+		merchantAccountNumber: MERCHANT,
+		transactionAmount: 50,
+		transactionDescription: "TV purchase",
+		referenceNumber: "ref-1",
+		capturedBy: "ops@example.com",
 	});
+});
+
+test("the timed account number surfaces as a tan_prompt next action", async () => {
+	const service = makeService();
+	service.collections.initiateRequestToPay.mockResolvedValue(
+		tanResponse("654321"),
+	);
+	const adapter = new OneKhusaAdapter(service);
+
+	const p = await adapter.initiatePayment(BASE_REQUEST);
+
+	expect(p.nextAction).toEqual({ type: "tan_prompt", tan: "654321" });
+	// Settlement only ever arrives by webhook, so this is never inline-success.
+	expect(p.status).toBe("requires_action");
+	expect(p.id).toBe("ref-1");
+});
+
+test("falls back to the reference when no description is supplied", async () => {
+	const service = makeService();
+	service.collections.initiateRequestToPay.mockResolvedValue(tanResponse());
+	const adapter = new OneKhusaAdapter(service);
+
+	await adapter.initiatePayment(BASE_REQUEST);
+
 	expect(service.collections.initiateRequestToPay).toHaveBeenCalledWith(
-		expect.objectContaining({ amount: 50, currency: "MWK", phone: "265991234567" }),
+		expect.objectContaining({ transactionDescription: "ref-1" }),
 	);
 });
 
-test("the tan surfaces as a tan_prompt next action", async () => {
+test("providerOptions.capturedBy overrides the configured default", async () => {
 	const service = makeService();
-	service.collections.initiateRequestToPay.mockResolvedValue({
-		id: "col-1", tan: "654321", amount: 50, currency: "MWK", status: "PENDING",
-		phone: "265991234567", paymentMethod: "MOBILE_MONEY",
-		createdAt: "x", updatedAt: "x",
-	});
+	service.collections.initiateRequestToPay.mockResolvedValue(tanResponse());
 	const adapter = new OneKhusaAdapter(service);
-	const p = await adapter.initiatePayment({
-		reference: "ref-1", amount: "50.00", currency: "MWK",
-		msisdn: "265991234567", country: "MWI",
+
+	await adapter.initiatePayment({
+		...BASE_REQUEST,
+		providerOptions: { onekhusa: { capturedBy: "clerk@example.com" } },
 	});
-	expect(p.nextAction).toEqual({ type: "tan_prompt", tan: "654321" });
-	expect(p.status).toBe("requires_action");
-	expect(p.id).toBe("col-1");
+
+	expect(service.collections.initiateRequestToPay).toHaveBeenCalledWith(
+		expect.objectContaining({ capturedBy: "clerk@example.com" }),
+	);
+});
+
+test("a missing operator email is rejected before any network call", async () => {
+	const service = makeService();
+	service.defaultCapturedBy = undefined;
+	const adapter = new OneKhusaAdapter(service);
+
+	await expect(adapter.initiatePayment(BASE_REQUEST)).rejects.toMatchObject({
+		name: "ChiaValidationError",
+	});
+	expect(service.collections.initiateRequestToPay).not.toHaveBeenCalled();
 });
 
 test("a non-numeric amount is rejected before any network call", async () => {
 	const service = makeService();
 	const adapter = new OneKhusaAdapter(service);
+
 	await expect(
-		adapter.initiatePayment({
-			reference: "ref-1", amount: "fifty", currency: "MWK",
-			msisdn: "265991234567", country: "MWI",
-		}),
+		adapter.initiatePayment({ ...BASE_REQUEST, amount: "fifty" }),
 	).rejects.toMatchObject({ name: "ChiaValidationError" });
 	expect(service.collections.initiateRequestToPay).not.toHaveBeenCalled();
 });
 
-test("a payout without recipientName throws ChiaValidationError, so the router falls through", async () => {
+test("CRITICAL: an empty or whitespace amount is rejected before any network call", async () => {
 	const service = makeService();
 	const adapter = new OneKhusaAdapter(service);
+
 	await expect(
-		adapter.sendPayout({
-			reference: "ref-1", amount: "50.00", currency: "MWK",
-			msisdn: "265991234567", country: "MWI",
-		}),
+		adapter.initiatePayment({ ...BASE_REQUEST, amount: "" }),
+	).rejects.toMatchObject({ name: "ChiaValidationError" });
+	await expect(
+		adapter.initiatePayment({ ...BASE_REQUEST, amount: " " }),
+	).rejects.toMatchObject({ name: "ChiaValidationError" });
+	expect(service.collections.initiateRequestToPay).not.toHaveBeenCalled();
+});
+
+test("toNumber rejects hex and exponential notation, not just prose", async () => {
+	const service = makeService();
+	const adapter = new OneKhusaAdapter(service);
+
+	await expect(
+		adapter.initiatePayment({ ...BASE_REQUEST, amount: "0x10" }),
+	).rejects.toMatchObject({ name: "ChiaValidationError" });
+	await expect(
+		adapter.initiatePayment({ ...BASE_REQUEST, amount: "1e5" }),
+	).rejects.toMatchObject({ name: "ChiaValidationError" });
+	expect(service.collections.initiateRequestToPay).not.toHaveBeenCalled();
+});
+
+test("an unsupported currency throws ChiaValidationError before any network call", async () => {
+	const service = makeService();
+	const adapter = new OneKhusaAdapter(service);
+
+	await expect(
+		adapter.initiatePayment({ ...BASE_REQUEST, currency: "NGN" as never }),
 	).rejects.toMatchObject({
 		name: "ChiaValidationError",
 		failoverSafety: "no_money_moved",
 	});
-	expect(service.disbursements.addSingle).not.toHaveBeenCalled();
+	expect(service.collections.initiateRequestToPay).not.toHaveBeenCalled();
 });
 
-test("a payout reports pending_approval rather than pretending to send", async () => {
-	const service = makeService();
-	service.disbursements.addSingle.mockResolvedValue({
-		id: "dis-1", amount: 50, currency: "MWK", status: "PENDING",
-		recipient: { name: "A", phone: "265991234567" },
-		paymentMethod: "MOBILE_MONEY", createdAt: "x", updatedAt: "x",
-	});
-	const adapter = new OneKhusaAdapter(service);
-	const p = await adapter.sendPayout({
-		reference: "ref-1", amount: "50.00", currency: "MWK",
-		msisdn: "265991234567", country: "MWI", recipientName: "A",
-	});
-	expect(p.status).toBe("pending_approval");
-	expect(p.requiresApproval).toBe(true);
-});
-
-test("getPayment normalizes a polled collection transaction", async () => {
+test("getPayment looks the transaction up by reference number", async () => {
 	const service = makeService();
 	service.collections.getTransaction.mockResolvedValue({
-		id: "txn-1",
-		collectionId: "col-1",
-		tan: "654321",
-		amount: 50,
-		currency: "MWK",
-		status: "COMPLETED",
-		phone: "265991234567",
-		paymentMethod: "MOBILE_MONEY",
-		reference: "ref-1",
-		createdAt: "x",
-		updatedAt: "x",
+		beneficiary: {
+			accountNumber: MERCHANT,
+			accountName: "MERCHANT",
+			amountReceived: 50,
+			currencyCode: "MWK",
+		},
+		source: { customerName: "PETER MBEWE", amountSent: 50, currencyCode: "MWK" },
+		transaction: {
+			transactionReferenceNumber: "B250713MGRTW",
+			transactionStatusCode: "S",
+			transactionStatusName: "Successful",
+		},
 	});
 	const adapter = new OneKhusaAdapter(service);
-	const p = await adapter.getPayment("col-1");
-	expect(service.collections.getTransaction).toHaveBeenCalledWith("col-1");
+
+	const p = await adapter.getPayment("B250713MGRTW");
+
+	expect(service.collections.getTransaction).toHaveBeenCalledWith({
+		merchantAccountNumber: MERCHANT,
+		transactionReferenceNumber: "B250713MGRTW",
+	});
 	expect(p.status).toBe("success");
-	expect(p.reference).toBe("ref-1");
+	expect(p.reference).toBe("B250713MGRTW");
 	expect(p.amount).toBe("50");
 	expect(p.currency).toBe("MWK");
 });
 
-test("getPayout normalizes a polled disbursement, still marked requiresApproval until it settles", async () => {
+// Verbatim from a settled sandbox transaction: OneKhusa takes its fee out of
+// the customer's payment, so amountReceived is short of what was requested.
+// Reporting the net here would make every payment look like an underpayment
+// against the plan price.
+test("getPayment reports what the customer paid, not the merchant's net", async () => {
 	const service = makeService();
-	service.disbursements.getSingle.mockResolvedValue({
-		id: "dis-1",
-		amount: 50,
-		currency: "MWK",
-		status: "REVIEWED",
-		recipient: { name: "A", phone: "265991234567" },
-		paymentMethod: "MOBILE_MONEY",
-		reference: "ref-1",
-		createdAt: "x",
-		updatedAt: "x",
+	service.collections.getTransaction.mockResolvedValue({
+		beneficiary: { amountReceived: 4950, currencyCode: "MWK" },
+		source: { amountSent: 5000, currencyCode: "MWK" },
+		transaction: {
+			transactionReferenceNumber: "260724WT9EBC",
+			transactionFee: 50,
+			transactionStatusCode: "S",
+		},
 	});
 	const adapter = new OneKhusaAdapter(service);
-	const p = await adapter.getPayout("dis-1");
-	expect(service.disbursements.getSingle).toHaveBeenCalledWith("dis-1");
-	expect(p.status).toBe("pending_approval");
-	expect(p.requiresApproval).toBe(true);
-	expect(p.reference).toBe("ref-1");
+
+	const p = await adapter.getPayment("260724WT9EBC");
+
+	expect(p.amount).toBe("5000");
+	// The fee and net stay reachable for reconciliation.
+	expect((p.raw as any).transaction.transactionFee).toBe(50);
+	expect((p.raw as any).beneficiary.amountReceived).toBe(4950);
+});
+
+test("a reversed collection maps to cancelled, not success", async () => {
+	const service = makeService();
+	service.collections.getTransaction.mockResolvedValue({
+		beneficiary: { amountReceived: 50, currencyCode: "MWK" },
+		source: {},
+		transaction: {
+			transactionReferenceNumber: "B250713MGRTW",
+			transactionStatusCode: "R",
+		},
+	});
+	const adapter = new OneKhusaAdapter(service);
+
+	const p = await adapter.getPayment("B250713MGRTW");
+
+	expect(p.status).toBe("cancelled");
 });
 
 test("getPayment leaves currency undefined rather than laundering a missing field into the Currency union", async () => {
 	const service = makeService();
 	service.collections.getTransaction.mockResolvedValue({
-		id: "txn-1",
-		status: "COMPLETED",
-		reference: "ref-1",
+		beneficiary: {},
+		source: {},
+		transaction: { transactionStatusCode: "S" },
 	});
 	const adapter = new OneKhusaAdapter(service);
-	const p = await adapter.getPayment("col-1");
-	expect(p.currency).toBeUndefined();
-});
 
-test("getPayout leaves currency undefined rather than laundering a missing field into the Currency union", async () => {
-	const service = makeService();
-	service.disbursements.getSingle.mockResolvedValue({
-		id: "dis-1",
-		status: "REVIEWED",
-		reference: "ref-1",
-	});
-	const adapter = new OneKhusaAdapter(service);
-	const p = await adapter.getPayout("dis-1");
+	const p = await adapter.getPayment("col-1");
+
 	expect(p.currency).toBeUndefined();
 });
 
@@ -213,106 +285,108 @@ test("getPayment throws ChiaProviderError when the service returns a ServiceErro
 		errorObject: "{}",
 	});
 	const adapter = new OneKhusaAdapter(service);
+
 	await expect(adapter.getPayment("col-missing")).rejects.toMatchObject({
 		name: "ChiaProviderError",
 		failoverSafety: "no_money_moved",
 	});
 });
 
+test("a payout without recipientName throws ChiaValidationError, so the router falls through", async () => {
+	const service = makeService();
+	const adapter = new OneKhusaAdapter(service);
+
+	await expect(adapter.sendPayout(BASE_REQUEST)).rejects.toMatchObject({
+		name: "ChiaValidationError",
+		failoverSafety: "no_money_moved",
+	});
+	expect(service.disbursements.addSingle).not.toHaveBeenCalled();
+});
+
+test("a payout without a connectorId is rejected before any network call", async () => {
+	const service = makeService();
+	const adapter = new OneKhusaAdapter(service);
+
+	await expect(
+		adapter.sendPayout({ ...BASE_REQUEST, recipientName: "A" }),
+	).rejects.toMatchObject({ name: "ChiaValidationError" });
+	expect(service.disbursements.addSingle).not.toHaveBeenCalled();
+});
+
+test("a payout reports pending_approval rather than pretending to send", async () => {
+	const service = makeService();
+	service.disbursements.addSingle.mockResolvedValue({
+		merchantAccountNumber: MERCHANT,
+		transactionReferenceNumber: "251220XF152G",
+		responseCode: "S100",
+	});
+	const adapter = new OneKhusaAdapter(service);
+
+	const p = await adapter.sendPayout({
+		...BASE_REQUEST,
+		recipientName: "A",
+		providerOptions: { onekhusa: { connectorId: 550044 } },
+	});
+
+	expect(p.status).toBe("pending_approval");
+	expect(p.requiresApproval).toBe(true);
+	expect(p.id).toBe("251220XF152G");
+	expect(service.disbursements.addSingle).toHaveBeenCalledWith(
+		expect.objectContaining({
+			beneficiaryName: "A",
+			beneficiaryAccountNumber: "265991234567",
+			connectorId: 550044,
+			transactionAmount: 50,
+			sourceReferenceNumber: "ref-1",
+		}),
+	);
+});
+
+test("getPayout normalizes a polled disbursement, still marked requiresApproval until it settles", async () => {
+	const service = makeService();
+	service.disbursements.getSingleTransaction.mockResolvedValue({
+		beneficiary: { amountReceived: 50, currencyCode: "MWK" },
+		source: { sourceReferenceNumber: "ref-1" },
+		transaction: { transactionStatusCode: "P" },
+	});
+	const adapter = new OneKhusaAdapter(service);
+
+	const p = await adapter.getPayout("dis-1");
+
+	expect(service.disbursements.getSingleTransaction).toHaveBeenCalledWith({
+		merchantAccountNumber: MERCHANT,
+		transactionReferenceNumber: "dis-1",
+	});
+	expect(p.status).toBe("processing");
+	expect(p.requiresApproval).toBe(true);
+	expect(p.reference).toBe("ref-1");
+});
+
+test("getPayout leaves currency undefined rather than laundering a missing field into the Currency union", async () => {
+	const service = makeService();
+	service.disbursements.getSingleTransaction.mockResolvedValue({
+		beneficiary: {},
+		source: {},
+		transaction: { transactionStatusCode: "S" },
+	});
+	const adapter = new OneKhusaAdapter(service);
+
+	const p = await adapter.getPayout("dis-1");
+
+	expect(p.currency).toBeUndefined();
+});
+
 test("getPayout throws ChiaProviderError when the service returns a ServiceError", async () => {
 	const service = makeService();
-	service.disbursements.getSingle.mockResolvedValue({
+	service.disbursements.getSingleTransaction.mockResolvedValue({
 		errorMessage: "timeout",
 		statusCode: 500,
 		errorObject: "{}",
 	});
 	const adapter = new OneKhusaAdapter(service);
+
 	await expect(adapter.getPayout("dis-missing")).rejects.toMatchObject({
 		name: "ChiaProviderError",
 		failoverSafety: "indeterminate",
 	});
-});
-
-test("CRITICAL: an empty or whitespace amount is rejected before any network call", async () => {
-	const service = makeService();
-	const adapter = new OneKhusaAdapter(service);
-	await expect(
-		adapter.initiatePayment({
-			reference: "ref-1", amount: "", currency: "MWK",
-			msisdn: "265991234567", country: "MWI",
-		}),
-	).rejects.toMatchObject({ name: "ChiaValidationError" });
-	await expect(
-		adapter.initiatePayment({
-			reference: "ref-1", amount: " ", currency: "MWK",
-			msisdn: "265991234567", country: "MWI",
-		}),
-	).rejects.toMatchObject({ name: "ChiaValidationError" });
-	expect(service.collections.initiateRequestToPay).not.toHaveBeenCalled();
-});
-
-test("toNumber rejects hex and exponential notation, not just prose", async () => {
-	const service = makeService();
-	const adapter = new OneKhusaAdapter(service);
-	await expect(
-		adapter.initiatePayment({
-			reference: "ref-1", amount: "0x10", currency: "MWK",
-			msisdn: "265991234567", country: "MWI",
-		}),
-	).rejects.toMatchObject({ name: "ChiaValidationError" });
-	await expect(
-		adapter.initiatePayment({
-			reference: "ref-1", amount: "1e5", currency: "MWK",
-			msisdn: "265991234567", country: "MWI",
-		}),
-	).rejects.toMatchObject({ name: "ChiaValidationError" });
-	expect(service.collections.initiateRequestToPay).not.toHaveBeenCalled();
-});
-
-test("an inline FAILED collection throws no_money_moved instead of returning status failed, so the router fails over", async () => {
-	const service = makeService();
-	service.collections.initiateRequestToPay.mockResolvedValue({
-		id: "col-1", tan: "123456", amount: 50, currency: "MWK", status: "FAILED",
-		phone: "265991234567", paymentMethod: "MOBILE_MONEY",
-		createdAt: "x", updatedAt: "x",
-	});
-	const adapter = new OneKhusaAdapter(service);
-	const err = await adapter
-		.initiatePayment({
-			reference: "ref-1", amount: "50.00", currency: "MWK",
-			msisdn: "265991234567", country: "MWI",
-		})
-		.catch((e) => e);
-	expect(err.name).toBe("ChiaProviderError");
-	expect(err.failoverSafety).toBe("no_money_moved");
-});
-
-test("a PENDING collection with a tan still maps to requires_action", async () => {
-	const service = makeService();
-	service.collections.initiateRequestToPay.mockResolvedValue({
-		id: "col-1", tan: "123456", amount: 50, currency: "MWK", status: "PENDING",
-		phone: "265991234567", paymentMethod: "MOBILE_MONEY",
-		createdAt: "x", updatedAt: "x",
-	});
-	const adapter = new OneKhusaAdapter(service);
-	const p = await adapter.initiatePayment({
-		reference: "ref-1", amount: "50.00", currency: "MWK",
-		msisdn: "265991234567", country: "MWI",
-	});
-	expect(p.status).toBe("requires_action");
-});
-
-test("an unsupported currency throws ChiaValidationError before any network call", async () => {
-	const service = makeService();
-	const adapter = new OneKhusaAdapter(service);
-	await expect(
-		adapter.initiatePayment({
-			reference: "ref-1", amount: "50.00", currency: "NGN",
-			msisdn: "265991234567", country: "MWI",
-		}),
-	).rejects.toMatchObject({
-		name: "ChiaValidationError",
-		failoverSafety: "no_money_moved",
-	});
-	expect(service.collections.initiateRequestToPay).not.toHaveBeenCalled();
 });

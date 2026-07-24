@@ -101,6 +101,7 @@ describe("validatePSPConfig", () => {
 		config.ONEKHUSA_API_KEY = "key";
 		config.ONEKHUSA_API_SECRET = "secret";
 		config.ONEKHUSA_ORGANISATION_ID = "org";
+		config.ONEKHUSA_MERCHANT_ACCOUNT_NUMBER = 12345678;
 		const result = validatePSPConfig(config, "onekhusa");
 		expect(result.isValid).toBe(true);
 		expect(result.missingFields).toEqual([]);

@@ -2,7 +2,9 @@ import type { AttemptRecord, ProviderName } from "./types";
 
 export type FailoverSafety = "no_money_moved" | "indeterminate";
 
-const REFUSAL_STATUS_CODES = new Set([400, 401, 403, 404, 422, 429]);
+// 402 is OneKhusa's "Request Failed": well-formed, but refused by a business
+// rule. Like the others here it means no money moved, so failover is safe.
+const REFUSAL_STATUS_CODES = new Set([400, 401, 402, 403, 404, 422, 429]);
 
 export function classifyByStatusCode(statusCode: number): FailoverSafety {
 	return REFUSAL_STATUS_CODES.has(statusCode) ? "no_money_moved" : "indeterminate";

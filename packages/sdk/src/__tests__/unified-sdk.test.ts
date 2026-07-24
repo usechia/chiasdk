@@ -13,7 +13,7 @@ test("payments and payouts are available when a provider is configured", () => {
 
 test("capabilities reports per-provider payout semantics", () => {
 	const sdk = ChiaSDK.create({
-		onekhusa: { apiKey: "k", apiSecret: "s", organisationId: "o" },
+		onekhusa: { apiKey: "k", apiSecret: "s", organisationId: "o", merchantAccountNumber: 12345678 },
 	});
 	expect(sdk.capabilities("onekhusa").payouts.requiresApproval).toBe(true);
 });
