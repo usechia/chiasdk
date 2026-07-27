@@ -134,6 +134,9 @@ export interface Subscriber {
 	currentPeriodStart: string | null;
 	currentPeriodEnd: string | null;
 	cancelledAt: string | null;
+	/** A plan change booked for the boundary. `planId` is what is billed until then. */
+	pendingPlanId: string | null;
+	planChangeAt: string | null;
 	metadata: Record<string, unknown> | null;
 	createdAt: string;
 	updatedAt: string;
@@ -142,6 +145,40 @@ export interface Subscriber {
 export interface CancelSubscriberRequest {
 	mode?: "immediate" | "at_period_end";
 	reason?: string;
+}
+
+export type PlanChangeTiming = "immediate" | "at_period_end";
+export type PlanChangeDirection = "upgrade" | "downgrade";
+
+export interface ChangePlanRequest {
+	planId: string;
+	/**
+	 * Omit to let the direction decide, which is almost always what you want:
+	 * upgrades take effect at once and downgrades wait for the period the
+	 * subscriber has already paid for.
+	 */
+	timing?: PlanChangeTiming;
+}
+
+/**
+ * The outcome of a plan change, which is not always the change itself.
+ *
+ * An immediate upgrade opens a prorated collection and the plan moves only when
+ * that payment succeeds; a deferred downgrade books the change for the boundary.
+ * In both cases `subscriber` is the subscriber as it stands now, so comparing
+ * `subscriber.planId` to the requested plan is what tells you the change landed.
+ * Watch `subscriber.plan_changed` for the rest.
+ */
+export interface ChangePlanResult {
+	subscriber: Subscriber;
+	timing: PlanChangeTiming;
+	direction: PlanChangeDirection;
+	/** The collection opened for an immediate change. Null when nothing is owed. */
+	payment: Payment | null;
+	/** Present when the payer must approve the debit on their handset. */
+	nextAction: SubscriptionNextAction | null;
+	/** Major-unit decimal string. "0.00" when credit covered the new plan. */
+	proratedAmount: string | null;
 }
 
 export type PaymentStatus =
