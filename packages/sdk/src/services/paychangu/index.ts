@@ -143,11 +143,24 @@ export class PayChangu extends BaseService {
 		type: "error";
 		payload: T & { HasError: true; ErrorMessage: string; ErrorCode?: number };
 	} {
+		// PayChangu returns validation failures as an object under `message`, and
+		// String() on that yields the literal "[object Object]". That is what
+		// reached the dashboard for a real declined charge, discarding the only
+		// explanation of why it failed and making the payment undiagnosable.
+		const describe = (value: unknown): string => {
+			if (typeof value === "string") return value;
+			try {
+				return JSON.stringify(value) ?? String(value);
+			} catch {
+				return String(value);
+			}
+		};
+
 		const safeMessage =
 			error instanceof Error
 				? error.message
 				: typeof error === "object" && error !== null && "message" in error
-					? String((error as { message: unknown }).message)
+					? describe((error as { message: unknown }).message)
 					: `An error occurred during ${context}`;
 
 		const statusCode =
