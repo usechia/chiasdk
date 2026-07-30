@@ -63,6 +63,25 @@ test("a 400 refusal carries ErrorCode 400 and the provider's message", async () 
 	expect(res.payload.ErrorMessage).toContain("invalid mobile number");
 });
 
+test("a 400 whose message is an object keeps the detail instead of [object Object]", async () => {
+	// PayChangu returns validation failures as an object under `message`. String()
+	// on that gave the literal "[object Object]", which is what a real declined
+	// charge showed in the dashboard - discarding the only explanation of why it
+	// failed and leaving the payment undiagnosable.
+	const sdk = new PayChangu("sk");
+	lastAxiosInstance().post.mockRejectedValue(
+		makeAxiosError(400, { mobile: ["The mobile field is invalid."] } as never),
+	);
+
+	const res: any = await sdk.initializeMobileMoneyCollection(
+		"265991234567", "ref-1", "50.00", "chg-1",
+	);
+
+	expect(res.payload.ErrorMessage).not.toBe("[object Object]");
+	expect(res.payload.ErrorMessage).toContain("mobile");
+	expect(res.payload.ErrorMessage).toContain("invalid");
+});
+
 test("a timeout does NOT report a refusal status code", async () => {
 	const sdk = new PayChangu("sk");
 	lastAxiosInstance().post.mockRejectedValue(makeTimeoutError());
