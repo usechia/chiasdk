@@ -151,7 +151,7 @@ export class PawaPayAdapter implements ChiaProviderAdapter {
 			try {
 				const status = await this.service.deposits.getDeposit(depositId);
 				if (!isServiceError(status)) {
-					const url = (status as { authorizationUrl?: string }).authorizationUrl;
+					const url = (status as { data?: { authorizationUrl?: string } }).data?.authorizationUrl;
 					if (typeof url === "string" && url) {
 						return { type: "redirect", url };
 					}
@@ -170,8 +170,9 @@ export class PawaPayAdapter implements ChiaProviderAdapter {
 	async getPayment(id: string): Promise<ChiaPayment> {
 		const result = await this.service.deposits.getDeposit(id);
 		if (isServiceError(result)) this.fail(result, "get deposit");
-		const data = result as unknown as Record<string, unknown>;
-		const status = String(data.status ?? "");
+		const wrapper = result as { status?: string; data?: Record<string, unknown> };
+		const data = wrapper.data ?? {};
+		const status = String(data.status ?? wrapper.status ?? "");
 		const authorizationUrl = data.authorizationUrl;
 		return {
 			id,
