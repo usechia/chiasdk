@@ -48,7 +48,7 @@ export namespace PawaPayTypes {
 
 	export type DepositStatus = "COMPLETED" | "FAILED" | "PROCESSING" | "IN_RECONCILIATION" | "NOT_FOUND";
 
-	export interface DepositStatusResponse {
+	export interface DepositStatusData {
 		depositId: string;
 		status: DepositStatus;
 		nextStep?: DepositNextStep;
@@ -61,6 +61,11 @@ export namespace PawaPayTypes {
 		providerTransactionId?: string;
 		authorizationUrl?: string;
 		failureReason?: FailureReason;
+	}
+
+	export interface DepositStatusResponse {
+		status: "FOUND" | "NOT_FOUND";
+		data?: DepositStatusData;
 	}
 
 	export interface PaymentPageRequest {

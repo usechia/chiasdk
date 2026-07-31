@@ -156,23 +156,26 @@ test("an unresolvable operator throws ChiaValidationError, which is safe to fall
 test("getPayment returns the real amount from a realistic getDeposit response", async () => {
 	const service = makeService();
 	service.deposits.getDeposit.mockResolvedValue({
-		depositId: "dep-1",
-		status: "COMPLETED",
-		amount: "50.00",
-		currency: "ZMW",
-		country: "ZMB",
-		created: "2026-07-16T00:00:00Z",
-		providerTransactionId: "prov-tx-1",
+		status: "FOUND",
+		data: {
+			depositId: "dep-1",
+			status: "COMPLETED",
+			amount: "50.00",
+			currency: "ZMW",
+			country: "ZMB",
+			created: "2026-07-16T00:00:00Z",
+			providerTransactionId: "prov-tx-1",
+		},
 	});
 	const adapter = new PawaPayAdapter(service);
 	const payment = await adapter.getPayment("dep-1");
 	expect(payment.amount).toBe("50.00");
+	expect(payment.status).toBe("success");
 });
 
 test("NOT_FOUND is pending, not failed: no record is not a verdict", async () => {
 	const service = makeService();
 	service.deposits.getDeposit.mockResolvedValue({
-		depositId: "dep-1",
 		status: "NOT_FOUND",
 	});
 	const adapter = new PawaPayAdapter(service);
@@ -183,12 +186,15 @@ test("NOT_FOUND is pending, not failed: no record is not a verdict", async () =>
 test("getPayment surfaces authorizationUrl as a redirect nextAction", async () => {
 	const service = makeService();
 	service.deposits.getDeposit.mockResolvedValue({
-		depositId: "dep-1",
-		status: "PROCESSING",
-		nextStep: "REDIRECT_TO_AUTH_URL",
-		amount: "50.00",
-		currency: "ZMW",
-		authorizationUrl: "https://pawapay.example/auth/dep-1",
+		status: "FOUND",
+		data: {
+			depositId: "dep-1",
+			status: "PROCESSING",
+			nextStep: "REDIRECT_TO_AUTH_URL",
+			amount: "50.00",
+			currency: "ZMW",
+			authorizationUrl: "https://pawapay.example/auth/dep-1",
+		},
 	});
 	const adapter = new PawaPayAdapter(service);
 	const payment = await adapter.getPayment("dep-1");
@@ -207,9 +213,12 @@ test("REDIRECT_TO_AUTH_URL fetches the real authorizationUrl via getDeposit, nev
 		nextStep: "REDIRECT_TO_AUTH_URL",
 	});
 	service.deposits.getDeposit.mockResolvedValue({
-		depositId: "dep-1",
-		status: "PROCESSING",
-		authorizationUrl: "https://pawapay.example/auth/dep-1",
+		status: "FOUND",
+		data: {
+			depositId: "dep-1",
+			status: "PROCESSING",
+			authorizationUrl: "https://pawapay.example/auth/dep-1",
+		},
 	});
 	const adapter = new PawaPayAdapter(service);
 	const p = await adapter.initiatePayment({
@@ -362,8 +371,8 @@ test("sendPayout maps a DUPLICATE_IGNORED response through result.status, not a 
 test("getPayment leaves currency undefined rather than laundering a missing field into the Currency union", async () => {
 	const service = makeService();
 	service.deposits.getDeposit.mockResolvedValue({
-		depositId: "dep-1",
-		status: "PROCESSING",
+		status: "FOUND",
+		data: { depositId: "dep-1", status: "PROCESSING" },
 	});
 	const adapter = new PawaPayAdapter(service);
 	const payment = await adapter.getPayment("dep-1");

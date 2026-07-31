@@ -68,16 +68,32 @@ describe("PawaPay deposits", () => {
 		expect("depositId" in result && result.depositId).toBe("dep-1");
 	});
 
-	it("fetches a deposit by id", async () => {
+	it("fetches a deposit by id and exposes the wrapped deposit", async () => {
 		const client = newClient();
 		const instance = lastAxiosInstance();
 		instance.get.mockResolvedValueOnce({
-			data: { depositId: "dep-1", status: "COMPLETED" },
+			data: {
+				data: { depositId: "dep-1", status: "COMPLETED", amount: "15000", currency: "MWK" },
+				status: "FOUND",
+			},
 		});
 
 		const result = await client.deposits.getDeposit("dep-1");
 		expect(instance.get).toHaveBeenCalledWith("/deposits/dep-1", expect.anything());
-		expect("status" in result && result.status).toBe("COMPLETED");
+		expect("status" in result && result.status).toBe("FOUND");
+		expect("data" in result && result.data?.status).toBe("COMPLETED");
+	});
+
+	it("reports NOT_FOUND without inventing a deposit", async () => {
+		const client = newClient();
+		const instance = lastAxiosInstance();
+		instance.get.mockResolvedValueOnce({
+			data: { status: "NOT_FOUND" },
+		});
+
+		const result = await client.deposits.getDeposit("missing");
+		expect("status" in result && result.status).toBe("NOT_FOUND");
+		expect("data" in result ? result.data : undefined).toBeUndefined();
 	});
 
 	it("returns service error when the API rejects", async () => {
