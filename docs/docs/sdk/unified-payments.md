@@ -191,7 +191,11 @@ const payout = await sdk.payouts.send({
 });
 
 if (payout.requiresApproval) {
-  await sdk.onekhusa.disbursements.approveSingle(payout.id);
+  await sdk.onekhusa.disbursements.approveSingle({
+    merchantAccountNumber: sdk.onekhusa.merchantAccountNumber,
+    transactionReferenceNumber: payout.id,
+    actionedBy: "payments@example.com"
+  });
 }
 ```
 

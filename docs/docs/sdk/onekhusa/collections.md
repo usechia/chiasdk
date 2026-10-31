@@ -7,101 +7,117 @@ description: OneKhusa collection operations
 # OneKhusa Collections
 
 :::info Direct provider access
-For ordinary collections routed automatically across your configured providers, use [`sdk.payments`](/docs/sdk/unified-payments) instead. This page covers direct OneKhusa access and OneKhusa-specific features.
+For ordinary collections routed automatically across your configured providers, use [`sdk.payments`](/docs/sdk/unified-payments). This page covers direct OneKhusa collections and checkout.
 :::
 
-Request payments from customers via mobile money or bank transfer.
+## Direct mobile money push
 
-## Initiate Request-to-Pay
-
-Request payment from a customer:
+Start a USSD prompt for a customer. The response confirms initiation only; use the `pushpayment.success`, `pushpayment.failed`, and `pushpayment.reversed` webhooks to track the final outcome.
 
 ```typescript
-const collection = await sdk.onekhusa.collections.initiateRequestToPay({
-  amount: 5000,
-  currency: "MWK",
-  phoneNumber: "265991234567",
-  reference: "order-123",
-  narration: "Payment for goods"
+import { isServiceError } from "@chiahq/sdk";
+
+const result = await sdk.onekhusa.collections.initiateDirectPushPayment({
+  merchantAccountNumber: sdk.onekhusa.merchantAccountNumber,
+  connectorId: 550044,
+  payerAccountNumber: "0999000000",
+  sourceReferenceNumber: "ORDER12345",
+  transactionDescription: "Payment for order ORDER12345",
+  transactionAmount: 1000,
+  capturedBy: "payments@example.com"
 });
 
-// The TAN (Transaction Authentication Number) is used by the customer
-// to authorize the payment on their device
-console.log("TAN:", collection.tan);
-console.log("Transaction ID:", collection.transactionId);
+if (isServiceError(result)) {
+  throw new Error(result.errorMessage);
+}
+
+console.log(result.responseCode);
 ```
 
-### Parameters
+Use a unique `sourceReferenceNumber` for each attempt. Find connector IDs with `sdk.onekhusa.getConnectors()`.
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `amount` | number | Yes | Amount to collect |
-| `currency` | string | Yes | Currency code (MWK, USD, etc.) |
-| `phoneNumber` | string | Yes | Customer phone number |
-| `reference` | string | Yes | Your unique reference |
-| `narration` | string | No | Description for the transaction |
+## Standard Checkout
 
-## Get Collection Transactions
+Create a hosted checkout session for card or mobile money. For inline checkout, load the returned `checkoutUrl` in your app's modal overlay. The URL expires after 10 minutes and can also be used as a redirect. Subscribe to the push payment webhooks and rely on them for the final payment result.
 
-Retrieve paginated collection transactions:
+```typescript
+import { isServiceError } from "@chiahq/sdk";
+
+const result = await sdk.onekhusa.collections.initiateStandardCheckout({
+  payment: {
+    merchantAccountNumber: sdk.onekhusa.merchantAccountNumber,
+    amount: 150,
+    description: "Groceries purchase",
+    sourceReferenceNumber: "ORDER12346",
+    capturedBy: "payments@example.com"
+  },
+  route: {
+    successRedirectionUrl: "https://example.com/payment/success",
+    failureRedirectionUrl: "https://example.com/payment/failure"
+  }
+});
+
+if (isServiceError(result)) {
+  throw new Error(result.errorMessage);
+}
+
+console.log(result.checkoutUrl);
+```
+
+See [OneKhusa Standard Checkout](https://docs.onekhusa.com/api-reference/collections/standard-checkout) for payment method and webhook setup requirements.
+
+## Request-to-Pay
+
+Reserve a timed account number for the customer to pay into. Settlement is reported through the collection webhook.
+
+```typescript
+import { isServiceError } from "@chiahq/sdk";
+
+const result = await sdk.onekhusa.collections.initiateRequestToPay({
+  merchantAccountNumber: sdk.onekhusa.merchantAccountNumber,
+  transactionAmount: 5000,
+  transactionDescription: "Payment for goods",
+  referenceNumber: "ORDER12347",
+  capturedBy: "payments@example.com"
+});
+
+if (isServiceError(result)) {
+  throw new Error(result.errorMessage);
+}
+
+console.log(result.timedAccountNumber);
+```
+
+## List collection transactions
 
 ```typescript
 const transactions = await sdk.onekhusa.collections.getTransactions({
-  page: 0,
-  size: 20,
-  status: "COMPLETED"
-});
-
-transactions.content.forEach(tx => {
-  console.log(`${tx.reference}: ${tx.status} - ${tx.amount} ${tx.currency}`);
+  merchantAccountNumber: sdk.onekhusa.merchantAccountNumber,
+  transactionDate: "2026-10-31",
+  pageNumber: 1,
+  numberOfReturnedRows: 20,
+  isIncremental: false,
+  searchBy: "TransactionReferenceNumber"
 });
 ```
 
-### Filter Parameters
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `page` | number | Page number (0-indexed) |
-| `size` | number | Items per page |
-| `status` | string | Filter by status |
-| `startDate` | string | Filter from date |
-| `endDate` | string | Filter to date |
-
-## Get Transaction Details
+## Get a collection transaction
 
 ```typescript
-const details = await sdk.onekhusa.collections.getTransaction(transactionId);
-
-console.log("Status:", details.status);
-console.log("Amount:", details.amount);
-console.log("Completed at:", details.completedAt);
+const result = await sdk.onekhusa.collections.getTransaction({
+  merchantAccountNumber: sdk.onekhusa.merchantAccountNumber,
+  transactionReferenceNumber: "260921VK4NEG9V"
+});
 ```
 
-## Transaction Statuses
-
-| Status | Description |
-|--------|-------------|
-| `PENDING` | Awaiting customer authorization |
-| `COMPLETED` | Payment received |
-| `FAILED` | Transaction failed |
-| `CANCELLED` | Cancelled by customer or system |
-| `EXPIRED` | TAN expired without authorization |
-
-## Supported Currencies
-
-- MWK (Malawian Kwacha)
-- USD (US Dollar)
-- ZAR (South African Rand)
-- ZMW (Zambian Kwacha)
-- TZS (Tanzanian Shilling)
-- KES (Kenyan Shilling)
-- UGX (Ugandan Shilling)
-
-## Response Types
+## Types
 
 ```typescript
 import type { OneKhusaTypes } from "@chiahq/sdk";
 
-type CollectionResponse = OneKhusaTypes.CollectionResponse;
-type TransactionsResponse = OneKhusaTypes.CollectionTransactionsResponse;
+type DirectPushRequest = OneKhusaTypes.InitiateDirectPushPaymentRequest;
+type CheckoutRequest = OneKhusaTypes.StandardCheckoutRequest;
+type CheckoutResponse = OneKhusaTypes.StandardCheckoutResponse;
+type PushWebhook = OneKhusaTypes.PushPaymentWebhookPayload;
+type WebhookEvent = OneKhusaTypes.CollectionWebhookEvent;
 ```

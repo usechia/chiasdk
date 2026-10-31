@@ -7,183 +7,183 @@ description: OneKhusa disbursement operations
 # OneKhusa Disbursements
 
 :::info Direct provider access
-For ordinary payouts routed automatically across your configured providers, use [`sdk.payouts`](/docs/sdk/unified-payments) instead - note that OneKhusa payouts always require approval. This page covers direct OneKhusa access, including batch disbursements, which are a OneKhusa-specific feature.
+For ordinary payouts routed across providers, use [`sdk.payouts`](/docs/sdk/unified-payments). OneKhusa payouts require approval. This page covers direct OneKhusa operations, including batch disbursements.
 :::
 
-Send payments to recipients with single or batch disbursements.
+Every request includes the configured OneKhusa merchant account number. Write operations that require an operator use `capturedBy`, `actionedBy`, `rejectedBy`, `cancelledBy`, or `transferredBy` as shown in the request types.
 
 ## Single Disbursements
 
-### Create a Disbursement
+### Create and approve a disbursement
 
 ```typescript
+import { isServiceError } from "@chiahq/sdk";
+
 const disbursement = await sdk.onekhusa.disbursements.addSingle({
-  amount: 10000,
-  currency: "MWK",
-  paymentMethod: "MOBILE_MONEY",
-  recipient: {
-    name: "John Doe",
-    phone: "265991234567"
-  },
-  reference: "payout-001",
-  narration: "Salary payment"
+  merchantAccountNumber: sdk.onekhusa.merchantAccountNumber,
+  beneficiaryName: "John Doe",
+  connectorId: 550044,
+  beneficiaryAccountNumber: "265991234567",
+  transactionAmount: 10000,
+  transactionDescription: "Salary payment",
+  sourceReferenceNumber: "payout-001",
+  capturedBy: "payments@example.com"
 });
 
-console.log("Disbursement ID:", disbursement.id);
-console.log("Status:", disbursement.status);
+if (isServiceError(disbursement)) {
+  throw new Error(disbursement.errorMessage);
+}
+
+const approval = await sdk.onekhusa.disbursements.approveSingle({
+  merchantAccountNumber: sdk.onekhusa.merchantAccountNumber,
+  transactionReferenceNumber: disbursement.transactionReferenceNumber,
+  actionedBy: "payments@example.com"
+});
+
+if (isServiceError(approval)) {
+  throw new Error(approval.errorMessage);
+}
 ```
 
-### Approve a Disbursement
+### Review or reject a disbursement
 
 ```typescript
-await sdk.onekhusa.disbursements.approveSingle(disbursementId);
-```
+await sdk.onekhusa.disbursements.reviewSingle({
+  merchantAccountNumber: sdk.onekhusa.merchantAccountNumber,
+  transactionReferenceNumber: "transaction-reference",
+  actionedBy: "payments@example.com"
+});
 
-### Review a Disbursement
-
-```typescript
-await sdk.onekhusa.disbursements.reviewSingle(disbursementId);
-```
-
-### Reject a Disbursement
-
-```typescript
-await sdk.onekhusa.disbursements.rejectSingle(disbursementId, {
-  reason: "Incorrect recipient details"
+await sdk.onekhusa.disbursements.rejectSingle({
+  merchantAccountNumber: sdk.onekhusa.merchantAccountNumber,
+  transactionReferenceNumber: "transaction-reference",
+  reasonForRejection: "Incorrect beneficiary details",
+  rejectedBy: "payments@example.com"
 });
 ```
 
-### Get Disbursement Details
+### Get disbursements
 
 ```typescript
-const details = await sdk.onekhusa.disbursements.getSingle(disbursementId);
+const transactions = await sdk.onekhusa.disbursements.getSingleTransactions({
+  merchantAccountNumber: sdk.onekhusa.merchantAccountNumber,
+  transactionDate: "2026-10-31",
+  pageNumber: 1,
+  numberOfReturnedRows: 20,
+  isIncremental: false,
+  searchBy: "TransactionReferenceNumber"
+});
 
-console.log("Status:", details.status);
-console.log("Amount:", details.amount);
+const transaction = await sdk.onekhusa.disbursements.getSingleTransaction({
+  merchantAccountNumber: sdk.onekhusa.merchantAccountNumber,
+  transactionReferenceNumber: "transaction-reference"
+});
 ```
 
 ## Batch Disbursements
 
-Process multiple payouts efficiently.
-
-### Create a Batch
+### Create a batch
 
 ```typescript
-const batch = await sdk.onekhusa.disbursements.addBatch({
-  name: "January Salaries",
-  currency: "MWK",
-  paymentMethod: "MOBILE_MONEY",
-  recipients: [
-    { name: "John Doe", phone: "265991234567", amount: 50000 },
-    { name: "Jane Smith", phone: "265999876543", amount: 45000 },
-    { name: "Bob Wilson", phone: "265888765432", amount: 55000 }
+const batch = await sdk.onekhusa.disbursements.addBatchJson({
+  header: {
+    merchantAccountNumber: sdk.onekhusa.merchantAccountNumber,
+    isBatchScheduled: false,
+    capturedBy: "payments@example.com"
+  },
+  transactions: [
+    {
+      beneficiaryName: "John Doe",
+      connectorId: 550044,
+      beneficiaryAccountNumber: "265991234567",
+      transactionDescription: "January salary",
+      transactionAmount: 50000,
+      sourceReferenceNumber: "salary-john-001"
+    }
   ]
 });
-
-console.log("Batch ID:", batch.id);
-console.log("Total:", batch.totalAmount);
 ```
 
-### Approve Batch
+### Review, approve, reject, cancel, or transfer
 
 ```typescript
-await sdk.onekhusa.disbursements.approveBatch(batchId);
-```
+await sdk.onekhusa.disbursements.reviewBatch({
+  merchantAccountNumber: sdk.onekhusa.merchantAccountNumber,
+  batchNumber: 12345,
+  actionedBy: "payments@example.com"
+});
 
-### Review Batch
+await sdk.onekhusa.disbursements.approveBatch({
+  merchantAccountNumber: sdk.onekhusa.merchantAccountNumber,
+  batchNumber: 12345,
+  actionedBy: "payments@example.com"
+});
 
-```typescript
-await sdk.onekhusa.disbursements.reviewBatch(batchId);
-```
+await sdk.onekhusa.disbursements.rejectBatch({
+  merchantAccountNumber: sdk.onekhusa.merchantAccountNumber,
+  reasonForRejection: "Budget not approved",
+  rejectedBy: "payments@example.com",
+  headerId: 12345
+});
 
-### Transfer Funds
+await sdk.onekhusa.disbursements.cancelBatch({
+  merchantAccountNumber: sdk.onekhusa.merchantAccountNumber,
+  batchNumber: 12345,
+  cancelledBy: "payments@example.com"
+});
 
-After approval, transfer funds to process the batch:
-
-```typescript
-await sdk.onekhusa.disbursements.transferBatchFunds(batchId);
-```
-
-### Cancel Batch
-
-```typescript
-await sdk.onekhusa.disbursements.cancelBatch(batchId);
-```
-
-### Reject Batch
-
-```typescript
-await sdk.onekhusa.disbursements.rejectBatch(batchId, {
-  reason: "Budget not approved"
+await sdk.onekhusa.disbursements.transferBatchFunds({
+  merchantAccountNumber: sdk.onekhusa.merchantAccountNumber,
+  batchNumber: 12345,
+  transferredBy: "payments@example.com"
 });
 ```
 
-### Get All Batches
+### Get batches and transactions
 
 ```typescript
 const batches = await sdk.onekhusa.disbursements.getBatches({
-  page: 0,
-  size: 10
+  merchantAccountNumber: sdk.onekhusa.merchantAccountNumber,
+  transactionDate: "2026-10-31",
+  pageNumber: 1,
+  numberOfReturnedRows: 20,
+  isIncremental: false
 });
 
-batches.content.forEach(batch => {
-  console.log(`${batch.name}: ${batch.status} - ${batch.totalAmount}`);
+const batchDetails = await sdk.onekhusa.disbursements.getBatch({
+  merchantAccountNumber: sdk.onekhusa.merchantAccountNumber,
+  batchNumber: 12345
+});
+
+const transactions = await sdk.onekhusa.disbursements.getBatchTransactions({
+  merchantAccountNumber: sdk.onekhusa.merchantAccountNumber,
+  batchNumber: 12345,
+  pageNumber: 1,
+  numberOfReturnedRows: 20,
+  isIncremental: false
 });
 ```
 
-### Get Batch Details
+## File batches
+
+`addBatchFile` accepts a base64-encoded CSV or XLSX payload:
 
 ```typescript
-const batchDetails = await sdk.onekhusa.disbursements.getBatch(batchId);
-```
-
-### Get Batch Transactions
-
-```typescript
-const transactions = await sdk.onekhusa.disbursements.getBatchTransactions(batchId, {
-  page: 0,
-  size: 20
+await sdk.onekhusa.disbursements.addBatchFile({
+  merchantAccountNumber: sdk.onekhusa.merchantAccountNumber,
+  isBatchScheduled: false,
+  contentType: "text/csv",
+  capturedBy: "payments@example.com",
+  fileContent: encodedFile
 });
 ```
 
-## Disbursement Statuses
-
-| Status | Description |
-|--------|-------------|
-| `PENDING` | Awaiting review/approval |
-| `APPROVED` | Approved, awaiting fund transfer |
-| `REVIEWED` | Reviewed, awaiting approval |
-| `REJECTED` | Rejected |
-| `CANCELLED` | Cancelled |
-| `PROCESSING` | Funds being transferred |
-| `COMPLETED` | Successfully disbursed |
-| `FAILED` | Disbursement failed |
-
-## Payment Methods
-
-| Method | Description |
-|--------|-------------|
-| `MOBILE_MONEY` | Mobile money transfer |
-| `BANK_TRANSFER` | Bank account transfer |
-
-## Recipient Parameters
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `name` | string | Yes | Recipient name |
-| `phone` | string | Yes | Phone number |
-| `email` | string | No | Email address |
-| `accountNumber` | string | No | Bank account (for bank transfers) |
-| `bankCode` | string | No | Bank code (for bank transfers) |
-| `amount` | number | Yes* | Amount (required for batch recipients) |
-
-## Response Types
+## Response types
 
 ```typescript
 import type { OneKhusaTypes } from "@chiahq/sdk";
 
-type DisbursementResponse = OneKhusaTypes.SingleDisbursementResponse;
-type BatchResponse = OneKhusaTypes.BatchDisbursementResponse;
-type BatchesResponse = OneKhusaTypes.BatchesResponse;
-type BatchTransactionsResponse = OneKhusaTypes.BatchTransactionsResponse;
+type DisbursementAck = OneKhusaTypes.SingleDisbursementAck;
+type BatchAck = OneKhusaTypes.BatchAck;
+type BatchSummary = OneKhusaTypes.BatchSummary;
 ```

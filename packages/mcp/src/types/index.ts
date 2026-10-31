@@ -2,7 +2,11 @@
  * Type definitions for Chia MCP Server
  */
 
-import type { PayChangu as PayChanguSDK, PawaPayTypes, OneKhusaTypes } from "@chiahq/sdk";
+import type {
+  PayChangu as PayChanguSDK,
+  PawaPayTypes,
+  OneKhusaTypes,
+} from "@chiahq/sdk";
 
 /**
  * JSON Schema type for tool input validation
@@ -32,7 +36,7 @@ export type ToolRegistrationFunction = (
   name: string,
   description: string,
   inputSchema: JSONSchema,
-  handler: ToolHandler
+  handler: ToolHandler,
 ) => void;
 
 /**
@@ -214,20 +218,36 @@ export namespace PawapayToolArgs {
 export namespace OneKhusaToolArgs {
   export interface InitiateRequestToPay {
     amount: number;
-    currency: string;
-    phone: string;
-    paymentMethod: string;
-    reference?: string;
-    description?: string;
-    callbackUrl?: string;
+    description: string;
+    referenceNumber: string;
+    capturedBy?: string;
+  }
+
+  export interface InitiateDirectPush {
+    connectorId: number;
+    payerAccountNumber: string;
+    sourceReferenceNumber: string;
+    transactionDescription: string;
+    transactionAmount: number;
+    capturedBy?: string;
+  }
+
+  export interface InitiateStandardCheckout {
+    amount: number;
+    description: string;
+    sourceReferenceNumber: string;
+    successRedirectionUrl: string;
+    failureRedirectionUrl: string;
+    capturedBy?: string;
   }
 
   export interface GetCollectionTransactions {
-    page?: number;
-    size?: number;
-    status?: string;
-    startDate?: string;
-    endDate?: string;
+    transactionDate: string;
+    pageNumber: number;
+    numberOfReturnedRows: number;
+    isIncremental: boolean;
+    searchBy: OneKhusaTypes.CollectionSearchBy;
+    searchText?: string;
   }
 
   export interface GetCollectionTransaction {
@@ -235,95 +255,97 @@ export namespace OneKhusaToolArgs {
   }
 
   export interface AddSingleDisbursement {
-    amount: number;
-    currency: string;
-    recipientName: string;
-    recipientPhone: string;
-    recipientEmail?: string;
-    paymentMethod: string;
-    reference?: string;
-    description?: string;
-    callbackUrl?: string;
+    beneficiaryName: string;
+    connectorId: number;
+    beneficiaryAccountNumber: string;
+    transactionDescription?: string;
+    transactionAmount?: number;
+    sourceReferenceNumber?: string;
+    capturedBy?: string;
   }
 
   export interface ApproveSingleDisbursement {
-    disbursementId: string;
-    comment?: string;
+    transactionReferenceNumber: string;
+    actionedBy?: string;
   }
 
   export interface ReviewSingleDisbursement {
-    disbursementId: string;
-    comment?: string;
+    transactionReferenceNumber: string;
+    actionedBy?: string;
   }
 
   export interface RejectSingleDisbursement {
-    disbursementId: string;
-    reason: string;
+    transactionReferenceNumber: string;
+    reasonForRejection: string;
+    rejectedBy?: string;
   }
 
   export interface GetSingleDisbursement {
-    disbursementId: string;
+    transactionReferenceNumber: string;
   }
 
   export interface BatchDisbursementItem {
-    amount: number;
-    currency: string;
-    recipientName: string;
-    recipientPhone: string;
-    paymentMethod: string;
-    reference?: string;
-    description?: string;
+    beneficiaryName: string;
+    connectorId: number;
+    beneficiaryAccountNumber: string;
+    transactionDescription: string;
+    transactionAmount: number;
+    sourceReferenceNumber: string;
   }
 
   export interface AddBatchDisbursement {
-    name: string;
-    description?: string;
-    items: BatchDisbursementItem[];
-    callbackUrl?: string;
+    isBatchScheduled: boolean;
+    capturedBy?: string;
+    scheduledDate?: string;
+    transactions: BatchDisbursementItem[];
   }
 
   export interface ApproveBatch {
-    batchId: string;
-    comment?: string;
+    batchNumber: number;
+    actionedBy?: string;
   }
 
   export interface ReviewBatch {
-    batchId: string;
-    comment?: string;
+    batchNumber: number;
+    actionedBy?: string;
   }
 
   export interface RejectBatch {
-    batchId: string;
-    reason: string;
+    reasonForRejection: string;
+    rejectedBy?: string;
+    headerId?: number;
   }
 
   export interface CancelBatch {
-    batchId: string;
-    reason?: string;
+    cancelledBy?: string;
+    batchNumber?: number;
   }
 
   export interface TransferBatchFunds {
-    batchId: string;
-    sourceAccount?: string;
+    batchNumber: number;
+    transferredBy?: string;
   }
 
   export interface GetBatches {
-    page?: number;
-    size?: number;
-    status?: string;
-    startDate?: string;
-    endDate?: string;
+    transactionDate: string;
+    pageNumber: number;
+    numberOfReturnedRows: number;
+    isIncremental: boolean;
+    searchBy?: string;
+    searchText?: string;
   }
 
   export interface GetBatch {
-    batchId: string;
+    batchNumber: number;
   }
 
   export interface GetBatchTransactions {
-    batchId: string;
-    page?: number;
-    size?: number;
-    status?: string;
+    batchNumber: number;
+    pageNumber: number;
+    numberOfReturnedRows: number;
+    isIncremental: boolean;
+    searchBy?: string;
+    searchText?: string;
   }
 }
 

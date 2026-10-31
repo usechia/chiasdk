@@ -184,19 +184,6 @@
 			"item": [
 				{
 					"name": "Request to Pay",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"const res = pm.response.json();",
-									"if (res.id) {",
-									"    pm.collectionVariables.set('transactionId', res.id);",
-									"}"
-								]
-							}
-						}
-					],
 					"request": {
 						"method": "POST",
 						"url": "{{baseUrl}}/onekhusa/collections",
@@ -205,7 +192,35 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"amount\": 1000,\n\t\"currency\": \"MWK\",\n\t\"phone\": \"265888123456\",\n\t\"paymentMethod\": \"MOBILE_MONEY\",\n\t\"reference\": \"TEST_001\",\n\t\"description\": \"Test collection\"\n}"
+							"raw": "{\n\t\"amount\": 1000,\n\t\"referenceNumber\": \"ORDER12345\",\n\t\"description\": \"Test collection\",\n\t\"capturedBy\": \"payments@example.com\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Direct Push",
+					"request": {
+						"method": "POST",
+						"url": "{{baseUrl}}/onekhusa/collections/direct-push",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"connectorId\": 550044,\n\t\"payerAccountNumber\": \"0999000000\",\n\t\"sourceReferenceNumber\": \"PUSH12345\",\n\t\"description\": \"Test direct push\",\n\t\"amount\": 1000,\n\t\"capturedBy\": \"payments@example.com\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Standard Checkout",
+					"request": {
+						"method": "POST",
+						"url": "{{baseUrl}}/onekhusa/checkout",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"amount\": 150,\n\t\"description\": \"Groceries purchase\",\n\t\"sourceReferenceNumber\": \"ORDER12346\",\n\t\"capturedBy\": \"payments@example.com\",\n\t\"successRedirectionUrl\": \"https://example.com/payment/success\",\n\t\"failureRedirectionUrl\": \"https://example.com/payment/failure\"\n}"
 						}
 					}
 				},

@@ -97,7 +97,8 @@ The provider isn't configured. Add the required environment variables:
     "PAWAPAY_JWT": "...",
     "ONEKHUSA_API_KEY": "...",
     "ONEKHUSA_API_SECRET": "...",
-    "ONEKHUSA_ORGANISATION_ID": "..."
+    "ONEKHUSA_ORGANISATION_ID": "...",
+    "ONEKHUSA_MERCHANT_ACCOUNT_NUMBER": "35253486"
   }
 }
 ```

@@ -145,7 +145,7 @@ export class ChiaSDK {
 				console.log("- PayChangu (requires PAYCHANGU_SECRET_KEY)");
 				console.log("- PawaPay (requires PAWAPAY_JWT)");
 				console.log(
-					"- OneKhusa (requires ONEKHUSA_API_KEY, ONEKHUSA_API_SECRET, ONEKHUSA_ORGANISATION_ID)",
+					"- OneKhusa (requires ONEKHUSA_API_KEY, ONEKHUSA_API_SECRET, ONEKHUSA_ORGANISATION_ID, ONEKHUSA_MERCHANT_ACCOUNT_NUMBER)",
 				);
 				console.log("- Custom providers (configure via providers option)");
 			} else {

@@ -37,6 +37,7 @@ const sdk = ChiaSDK.initialize({
     apiKey: "your-api-key",
     apiSecret: "your-api-secret",
     organisationId: "your-org-id",
+    merchantAccountNumber: 35253486,
     environment: ENVIRONMENTS.DEVELOPMENT
   }
 });
@@ -63,13 +64,13 @@ the full error hierarchy.
 Each provider is also available on its own namespace - `sdk.pawapay`, `sdk.paychangu`,
 `sdk.onekhusa` - for provider-specific features the unified API doesn't cover: PawaPay
 refunds, remittances and wallet balances, PayChangu hosted checkout and bank transfers,
-OneKhusa batch disbursements, and more.
+OneKhusa direct push, hosted checkout, and batch disbursements, and more.
 
 | Provider | Region | Direct-access capabilities |
 |----------|--------|--------------|
 | PayChangu | Malawi | Hosted checkout, mobile money, bank transfers |
 | PawaPay | Sub-Saharan Africa | Deposits, payouts, refunds, remittances, wallets |
-| OneKhusa | Malawi | Collections, single and batch disbursements |
+| OneKhusa | Malawi | Direct push, hosted checkout, request-to-pay, single and batch disbursements |
 
 This is the escape hatch, not a gap: reach for it when you need something specific to one
 provider. See the provider pages under Direct Provider Access for the full reference.

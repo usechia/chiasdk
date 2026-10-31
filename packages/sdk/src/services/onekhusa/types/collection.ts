@@ -26,6 +26,51 @@ export interface RequestToPayResponse {
 	expiryInMinutes: number;
 }
 
+export interface InitiateDirectPushPaymentRequest {
+	merchantAccountNumber: number;
+	connectorId: number;
+	payerAccountNumber: string;
+	sourceReferenceNumber: string;
+	transactionDescription: string;
+	transactionAmount: number;
+	capturedBy: string;
+}
+
+export interface DirectPushPaymentResponse {
+	merchantAccountNumber: number;
+	sourceReferenceNumber: string;
+	responseCode: string;
+	feeRuleCode: string;
+	transactionAmount: number;
+	totalCharges: number;
+	amountToPay: number;
+}
+
+export interface StandardCheckoutPayment {
+	merchantAccountNumber: number;
+	amount: number;
+	description: string;
+	sourceReferenceNumber: string;
+	capturedBy: string;
+}
+
+export interface StandardCheckoutRoute {
+	successRedirectionUrl: string;
+	failureRedirectionUrl: string;
+}
+
+export interface StandardCheckoutRequest {
+	payment: StandardCheckoutPayment;
+	route: StandardCheckoutRoute;
+}
+
+export interface StandardCheckoutResponse {
+	sourceReferenceNumber: string;
+	merchantAccountNumber: number;
+	paymentTransactionId: string;
+	checkoutUrl: string;
+}
+
 export type CollectionSearchBy =
 	| "TransactionReferenceNumber"
 	| "SourceCustomerName"
@@ -103,8 +148,30 @@ export interface CollectionWebhookPayload {
 	};
 }
 
+export interface PushPaymentWebhookPayload {
+	connectorId: number;
+	sourceAccountNumber?: string;
+	sourceAccountName?: string;
+	sourceInstitution: string;
+	sourceReferenceNumber?: string;
+	merchantReferenceNumber: string;
+	beneficiaryAccountNumber: string;
+	transactionReferenceNumber?: string;
+	transactionDescription: string;
+	transactionAmount: number;
+	transactionFee?: number;
+	transactionDate: string;
+	transactionStatusCode: TransactionStatusCode;
+	transactionCode?: string;
+	responseCode: string;
+	errorMessages?: string[];
+}
+
 export type CollectionWebhookEvent =
 	| "payment.success"
 	| "payment.reversed"
 	| "payrequest.success"
-	| "payrequest.reversed";
+	| "payrequest.reversed"
+	| "pushpayment.success"
+	| "pushpayment.failed"
+	| "pushpayment.reversed";

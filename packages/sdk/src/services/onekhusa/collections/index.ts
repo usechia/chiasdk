@@ -7,17 +7,68 @@ import {
 } from "../../../utils/serviceWrapper";
 import type {
 	CollectionTransaction,
+	DirectPushPaymentResponse,
 	GetCollectionTransactionRequest,
 	GetCollectionTransactionsRequest,
 	GetCollectionTransactionsResponse,
+	InitiateDirectPushPaymentRequest,
 	InitiateRequestToPayRequest,
 	RequestToPayResponse,
 	SimulateRequestToPayRequest,
 	SimulateRequestToPayResponse,
+	StandardCheckoutRequest,
+	StandardCheckoutResponse,
 } from "../types/collection";
 
 export class OneKhusaCollections {
 	constructor(private readonly network: HttpClient) {}
+
+	async initiateDirectPushPayment(
+		request: InitiateDirectPushPaymentRequest,
+		idempotencyKey?: string,
+	): Promise<ServiceResult<DirectPushPaymentResponse>> {
+		logger.info("OneKhusa: Initiating direct push payment", {
+			merchantAccountNumber: request.merchantAccountNumber,
+			connectorId: request.connectorId,
+			sourceReferenceNumber: request.sourceReferenceNumber,
+			transactionAmount: request.transactionAmount,
+		});
+
+		return wrapServiceCall(
+			() =>
+				this.network.post<DirectPushPaymentResponse>(
+					"/collections/push/direct/initiate",
+					request,
+					"initiating direct push payment",
+					idempotentConfig(idempotencyKey),
+				),
+			this.network.handleApiError.bind(this.network),
+			"initiating direct push payment",
+		);
+	}
+
+	async initiateStandardCheckout(
+		request: StandardCheckoutRequest,
+		idempotencyKey?: string,
+	): Promise<ServiceResult<StandardCheckoutResponse>> {
+		logger.info("OneKhusa: Initiating standard checkout", {
+			merchantAccountNumber: request.payment.merchantAccountNumber,
+			sourceReferenceNumber: request.payment.sourceReferenceNumber,
+			amount: request.payment.amount,
+		});
+
+		return wrapServiceCall(
+			() =>
+				this.network.post<StandardCheckoutResponse>(
+					"/checkout/push/initiate",
+					request,
+					"initiating standard checkout",
+					idempotentConfig(idempotencyKey),
+				),
+			this.network.handleApiError.bind(this.network),
+			"initiating standard checkout",
+		);
+	}
 
 	/**
 	 * Reserves a timed account number (TAN) the customer pays into. This does

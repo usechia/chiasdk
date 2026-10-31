@@ -29,6 +29,8 @@ Add the following to your Claude Desktop config file:
         "ONEKHUSA_API_KEY": "your-onekhusa-api-key",
         "ONEKHUSA_API_SECRET": "your-onekhusa-api-secret",
         "ONEKHUSA_ORGANISATION_ID": "your-organisation-id",
+        "ONEKHUSA_MERCHANT_ACCOUNT_NUMBER": "35253486",
+        "ONEKHUSA_DEFAULT_CAPTURED_BY": "payments@example.com",
         "ENVIRONMENT": "DEVELOPMENT"
       }
     }
@@ -45,6 +47,8 @@ Add the following to your Claude Desktop config file:
 | `ONEKHUSA_API_KEY` | OneKhusa | Your OneKhusa API key |
 | `ONEKHUSA_API_SECRET` | OneKhusa | Your OneKhusa API secret |
 | `ONEKHUSA_ORGANISATION_ID` | OneKhusa | Your OneKhusa organisation ID |
+| `ONEKHUSA_MERCHANT_ACCOUNT_NUMBER` | OneKhusa | Merchant account used for OneKhusa requests |
+| `ONEKHUSA_DEFAULT_CAPTURED_BY` | OneKhusa | Default operator email for collection requests |
 | `ENVIRONMENT` | All | `DEVELOPMENT` or `PRODUCTION` |
 
 :::tip
@@ -99,6 +103,8 @@ You only need to configure the providers you plan to use. Leave out the environm
         "ONEKHUSA_API_KEY": "your-api-key",
         "ONEKHUSA_API_SECRET": "your-api-secret",
         "ONEKHUSA_ORGANISATION_ID": "your-org-id",
+        "ONEKHUSA_MERCHANT_ACCOUNT_NUMBER": "35253486",
+        "ONEKHUSA_DEFAULT_CAPTURED_BY": "payments@example.com",
         "ENVIRONMENT": "DEVELOPMENT"
       }
     }

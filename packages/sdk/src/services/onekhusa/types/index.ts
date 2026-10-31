@@ -31,6 +31,13 @@ export namespace OneKhusaTypes {
 	export type InitiateRequestToPayRequest =
 		Collection.InitiateRequestToPayRequest;
 	export type RequestToPayResponse = Collection.RequestToPayResponse;
+	export type InitiateDirectPushPaymentRequest =
+		Collection.InitiateDirectPushPaymentRequest;
+	export type DirectPushPaymentResponse = Collection.DirectPushPaymentResponse;
+	export type StandardCheckoutPayment = Collection.StandardCheckoutPayment;
+	export type StandardCheckoutRoute = Collection.StandardCheckoutRoute;
+	export type StandardCheckoutRequest = Collection.StandardCheckoutRequest;
+	export type StandardCheckoutResponse = Collection.StandardCheckoutResponse;
 	export type CollectionSearchBy = Collection.CollectionSearchBy;
 	export type GetCollectionTransactionsRequest =
 		Collection.GetCollectionTransactionsRequest;
@@ -42,6 +49,7 @@ export namespace OneKhusaTypes {
 	export type SimulateRequestToPayRequest =
 		Collection.SimulateRequestToPayRequest;
 	export type CollectionWebhookPayload = Collection.CollectionWebhookPayload;
+	export type PushPaymentWebhookPayload = Collection.PushPaymentWebhookPayload;
 	export type CollectionWebhookEvent = Collection.CollectionWebhookEvent;
 
 	export type AddSingleDisbursementRequest =

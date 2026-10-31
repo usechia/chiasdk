@@ -10,7 +10,7 @@ import Version from '@site/src/components/Version';
 
 <Version pkg="mcp" />
 
-Model Context Protocol server enabling AI assistants like Claude to handle payment operations through natural language. **48 comprehensive tools**: 4 provider-agnostic unified tools plus dedicated tools for PayChangu, PawaPay, and OneKhusa.
+Model Context Protocol server enabling AI assistants like Claude to handle payment operations through natural language. **50 comprehensive tools**: 4 provider-agnostic unified tools plus dedicated tools for PayChangu, PawaPay, and OneKhusa.
 
 ## What is MCP?
 
@@ -24,7 +24,7 @@ Instead of writing code, you can simply ask:
 
 ## Features
 
-- **48 Tools** - Comprehensive coverage of all payment operations
+- **50 Tools** - Comprehensive coverage of all payment operations
 - **Unified by Default** - Provider-agnostic tools that route for you, so most tasks don't need a specific provider named
 - **Natural Language** - Interact with payments using plain English
 - **Multiple Providers** - PayChangu, PawaPay, and OneKhusa support
@@ -37,7 +37,7 @@ Instead of writing code, you can simply ask:
 | Unified | 4 | Provider-agnostic collections and payouts, routed by country and currency |
 | PayChangu | 12 | Payments, transfers, mobile money, bank payouts |
 | PawaPay | 14 | Deposits, payouts, refunds, wallets, config |
-| OneKhusa | 18 | Collections, single/batch disbursements |
+| OneKhusa | 20 | Direct push, hosted checkout, collections, single/batch disbursements |
 
 ## Quick Example
 

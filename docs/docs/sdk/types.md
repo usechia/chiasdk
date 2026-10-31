@@ -54,11 +54,13 @@ import type {
 ```typescript
 import type { OneKhusaTypes } from "@chiahq/sdk";
 
-type CollectionRequest = OneKhusaTypes.InitiateCollectionRequest;
-type CollectionResponse = OneKhusaTypes.CollectionResponse;
-type SingleDisbursementRequest = OneKhusaTypes.SingleDisbursementRequest;
+type RequestToPayRequest = OneKhusaTypes.InitiateRequestToPayRequest;
+type DirectPushRequest = OneKhusaTypes.InitiateDirectPushPaymentRequest;
+type StandardCheckoutRequest = OneKhusaTypes.StandardCheckoutRequest;
+type StandardCheckoutResponse = OneKhusaTypes.StandardCheckoutResponse;
+type SingleDisbursementRequest = OneKhusaTypes.AddSingleDisbursementRequest;
 type BatchDisbursementRequest = OneKhusaTypes.AddBatchDisbursementRequest;
-type Recipient = OneKhusaTypes.Recipient;
+type PushWebhookPayload = OneKhusaTypes.PushPaymentWebhookPayload;
 ```
 
 ## Common Types
@@ -84,6 +86,7 @@ const config: SDKConfig = {
     apiKey: "...",
     apiSecret: "...",
     organisationId: "...",
+    merchantAccountNumber: 35253486,
     environment: "DEVELOPMENT"
   },
   providers: {

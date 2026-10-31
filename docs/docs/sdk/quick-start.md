@@ -28,6 +28,7 @@ const sdk = ChiaSDK.initialize({
     apiKey: "your-onekhusa-api-key",
     apiSecret: "your-onekhusa-api-secret",
     organisationId: "your-organisation-id",
+    merchantAccountNumber: 35253486,
     environment: ENVIRONMENTS.DEVELOPMENT
   }
 });
@@ -79,18 +80,30 @@ error handling.
 
 Each provider is also available on its own namespace, for provider-specific features the
 unified API doesn't cover - PawaPay refunds and remittances, PayChangu hosted checkout and
-bank transfers, OneKhusa batch disbursements, and so on:
+bank transfers, OneKhusa direct push and hosted checkout, and so on:
 
 ```typescript
-const collection = await sdk.onekhusa.collections.initiateRequestToPay({
-  amount: 5000,
-  currency: "MWK",
-  phoneNumber: "265991234567",
-  reference: "order-789",
-  narration: "Payment for goods"
+import { isServiceError } from "@chiahq/sdk";
+
+const checkout = await sdk.onekhusa.collections.initiateStandardCheckout({
+  payment: {
+    merchantAccountNumber: sdk.onekhusa.merchantAccountNumber,
+    amount: 5000,
+    description: "Payment for goods",
+    sourceReferenceNumber: "ORDER789",
+    capturedBy: "payments@example.com"
+  },
+  route: {
+    successRedirectionUrl: "https://example.com/payment/success",
+    failureRedirectionUrl: "https://example.com/payment/failure"
+  }
 });
 
-console.log("Collection TAN:", collection.tan);
+if (isServiceError(checkout)) {
+  throw new Error(checkout.errorMessage);
+}
+
+console.log("Checkout URL:", checkout.checkoutUrl);
 ```
 
 - [PawaPay](/docs/sdk/pawapay/deposits) - direct PawaPay API reference

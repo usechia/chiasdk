@@ -1,452 +1,381 @@
 import type { OneKhusa } from "@chiahq/sdk";
 import type { ToolRegistrationFunction } from "../../types/index.js";
-import { validateEnum, validateEnumOptional, validatePhone, validateUrlOptional, validateArrayLength } from "../../utils/validation.js";
+import { validateArrayLength } from "../../utils/validation.js";
 
-const CURRENCIES = ["MWK", "USD", "ZAR", "ZMW", "TZS", "KES", "UGX"] as const;
-const PAYMENT_METHODS = ["MOBILE_MONEY", "BANK_TRANSFER"] as const;
-const BATCH_STATUSES = ["PENDING", "APPROVED", "REVIEWED", "REJECTED", "CANCELLED", "PROCESSING", "COMPLETED", "FAILED"] as const;
+function getCapturedBy(
+	args: Record<string, unknown>,
+	onekhusa: OneKhusa,
+): string {
+	const capturedBy =
+		(typeof args.capturedBy === "string" && args.capturedBy) ||
+		onekhusa.defaultCapturedBy;
+	if (!capturedBy) {
+		throw new Error(
+			"capturedBy is required unless ONEKHUSA_DEFAULT_CAPTURED_BY is configured",
+		);
+	}
+	return capturedBy;
+}
+
+function getActor(
+	args: Record<string, unknown>,
+	key: string,
+	onekhusa: OneKhusa,
+): string {
+	const actor =
+		(typeof args[key] === "string" && args[key]) || onekhusa.defaultCapturedBy;
+	if (!actor) {
+		throw new Error(
+			`${key} is required unless ONEKHUSA_DEFAULT_CAPTURED_BY is configured`,
+		);
+	}
+	return actor;
+}
 
 export function registerOneKhusaDisbursementTools(
 	registerTool: ToolRegistrationFunction,
-	onekhusa: OneKhusa
+	onekhusa: OneKhusa,
 ) {
 	registerTool(
 		"onekhusa_add_single_disbursement",
-		"Create a single disbursement (payout) to send money to a recipient.",
+		"Create a single OneKhusa disbursement for a beneficiary account.",
 		{
 			type: "object",
 			properties: {
-				amount: {
-					type: "number",
-					description: "Amount to disburse",
-				},
-				currency: {
-					type: "string",
-					description: "Currency code",
-					enum: ["MWK", "USD", "ZAR", "ZMW", "TZS", "KES", "UGX"],
-				},
-				recipientName: {
-					type: "string",
-					description: "Recipient's name",
-				},
-				recipientPhone: {
-					type: "string",
-					description: "Recipient's phone number in international format",
-				},
-				recipientEmail: {
-					type: "string",
-					description: "Recipient's email address (optional)",
-				},
-				paymentMethod: {
-					type: "string",
-					description: "Payment method",
-					enum: ["MOBILE_MONEY", "BANK_TRANSFER"],
-				},
-				reference: {
-					type: "string",
-					description: "Optional reference",
-				},
-				description: {
-					type: "string",
-					description: "Optional description",
-				},
-				callbackUrl: {
-					type: "string",
-					description: "Optional callback URL for status updates",
-				},
+				beneficiaryName: { type: "string" },
+				connectorId: { type: "number" },
+				beneficiaryAccountNumber: { type: "string" },
+				transactionDescription: { type: "string" },
+				transactionAmount: { type: "number" },
+				sourceReferenceNumber: { type: "string" },
+				capturedBy: { type: "string" },
 			},
-			required: ["amount", "currency", "recipientName", "recipientPhone", "paymentMethod"],
+			required: ["beneficiaryName", "connectorId", "beneficiaryAccountNumber"],
 		},
-		async (args) => {
-			validatePhone(args.recipientPhone, "recipientPhone");
-			const callbackUrl = validateUrlOptional(args.callbackUrl, "callbackUrl");
-			return await onekhusa.disbursements.addSingle({
-				amount: args.amount as number,
-				currency: validateEnum(args.currency, CURRENCIES, "currency"),
-				recipient: {
-					name: args.recipientName as string,
-					phone: args.recipientPhone as string,
-					email: args.recipientEmail as string | undefined,
-				},
-				paymentMethod: validateEnum(args.paymentMethod, PAYMENT_METHODS, "paymentMethod"),
-				reference: args.reference as string | undefined,
-				description: args.description as string | undefined,
-				callbackUrl,
-			});
-		}
+		async (args) =>
+			onekhusa.disbursements.addSingle({
+				merchantAccountNumber: onekhusa.merchantAccountNumber,
+				beneficiaryName: args.beneficiaryName as string,
+				connectorId: args.connectorId as number,
+				beneficiaryAccountNumber: args.beneficiaryAccountNumber as string,
+				transactionDescription: args.transactionDescription as
+					| string
+					| undefined,
+				transactionAmount: args.transactionAmount as number | undefined,
+				sourceReferenceNumber: args.sourceReferenceNumber as string | undefined,
+				capturedBy: getCapturedBy(args, onekhusa),
+			}),
 	);
 
 	registerTool(
 		"onekhusa_approve_single_disbursement",
-		"Approve a single disbursement that is pending approval.",
+		"Approve a single OneKhusa disbursement by transaction reference number.",
 		{
 			type: "object",
 			properties: {
-				disbursementId: {
-					type: "string",
-					description: "The disbursement ID to approve",
-				},
-				comment: {
-					type: "string",
-					description: "Optional approval comment",
-				},
+				transactionReferenceNumber: { type: "string" },
+				actionedBy: { type: "string" },
 			},
-			required: ["disbursementId"],
+			required: ["transactionReferenceNumber"],
 		},
-		async (args) => {
-			return await onekhusa.disbursements.approveSingle(
-				args.disbursementId as string,
-				args.comment ? { comment: args.comment as string } : undefined
-			);
-		}
+		async (args) =>
+			onekhusa.disbursements.approveSingle({
+				merchantAccountNumber: onekhusa.merchantAccountNumber,
+				transactionReferenceNumber: args.transactionReferenceNumber as string,
+				actionedBy: getActor(args, "actionedBy", onekhusa),
+			}),
 	);
 
 	registerTool(
 		"onekhusa_review_single_disbursement",
-		"Mark a single disbursement as reviewed.",
+		"Mark a single OneKhusa disbursement as reviewed.",
 		{
 			type: "object",
 			properties: {
-				disbursementId: {
-					type: "string",
-					description: "The disbursement ID to review",
-				},
-				comment: {
-					type: "string",
-					description: "Optional review comment",
-				},
+				transactionReferenceNumber: { type: "string" },
+				actionedBy: { type: "string" },
 			},
-			required: ["disbursementId"],
+			required: ["transactionReferenceNumber"],
 		},
-		async (args) => {
-			return await onekhusa.disbursements.reviewSingle(
-				args.disbursementId as string,
-				args.comment ? { comment: args.comment as string } : undefined
-			);
-		}
+		async (args) =>
+			onekhusa.disbursements.reviewSingle({
+				merchantAccountNumber: onekhusa.merchantAccountNumber,
+				transactionReferenceNumber: args.transactionReferenceNumber as string,
+				actionedBy: getActor(args, "actionedBy", onekhusa),
+			}),
 	);
 
 	registerTool(
 		"onekhusa_reject_single_disbursement",
-		"Reject a single disbursement.",
+		"Reject a single OneKhusa disbursement.",
 		{
 			type: "object",
 			properties: {
-				disbursementId: {
-					type: "string",
-					description: "The disbursement ID to reject",
-				},
-				reason: {
-					type: "string",
-					description: "Reason for rejection",
-				},
+				transactionReferenceNumber: { type: "string" },
+				reasonForRejection: { type: "string" },
+				rejectedBy: { type: "string" },
 			},
-			required: ["disbursementId", "reason"],
+			required: ["transactionReferenceNumber", "reasonForRejection"],
 		},
-		async (args) => {
-			return await onekhusa.disbursements.rejectSingle(args.disbursementId as string, {
-				reason: args.reason as string,
-			});
-		}
+		async (args) =>
+			onekhusa.disbursements.rejectSingle({
+				merchantAccountNumber: onekhusa.merchantAccountNumber,
+				transactionReferenceNumber: args.transactionReferenceNumber as string,
+				reasonForRejection: args.reasonForRejection as string,
+				rejectedBy: getActor(args, "rejectedBy", onekhusa),
+			}),
 	);
 
 	registerTool(
 		"onekhusa_get_single_disbursement",
-		"Get details of a specific single disbursement by ID.",
+		"Get a single OneKhusa disbursement by transaction reference number.",
 		{
 			type: "object",
 			properties: {
-				disbursementId: {
-					type: "string",
-					description: "The disbursement ID",
-				},
+				transactionReferenceNumber: { type: "string" },
 			},
-			required: ["disbursementId"],
+			required: ["transactionReferenceNumber"],
 		},
-		async (args) => {
-			return await onekhusa.disbursements.getSingle(args.disbursementId as string);
-		}
+		async (args) =>
+			onekhusa.disbursements.getSingleTransaction({
+				merchantAccountNumber: onekhusa.merchantAccountNumber,
+				transactionReferenceNumber: args.transactionReferenceNumber as string,
+			}),
 	);
 
 	registerTool(
 		"onekhusa_add_batch_disbursement",
-		"Create a batch disbursement with multiple recipients.",
+		"Create a OneKhusa batch disbursement from transaction entries.",
 		{
 			type: "object",
 			properties: {
-				name: {
-					type: "string",
-					description: "Batch name",
-				},
-				description: {
-					type: "string",
-					description: "Batch description (optional)",
-				},
-				items: {
+				isBatchScheduled: { type: "boolean" },
+				capturedBy: { type: "string" },
+				scheduledDate: { type: "string" },
+				transactions: {
 					type: "array",
-					description: "Array of disbursement items",
 					items: {
 						type: "object",
 						properties: {
-							amount: { type: "number" },
-							currency: { type: "string" },
-							recipientName: { type: "string" },
-							recipientPhone: { type: "string" },
-							paymentMethod: { type: "string" },
-							reference: { type: "string" },
-							description: { type: "string" },
+							beneficiaryName: { type: "string" },
+							connectorId: { type: "number" },
+							beneficiaryAccountNumber: { type: "string" },
+							transactionDescription: { type: "string" },
+							transactionAmount: { type: "number" },
+							sourceReferenceNumber: { type: "string" },
 						},
-						required: ["amount", "currency", "recipientName", "recipientPhone", "paymentMethod"],
+						required: [
+							"beneficiaryName",
+							"connectorId",
+							"beneficiaryAccountNumber",
+							"transactionDescription",
+							"transactionAmount",
+							"sourceReferenceNumber",
+						],
 					},
-				},
-				callbackUrl: {
-					type: "string",
-					description: "Optional callback URL for status updates",
 				},
 			},
-			required: ["name", "items"],
+			required: ["isBatchScheduled", "transactions"],
 		},
 		async (args) => {
-			const rawItems = validateArrayLength(args.items, "items", 100) as Record<string, unknown>[];
-			const callbackUrl = validateUrlOptional(args.callbackUrl, "callbackUrl");
-			const items = rawItems.map((item) => {
-				validatePhone(item.recipientPhone, "recipientPhone");
-				return {
-					amount: item.amount as number,
-					currency: validateEnum(item.currency, CURRENCIES, "currency"),
-					recipient: {
-						name: item.recipientName as string,
-						phone: item.recipientPhone as string,
-					},
-					paymentMethod: validateEnum(item.paymentMethod, PAYMENT_METHODS, "paymentMethod"),
-					reference: item.reference as string | undefined,
-					description: item.description as string | undefined,
-				};
+			const transactions = validateArrayLength(
+				args.transactions,
+				"transactions",
+				100,
+			) as Record<string, unknown>[];
+			return onekhusa.disbursements.addBatchJson({
+				header: {
+					merchantAccountNumber: onekhusa.merchantAccountNumber,
+					isBatchScheduled: args.isBatchScheduled as boolean,
+					capturedBy: getCapturedBy(args, onekhusa),
+					scheduledDate: args.scheduledDate as string | undefined,
+				},
+				transactions: transactions.map((transaction) => ({
+					beneficiaryName: transaction.beneficiaryName as string,
+					connectorId: transaction.connectorId as number,
+					beneficiaryAccountNumber:
+						transaction.beneficiaryAccountNumber as string,
+					transactionDescription: transaction.transactionDescription as string,
+					transactionAmount: transaction.transactionAmount as number,
+					sourceReferenceNumber: transaction.sourceReferenceNumber as string,
+				})),
 			});
-
-			return await onekhusa.disbursements.addBatch({
-				name: args.name as string,
-				description: args.description as string | undefined,
-				items,
-				callbackUrl,
-			});
-		}
+		},
 	);
 
 	registerTool(
 		"onekhusa_approve_batch",
-		"Approve a batch disbursement.",
+		"Approve a OneKhusa disbursement batch.",
 		{
 			type: "object",
 			properties: {
-				batchId: {
-					type: "string",
-					description: "The batch ID to approve",
-				},
-				comment: {
-					type: "string",
-					description: "Optional approval comment",
-				},
+				batchNumber: { type: "number" },
+				actionedBy: { type: "string" },
 			},
-			required: ["batchId"],
+			required: ["batchNumber"],
 		},
-		async (args) => {
-			return await onekhusa.disbursements.approveBatch(
-				args.batchId as string,
-				args.comment ? { comment: args.comment as string } : undefined
-			);
-		}
+		async (args) =>
+			onekhusa.disbursements.approveBatch({
+				merchantAccountNumber: onekhusa.merchantAccountNumber,
+				batchNumber: args.batchNumber as number,
+				actionedBy: getActor(args, "actionedBy", onekhusa),
+			}),
 	);
 
 	registerTool(
 		"onekhusa_review_batch",
-		"Mark a batch disbursement as reviewed.",
+		"Mark a OneKhusa disbursement batch as reviewed.",
 		{
 			type: "object",
 			properties: {
-				batchId: {
-					type: "string",
-					description: "The batch ID to review",
-				},
-				comment: {
-					type: "string",
-					description: "Optional review comment",
-				},
+				batchNumber: { type: "number" },
+				actionedBy: { type: "string" },
 			},
-			required: ["batchId"],
+			required: ["batchNumber"],
 		},
-		async (args) => {
-			return await onekhusa.disbursements.reviewBatch(
-				args.batchId as string,
-				args.comment ? { comment: args.comment as string } : undefined
-			);
-		}
+		async (args) =>
+			onekhusa.disbursements.reviewBatch({
+				merchantAccountNumber: onekhusa.merchantAccountNumber,
+				batchNumber: args.batchNumber as number,
+				actionedBy: getActor(args, "actionedBy", onekhusa),
+			}),
 	);
 
 	registerTool(
 		"onekhusa_reject_batch",
-		"Reject a batch disbursement.",
+		"Reject a OneKhusa disbursement batch.",
 		{
 			type: "object",
 			properties: {
-				batchId: {
-					type: "string",
-					description: "The batch ID to reject",
-				},
-				reason: {
-					type: "string",
-					description: "Reason for rejection",
-				},
+				reasonForRejection: { type: "string" },
+				rejectedBy: { type: "string" },
+				headerId: { type: "number" },
 			},
-			required: ["batchId", "reason"],
+			required: ["reasonForRejection"],
 		},
-		async (args) => {
-			return await onekhusa.disbursements.rejectBatch(args.batchId as string, {
-				reason: args.reason as string,
-			});
-		}
+		async (args) =>
+			onekhusa.disbursements.rejectBatch({
+				merchantAccountNumber: onekhusa.merchantAccountNumber,
+				reasonForRejection: args.reasonForRejection as string,
+				rejectedBy: getActor(args, "rejectedBy", onekhusa),
+				headerId: args.headerId as number | undefined,
+			}),
 	);
 
 	registerTool(
 		"onekhusa_cancel_batch",
-		"Cancel a batch disbursement.",
+		"Cancel a pending OneKhusa disbursement batch.",
 		{
 			type: "object",
 			properties: {
-				batchId: {
-					type: "string",
-					description: "The batch ID to cancel",
-				},
-				reason: {
-					type: "string",
-					description: "Optional cancellation reason",
-				},
+				cancelledBy: { type: "string" },
+				batchNumber: { type: "number" },
 			},
-			required: ["batchId"],
+			required: [],
 		},
-		async (args) => {
-			return await onekhusa.disbursements.cancelBatch(
-				args.batchId as string,
-				args.reason ? { reason: args.reason as string } : undefined
-			);
-		}
+		async (args) =>
+			onekhusa.disbursements.cancelBatch({
+				merchantAccountNumber: onekhusa.merchantAccountNumber,
+				cancelledBy: getActor(args, "cancelledBy", onekhusa),
+				batchNumber: args.batchNumber as number | undefined,
+			}),
 	);
 
 	registerTool(
 		"onekhusa_transfer_batch_funds",
-		"Transfer funds for an approved batch disbursement.",
+		"Transfer funds for an approved OneKhusa disbursement batch.",
 		{
 			type: "object",
 			properties: {
-				batchId: {
-					type: "string",
-					description: "The batch ID to transfer funds for",
-				},
-				sourceAccount: {
-					type: "string",
-					description: "Optional source account identifier",
-				},
+				batchNumber: { type: "number" },
+				transferredBy: { type: "string" },
 			},
-			required: ["batchId"],
+			required: ["batchNumber"],
 		},
-		async (args) => {
-			return await onekhusa.disbursements.transferBatchFunds(
-				args.batchId as string,
-				args.sourceAccount ? { sourceAccount: args.sourceAccount as string } : undefined
-			);
-		}
+		async (args) =>
+			onekhusa.disbursements.transferBatchFunds({
+				merchantAccountNumber: onekhusa.merchantAccountNumber,
+				batchNumber: args.batchNumber as number,
+				transferredBy: getActor(args, "transferredBy", onekhusa),
+			}),
 	);
 
 	registerTool(
 		"onekhusa_get_batches",
-		"Get a paginated list of batch disbursements with optional filters.",
+		"Get OneKhusa disbursement batches for a date and page.",
 		{
 			type: "object",
 			properties: {
-				page: {
-					type: "number",
-					description: "Page number (0-indexed)",
-				},
-				size: {
-					type: "number",
-					description: "Number of items per page",
-				},
-				status: {
-					type: "string",
-					description: "Filter by status",
-					enum: ["PENDING", "APPROVED", "REVIEWED", "REJECTED", "CANCELLED", "PROCESSING", "COMPLETED", "FAILED"],
-				},
-				startDate: {
-					type: "string",
-					description: "Filter by start date (ISO format)",
-				},
-				endDate: {
-					type: "string",
-					description: "Filter by end date (ISO format)",
-				},
+				transactionDate: { type: "string" },
+				pageNumber: { type: "number" },
+				numberOfReturnedRows: { type: "number" },
+				isIncremental: { type: "boolean" },
+				searchBy: { type: "string" },
+				searchText: { type: "string" },
 			},
+			required: [
+				"transactionDate",
+				"pageNumber",
+				"numberOfReturnedRows",
+				"isIncremental",
+			],
 		},
-		async (args) => {
-			return await onekhusa.disbursements.getBatches({
-				page: args.page as number | undefined,
-				size: args.size as number | undefined,
-				status: validateEnumOptional(args.status, BATCH_STATUSES, "status"),
-				startDate: args.startDate as string | undefined,
-				endDate: args.endDate as string | undefined,
-			});
-		}
+		async (args) =>
+			onekhusa.disbursements.getBatches({
+				merchantAccountNumber: onekhusa.merchantAccountNumber,
+				transactionDate: args.transactionDate as string,
+				pageNumber: args.pageNumber as number,
+				numberOfReturnedRows: args.numberOfReturnedRows as number,
+				isIncremental: args.isIncremental as boolean,
+				searchBy: args.searchBy as string | undefined,
+				searchText: args.searchText as string | undefined,
+			}),
 	);
 
 	registerTool(
 		"onekhusa_get_batch",
-		"Get details of a specific batch disbursement by ID.",
+		"Get a OneKhusa disbursement batch by batch number.",
 		{
 			type: "object",
-			properties: {
-				batchId: {
-					type: "string",
-					description: "The batch ID",
-				},
-			},
-			required: ["batchId"],
+			properties: { batchNumber: { type: "number" } },
+			required: ["batchNumber"],
 		},
-		async (args) => {
-			return await onekhusa.disbursements.getBatch(args.batchId as string);
-		}
+		async (args) =>
+			onekhusa.disbursements.getBatch({
+				merchantAccountNumber: onekhusa.merchantAccountNumber,
+				batchNumber: args.batchNumber as number,
+			}),
 	);
 
 	registerTool(
 		"onekhusa_get_batch_transactions",
-		"Get transactions within a specific batch.",
+		"List transactions in a OneKhusa disbursement batch.",
 		{
 			type: "object",
 			properties: {
-				batchId: {
-					type: "string",
-					description: "The batch ID",
-				},
-				page: {
-					type: "number",
-					description: "Page number (0-indexed)",
-				},
-				size: {
-					type: "number",
-					description: "Number of items per page",
-				},
-				status: {
-					type: "string",
-					description: "Filter by status",
-					enum: ["PENDING", "APPROVED", "REVIEWED", "REJECTED", "CANCELLED", "PROCESSING", "COMPLETED", "FAILED"],
-				},
+				batchNumber: { type: "number" },
+				pageNumber: { type: "number" },
+				numberOfReturnedRows: { type: "number" },
+				isIncremental: { type: "boolean" },
+				searchBy: { type: "string" },
+				searchText: { type: "string" },
 			},
-			required: ["batchId"],
+			required: [
+				"batchNumber",
+				"pageNumber",
+				"numberOfReturnedRows",
+				"isIncremental",
+			],
 		},
-		async (args) => {
-			return await onekhusa.disbursements.getBatchTransactions(args.batchId as string, {
-				page: args.page as number | undefined,
-				size: args.size as number | undefined,
-				status: validateEnumOptional(args.status, BATCH_STATUSES, "status"),
-			});
-		}
+		async (args) =>
+			onekhusa.disbursements.getBatchTransactions({
+				merchantAccountNumber: onekhusa.merchantAccountNumber,
+				batchNumber: args.batchNumber as number,
+				pageNumber: args.pageNumber as number,
+				numberOfReturnedRows: args.numberOfReturnedRows as number,
+				isIncremental: args.isIncremental as boolean,
+				searchBy: args.searchBy as string | undefined,
+				searchText: args.searchText as string | undefined,
+			}),
 	);
 }

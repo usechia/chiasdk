@@ -30,7 +30,10 @@ import { registerOneKhusaDisbursementTools } from "./tools/onekhusa/disbursement
 import { registerOneKhusaConfigTools } from "./tools/onekhusa/config.js";
 import { registerUnifiedTools } from "./tools/unified.js";
 
-import { validateEnvironment, sanitizeErrorMessage } from "./utils/validation.js";
+import {
+	validateEnvironment,
+	sanitizeErrorMessage,
+} from "./utils/validation.js";
 
 // Environment configuration
 const PAYCHANGU_SECRET_KEY = process.env.PAYCHANGU_SECRET_KEY;
@@ -38,12 +41,18 @@ const PAWAPAY_JWT = process.env.PAWAPAY_JWT;
 const ONEKHUSA_API_KEY = process.env.ONEKHUSA_API_KEY;
 const ONEKHUSA_API_SECRET = process.env.ONEKHUSA_API_SECRET;
 const ONEKHUSA_ORGANISATION_ID = process.env.ONEKHUSA_ORGANISATION_ID;
+const ONEKHUSA_MERCHANT_ACCOUNT_NUMBER = Number(
+	process.env.ONEKHUSA_MERCHANT_ACCOUNT_NUMBER,
+);
+const ONEKHUSA_DEFAULT_CAPTURED_BY = process.env.ONEKHUSA_DEFAULT_CAPTURED_BY;
 
 let ENVIRONMENT: "PRODUCTION" | "DEVELOPMENT";
 try {
 	ENVIRONMENT = validateEnvironment(process.env.ENVIRONMENT || "DEVELOPMENT");
 } catch {
-	console.error("Invalid ENVIRONMENT value. Must be PRODUCTION or DEVELOPMENT.");
+	console.error(
+		"Invalid ENVIRONMENT value. Must be PRODUCTION or DEVELOPMENT.",
+	);
 	process.exit(1);
 }
 
@@ -56,22 +65,30 @@ try {
 			? {
 					secretKey: PAYCHANGU_SECRET_KEY,
 					environment: ENVIRONMENT,
-			  }
+				}
 			: undefined,
 		pawapay: PAWAPAY_JWT
 			? {
 					jwt: PAWAPAY_JWT,
 					environment: ENVIRONMENT,
-			  }
+				}
 			: undefined,
-		onekhusa: ONEKHUSA_API_KEY && ONEKHUSA_API_SECRET && ONEKHUSA_ORGANISATION_ID
-			? {
-					apiKey: ONEKHUSA_API_KEY,
-					apiSecret: ONEKHUSA_API_SECRET,
-					organisationId: ONEKHUSA_ORGANISATION_ID,
-					environment: ENVIRONMENT,
-			  }
-			: undefined,
+		onekhusa:
+			ONEKHUSA_API_KEY &&
+			ONEKHUSA_API_SECRET &&
+			ONEKHUSA_ORGANISATION_ID &&
+			Number.isInteger(ONEKHUSA_MERCHANT_ACCOUNT_NUMBER) &&
+			ONEKHUSA_MERCHANT_ACCOUNT_NUMBER >= 10000000 &&
+			ONEKHUSA_MERCHANT_ACCOUNT_NUMBER <= 99999999
+				? {
+						apiKey: ONEKHUSA_API_KEY,
+						apiSecret: ONEKHUSA_API_SECRET,
+						organisationId: ONEKHUSA_ORGANISATION_ID,
+						merchantAccountNumber: ONEKHUSA_MERCHANT_ACCOUNT_NUMBER,
+						defaultCapturedBy: ONEKHUSA_DEFAULT_CAPTURED_BY,
+						environment: ENVIRONMENT,
+					}
+				: undefined,
 	});
 } catch (error) {
 	console.error("Failed to initialize Chia SDK:", sanitizeErrorMessage(error));

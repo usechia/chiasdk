@@ -8,7 +8,7 @@ Working examples showing how to use Chia for subscription billing over mobile mo
 |---------|-------------|---------------|
 | **[platform-subscribe](./platform-subscribe/)** | Most users | The full subscribe flow via Chia's managed platform. Sign up, create plans, collect payments - Chia handles billing, renewals, and payouts. |
 | **[widget-basic](./widget-basic/)** | Frontend developers | Embed a subscribe widget on your website with a single script tag. No backend needed. |
-| **[sdk-direct](./sdk-direct/)** | Developers with their own provider accounts | Direct access to PayChangu, PawaPay, and OneKhusa APIs via the SDK. Collections, payouts, status checks. |
+| **[sdk-direct](./sdk-direct/)** | Developers with their own provider accounts | Direct access to PayChangu, PawaPay, and OneKhusa APIs via the SDK, including OneKhusa direct push and hosted checkout. |
 | **[basic-usage](./basic-usage/)** | SDK reference | Hono server with endpoints for each provider operation. Good for understanding the raw SDK API. |
 
 ## Getting started
