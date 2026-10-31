@@ -35,6 +35,7 @@ const sdk = ChiaSDK.initialize({
     apiKey: "your-api-key",
     apiSecret: "your-api-secret",
     organisationId: "your-organisation-id",
+    merchantAccountNumber: 35253486,
     environment: ENVIRONMENTS.DEVELOPMENT
   }
 });
@@ -62,6 +63,7 @@ PAWAPAY_ENVIRONMENT=DEVELOPMENT
 ONEKHUSA_API_KEY=your-onekhusa-api-key
 ONEKHUSA_API_SECRET=your-onekhusa-api-secret
 ONEKHUSA_ORGANISATION_ID=your-organisation-id
+ONEKHUSA_MERCHANT_ACCOUNT_NUMBER=35253486
 ONEKHUSA_ENVIRONMENT=DEVELOPMENT
 
 # Chia platform - enables automatic provider routing and sdk.platform.*
@@ -110,6 +112,7 @@ const sdk = ChiaSDK.initialize({
     apiKey: "your-api-key",
     apiSecret: "your-api-secret",
     organisationId: "your-organisation-id",
+    merchantAccountNumber: 35253486,
     environment: ENVIRONMENTS.DEVELOPMENT,
     sandboxUrl: "https://custom-sandbox.onekhusa.com/v1",
     productionUrl: "https://custom-prod.onekhusa.com/v1"
@@ -121,8 +124,8 @@ const sdk = ChiaSDK.initialize({
 Both `sandboxUrl` and `productionUrl` are optional. If not provided, the SDK uses the default provider URLs. The URL used depends on the `environment` setting.
 :::
 
-:::note OneKhusa OAuth
-For OneKhusa, the SDK automatically appends `/oauth/token` to custom URLs for authentication endpoints.
+:::note OneKhusa token scope
+OneKhusa access tokens are scoped to a merchant account. Configure the merchant account number used for the token and collection requests.
 :::
 
 ## Selective Provider Configuration
@@ -149,6 +152,7 @@ const multiProvider = ChiaSDK.initialize({
     apiKey: process.env.ONEKHUSA_API_KEY || "",
     apiSecret: process.env.ONEKHUSA_API_SECRET || "",
     organisationId: process.env.ONEKHUSA_ORGANISATION_ID || "",
+    merchantAccountNumber: Number(process.env.ONEKHUSA_MERCHANT_ACCOUNT_NUMBER),
     environment: ENVIRONMENTS.PRODUCTION
   }
 });

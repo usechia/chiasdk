@@ -6,6 +6,7 @@
     "collect:paychangu": "tsx src/collect-paychangu.ts",
     "collect:pawapay": "tsx src/collect-pawapay.ts",
     "collect:onekhusa": "tsx src/collect-onekhusa.ts",
+    "checkout:onekhusa": "tsx src/checkout-onekhusa.ts",
     "payout:paychangu": "tsx src/payout-paychangu.ts",
     "payout:pawapay": "tsx src/payout-pawapay.ts",
     "all-providers": "tsx src/all-providers.ts"

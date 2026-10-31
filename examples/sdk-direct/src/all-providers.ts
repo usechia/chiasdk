@@ -58,15 +58,15 @@ async function demoPayChangu() {
   const collectChargeId = `pc-collect-${Date.now()}`;
 
   const collectResult = await sdk.paychangu.initializeMobileMoneyCollection(
-    "0888800000",         // Customer's Airtel Malawi number
-    "airtel-malawi-ref",  // Mobile money operator reference ID
-    500,                  // MWK 500
+    "0888800000", // Customer's Airtel Malawi number
+    "airtel-malawi-ref", // Mobile money operator reference ID
+    500, // MWK 500
     collectChargeId,
     {
       firstName: "Chimwemwe",
       lastName: "Mwale",
       email: "chimwemwe@example.com",
-      transactionStatus: "successful",  // Sandbox: simulate success
+      transactionStatus: "successful", // Sandbox: simulate success
     },
   );
 
@@ -74,8 +74,12 @@ async function demoPayChangu() {
     console.log(`  Error: ${collectResult.payload.ErrorMessage}`);
   } else {
     console.log(`  Charge ID: ${collectChargeId}`);
-    console.log(`  Status: ${collectResult.payload.PaymentDetails?.status || "initiated"}`);
-    console.log(`  Details: ${JSON.stringify(collectResult.payload.PaymentDetails, null, 2)}`);
+    console.log(
+      `  Status: ${collectResult.payload.PaymentDetails?.status || "initiated"}`,
+    );
+    console.log(
+      `  Details: ${JSON.stringify(collectResult.payload.PaymentDetails, null, 2)}`,
+    );
   }
   console.log();
 
@@ -83,12 +87,15 @@ async function demoPayChangu() {
 
   step(2, "Verify: verifyMobileMoneyPayment");
 
-  const verifyResult = await sdk.paychangu.verifyMobileMoneyPayment(collectChargeId);
+  const verifyResult =
+    await sdk.paychangu.verifyMobileMoneyPayment(collectChargeId);
 
   if (verifyResult.payload.HasError) {
     console.log(`  Error: ${verifyResult.payload.ErrorMessage}`);
   } else {
-    console.log(`  Verified status: ${verifyResult.payload.PaymentDetails?.status || "unknown"}`);
+    console.log(
+      `  Verified status: ${verifyResult.payload.PaymentDetails?.status || "unknown"}`,
+    );
   }
   console.log();
 
@@ -101,9 +108,9 @@ async function demoPayChangu() {
   const payoutChargeId = `pc-payout-${Date.now()}`;
 
   const payoutResult = await sdk.paychangu.initializeMobileMoneyPayout(
-    "0999100200",       // Recipient's TNM Mpamba number
-    "tnm-malawi-ref",   // Mobile money operator reference ID
-    1000,               // MWK 1000
+    "0999100200", // Recipient's TNM Mpamba number
+    "tnm-malawi-ref", // Mobile money operator reference ID
+    1000, // MWK 1000
     payoutChargeId,
     {
       firstName: "Grace",
@@ -116,7 +123,9 @@ async function demoPayChangu() {
     console.log(`  Error: ${payoutResult.payload.ErrorMessage}`);
   } else {
     console.log(`  Charge ID: ${payoutChargeId}`);
-    console.log(`  Details: ${JSON.stringify(payoutResult.payload.PayoutDetails, null, 2)}`);
+    console.log(
+      `  Details: ${JSON.stringify(payoutResult.payload.PayoutDetails, null, 2)}`,
+    );
   }
 }
 
@@ -149,7 +158,9 @@ async function demoPawaPay() {
   const availability = await sdk.pawapay.getAvailability();
 
   if ("errorMessage" in availability) {
-    console.log(`  Error: ${(availability as { errorMessage: string }).errorMessage}`);
+    console.log(
+      `  Error: ${(availability as { errorMessage: string }).errorMessage}`,
+    );
   } else {
     const countries = availability as PawaPayTypes.CountryAvailability[];
     console.log(`  ${countries.length} countries available`);
@@ -174,7 +185,9 @@ async function demoPawaPay() {
   const prediction = await sdk.pawapay.predictProvider(phoneNumber);
 
   if ("errorMessage" in prediction) {
-    console.log(`  Error: ${(prediction as { errorMessage: string }).errorMessage}`);
+    console.log(
+      `  Error: ${(prediction as { errorMessage: string }).errorMessage}`,
+    );
     return;
   }
 
@@ -207,7 +220,9 @@ async function demoPawaPay() {
   const depositResult = await sdk.pawapay.deposits.sendDeposit(depositRequest);
 
   if (isServiceError(depositResult)) {
-    console.log(`  Error: ${depositResult.errorMessage} (${depositResult.statusCode})`);
+    console.log(
+      `  Error: ${depositResult.errorMessage} (${depositResult.statusCode})`,
+    );
   } else {
     console.log(`  Deposit ID: ${depositResult.depositId}`);
     console.log(`  Status: ${depositResult.status}`);
@@ -229,7 +244,9 @@ async function demoPawaPay() {
     console.log(`  Deposit ID: ${depositStatus.depositId}`);
     console.log(`  Status: ${depositStatus.status}`);
     if (depositStatus.amount) {
-      console.log(`  Amount: ${depositStatus.amount} ${depositStatus.currency}`);
+      console.log(
+        `  Amount: ${depositStatus.amount} ${depositStatus.currency}`,
+      );
     }
   }
   console.log();
@@ -258,7 +275,9 @@ async function demoPawaPay() {
   const payoutResult = await sdk.pawapay.payouts.sendPayout(payoutRequest);
 
   if (isServiceError(payoutResult)) {
-    console.log(`  Error: ${payoutResult.errorMessage} (${payoutResult.statusCode})`);
+    console.log(
+      `  Error: ${payoutResult.errorMessage} (${payoutResult.statusCode})`,
+    );
   } else {
     console.log(`  Payout ID: ${payoutResult.payoutId}`);
     console.log(`  Status: ${payoutResult.status}`);
@@ -272,13 +291,24 @@ async function demoPawaPay() {
 async function demoOneKhusa() {
   separator("OneKhusa (Malawi - MWK)");
 
+  const merchantAccountNumber = Number(
+    process.env.ONEKHUSA_MERCHANT_ACCOUNT_NUMBER,
+  );
+  const connectorId = Number(process.env.ONEKHUSA_CONNECTOR_ID);
+  const capturedBy = process.env.ONEKHUSA_CAPTURED_BY;
+
   if (
     !process.env.ONEKHUSA_API_KEY ||
     !process.env.ONEKHUSA_API_SECRET ||
-    !process.env.ONEKHUSA_ORGANISATION_ID
+    !process.env.ONEKHUSA_ORGANISATION_ID ||
+    !Number.isInteger(merchantAccountNumber) ||
+    !Number.isInteger(connectorId) ||
+    !capturedBy
   ) {
     console.log("  Skipped - OneKhusa credentials not set\n");
-    console.log("  Required: ONEKHUSA_API_KEY, ONEKHUSA_API_SECRET, ONEKHUSA_ORGANISATION_ID");
+    console.log(
+      "  Required: OneKhusa API credentials, merchant account number, connector ID, and captured-by email",
+    );
     return;
   }
 
@@ -287,130 +317,88 @@ async function demoOneKhusa() {
       apiKey: process.env.ONEKHUSA_API_KEY,
       apiSecret: process.env.ONEKHUSA_API_SECRET,
       organisationId: process.env.ONEKHUSA_ORGANISATION_ID,
+      merchantAccountNumber,
+      defaultCapturedBy: capturedBy,
       environment: "DEVELOPMENT",
     },
   });
-
-  // --- Health check ---
 
   step(1, "Check status");
 
   const status = await sdk.onekhusa.checkStatus();
 
-  if ("errorMessage" in status) {
-    console.log(`  Error: ${(status as { errorMessage: string }).errorMessage}`);
+  if (!status.available) {
+    console.log(`  Error: ${status.error || "OneKhusa is unavailable"}`);
     return;
   }
 
-  const healthStatus = status as { available: boolean; environment: string };
-  console.log(`  Available: ${healthStatus.available}`);
-  console.log(`  Environment: ${healthStatus.environment}`);
+  console.log(`  Available: ${status.available}`);
+  console.log(`  Environment: ${status.environment}`);
   console.log();
 
-  // --- Collection ---
+  step(2, "Collect: collections.initiateDirectPushPayment");
 
-  step(2, "Collect: collections.initiateRequestToPay");
-
-  // OneKhusa sends a request-to-pay to the customer's phone.
-  // The customer sees a USSD prompt and approves with their PIN.
-  const collectionResult = await sdk.onekhusa.collections.initiateRequestToPay({
-    amount: 1000,
-    currency: "MWK",
-    phone: "+265888123456",
-    paymentMethod: "MOBILE_MONEY",
-    reference: `order-${Date.now()}`,
-    description: "Monthly subscription payment",
-    callbackUrl: "https://your-server.com/webhooks/onekhusa",
-    metadata: {
-      orderId: "12345",
-      planId: "premium",
-    },
-  });
+  const collectionResult =
+    await sdk.onekhusa.collections.initiateDirectPushPayment({
+      merchantAccountNumber,
+      connectorId,
+      payerAccountNumber:
+        process.env.ONEKHUSA_PAYER_ACCOUNT_NUMBER || "+265888123456",
+      sourceReferenceNumber: `ORDER${Date.now()}`,
+      transactionDescription: "Payment for order 12345",
+      transactionAmount: 1000,
+      capturedBy,
+    });
 
   if (isServiceError(collectionResult)) {
-    console.log(`  Error: ${collectionResult.errorMessage} (${collectionResult.statusCode})`);
+    console.log(
+      `  Error: ${collectionResult.errorMessage} (${collectionResult.statusCode})`,
+    );
   } else {
-    console.log(`  Transaction ID: ${collectionResult.id}`);
-    console.log(`  TAN: ${collectionResult.tan}`);
-    console.log(`  Status: ${collectionResult.status}`);
-    console.log(`  Amount: ${collectionResult.amount} ${collectionResult.currency}`);
+    console.log(`  Response code: ${collectionResult.responseCode}`);
+    console.log(`  Amount to pay: ${collectionResult.amountToPay}`);
   }
   console.log();
 
-  // --- Check collection status ---
-
-  step(3, "Check: collections.getTransaction");
-
-  if (!isServiceError(collectionResult)) {
-    const txResult = await sdk.onekhusa.collections.getTransaction(collectionResult.id);
-
-    if (isServiceError(txResult)) {
-      console.log(`  Error: ${txResult.errorMessage}`);
-    } else {
-      console.log(`  Transaction ID: ${txResult.id}`);
-      console.log(`  Status: ${txResult.status}`);
-      if (txResult.completedAt) {
-        console.log(`  Completed: ${txResult.completedAt}`);
-      }
-    }
-  }
-  console.log();
-
-  // --- Disbursement (payout) ---
-
-  step(4, "Disburse: disbursements.addSingle + approveSingle");
-
-  // OneKhusa disbursements use a two-step process:
-  //   1. addSingle - creates the disbursement in PENDING state
-  //   2. approveSingle - approves it for processing
-  //
-  // This allows for review workflows where a different user approves payments.
-  // For automated payouts, call both steps back-to-back.
+  step(3, "Disburse: disbursements.addSingle + approveSingle");
 
   const disbursementResult = await sdk.onekhusa.disbursements.addSingle({
-    amount: 2000,
-    currency: "MWK",
-    recipient: {
-      name: "James Kamanga",
-      phone: "+265999876543",     // TNM Mpamba number
-      email: "james.k@example.com",
-    },
-    paymentMethod: "MOBILE_MONEY",
-    reference: `payout-${Date.now()}`,
-    description: "Freelancer payment - March invoice",
-    callbackUrl: "https://your-server.com/webhooks/onekhusa",
-    metadata: {
-      invoiceId: "INV-2024-0042",
-    },
+    merchantAccountNumber,
+    beneficiaryName: "James Kamanga",
+    connectorId,
+    beneficiaryAccountNumber:
+      process.env.ONEKHUSA_PAYOUT_ACCOUNT_NUMBER || "+265999876543",
+    transactionAmount: 2000,
+    transactionDescription: "Freelancer payment",
+    sourceReferenceNumber: `PAYOUT${Date.now()}`,
+    capturedBy,
   });
 
   if (isServiceError(disbursementResult)) {
-    console.log(`  Error creating disbursement: ${disbursementResult.errorMessage}`);
+    console.log(
+      `  Error creating disbursement: ${disbursementResult.errorMessage}`,
+    );
     return;
   }
 
-  console.log(`  Disbursement ID: ${disbursementResult.id}`);
-  console.log(`  Status: ${disbursementResult.status}`);
-  console.log(`  Amount: ${disbursementResult.amount} ${disbursementResult.currency}`);
-  console.log(`  Recipient: ${disbursementResult.recipient.name} (${disbursementResult.recipient.phone})`);
+  console.log(
+    `  Transaction reference: ${disbursementResult.transactionReferenceNumber}`,
+  );
+  console.log(`  Response code: ${disbursementResult.responseCode}`);
   console.log();
 
-  // Now approve it to trigger the actual payout.
   console.log("  Approving disbursement...\n");
 
-  const approvalResult = await sdk.onekhusa.disbursements.approveSingle(
-    disbursementResult.id,
-    { comment: "Approved - verified invoice" },
-  );
+  const approvalResult = await sdk.onekhusa.disbursements.approveSingle({
+    merchantAccountNumber,
+    transactionReferenceNumber: disbursementResult.transactionReferenceNumber,
+    actionedBy: capturedBy,
+  });
 
   if (isServiceError(approvalResult)) {
     console.log(`  Error approving: ${approvalResult.errorMessage}`);
   } else {
-    console.log(`  Disbursement ID: ${approvalResult.id}`);
-    console.log(`  Status: ${approvalResult.status}`);
-    if (approvalResult.approvedAt) {
-      console.log(`  Approved at: ${approvalResult.approvedAt}`);
-    }
+    console.log(`  Response code: ${approvalResult.responseCode}`);
   }
 }
 
@@ -421,13 +409,23 @@ async function demoOneKhusa() {
 async function main() {
   console.log("=== Chia SDK - Direct Provider Access ===");
   console.log();
-  console.log("This example shows how to use each provider directly via the SDK.");
-  console.log("For managed billing (recommended), see the platform-subscribe example.");
+  console.log(
+    "This example shows how to use each provider directly via the SDK.",
+  );
+  console.log(
+    "For managed billing (recommended), see the platform-subscribe example.",
+  );
   console.log();
   console.log("Providers configured:");
-  console.log(`  PayChangu: ${process.env.PAYCHANGU_SECRET_KEY ? "yes" : "no (set PAYCHANGU_SECRET_KEY)"}`);
-  console.log(`  PawaPay:   ${process.env.PAWAPAY_JWT ? "yes" : "no (set PAWAPAY_JWT)"}`);
-  console.log(`  OneKhusa:  ${process.env.ONEKHUSA_API_KEY ? "yes" : "no (set ONEKHUSA_API_KEY + API_SECRET + ORGANISATION_ID)"}`);
+  console.log(
+    `  PayChangu: ${process.env.PAYCHANGU_SECRET_KEY ? "yes" : "no (set PAYCHANGU_SECRET_KEY)"}`,
+  );
+  console.log(
+    `  PawaPay:   ${process.env.PAWAPAY_JWT ? "yes" : "no (set PAWAPAY_JWT)"}`,
+  );
+  console.log(
+    `  OneKhusa:  ${process.env.ONEKHUSA_API_KEY ? "yes" : "no (configure all required ONEKHUSA variables)"}`,
+  );
 
   await demoPayChangu();
   await demoPawaPay();
@@ -438,7 +436,7 @@ async function main() {
   console.log("See the individual scripts for more detailed examples:");
   console.log("  pnpm collect:paychangu   pnpm payout:paychangu");
   console.log("  pnpm collect:pawapay     pnpm payout:pawapay");
-  console.log("  pnpm collect:onekhusa");
+  console.log("  pnpm collect:onekhusa   pnpm checkout:onekhusa");
   console.log();
 }
 

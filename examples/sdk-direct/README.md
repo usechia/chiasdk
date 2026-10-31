@@ -10,7 +10,7 @@ You need API credentials from at least one provider:
 
 - **PayChangu**: A secret key from [paychangu.com](https://paychangu.com)
 - **PawaPay**: A JWT token from [pawapay.io](https://pawapay.io)
-- **OneKhusa**: An API key, API secret, and organisation ID from [onekhusa.com](https://onekhusa.com)
+- **OneKhusa**: API credentials, merchant account number, and captured-by email from [onekhusa.com](https://onekhusa.com)
 
 ## Setup
 
@@ -32,7 +32,8 @@ Each script targets a specific provider and operation:
 # Collections (receiving money from customers)
 pnpm collect:paychangu    # PayChangu mobile money collection
 pnpm collect:pawapay      # PawaPay deposit
-pnpm collect:onekhusa     # OneKhusa request-to-pay
+pnpm collect:onekhusa
+pnpm checkout:onekhusa
 
 # Payouts (sending money to recipients)
 pnpm payout:paychangu     # PayChangu mobile money payout
@@ -48,7 +49,8 @@ pnpm all-providers        # Side-by-side demo of all three providers
 
 - **PayChangu**: Uses `initializeMobileMoneyCollection` to request payment from a mobile money number, then `verifyMobileMoneyPayment` to check the result.
 - **PawaPay**: Uses `deposits.sendDeposit` to initiate a mobile money deposit, then `deposits.getDeposit` to poll for status.
-- **OneKhusa**: Uses `collections.initiateRequestToPay` to send a payment request, then `collections.getTransaction` to check status.
+- **OneKhusa direct push**: Uses `collections.initiateDirectPushPayment`; final status arrives through push payment webhooks.
+- **OneKhusa checkout**: Uses `collections.initiateStandardCheckout` to create a hosted checkout URL for inline modal display or redirect.
 
 ### Payouts (money out)
 

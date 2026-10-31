@@ -21,11 +21,11 @@ separate [Chia platform](https://usechia.com) is for.
 - **Unified** - Provider-agnostic payment and payout tools that route across whatever is configured (4 tools)
 - **PayChangu** - Payment services in Malawi (12 tools)
 - **PawaPay** - Mobile money payments across Sub-Saharan Africa (14 tools)
-- **OneKhusa** - Enterprise payments in Malawi & Southern Africa (18 tools)
+- **OneKhusa** - Enterprise payments in Malawi & Southern Africa (20 tools)
 
 ## Features
 
-- 48 comprehensive tools for payment operations
+- 50 comprehensive tools for payment operations
 - Provider-agnostic payment and payout tools that pick a provider for you
 - Support for deposits, payouts, refunds, and transfers
 - Collections and disbursements with approval workflows
@@ -71,6 +71,8 @@ Add to your Claude Desktop config file:
         "ONEKHUSA_API_KEY": "your-onekhusa-api-key",
         "ONEKHUSA_API_SECRET": "your-onekhusa-api-secret",
         "ONEKHUSA_ORGANISATION_ID": "your-organisation-id",
+        "ONEKHUSA_MERCHANT_ACCOUNT_NUMBER": "35253486",
+        "ONEKHUSA_DEFAULT_CAPTURED_BY": "payments@example.com",
         "ENVIRONMENT": "DEVELOPMENT"
       }
     }
@@ -91,7 +93,7 @@ Try commands like:
 - "What's my PawaPay wallet balance?"
 - "Create a OneKhusa batch disbursement for January salaries"
 
-## Available Tools (48 Total)
+## Available Tools (50 Total)
 
 ### Unified Tools (4)
 
@@ -144,10 +146,12 @@ Provider-agnostic tools that route across whatever providers are configured, ins
 - `pawapay_get_active_config` - Get active merchant configuration
 - `pawapay_get_availability` - Get correspondent availability status
 
-### OneKhusa Tools (18)
+### OneKhusa Tools (20)
 
 #### Collection Tools
 - `onekhusa_initiate_request_to_pay` - Initiate a request-to-pay collection
+- `onekhusa_initiate_direct_push` - Start a direct mobile money USSD prompt
+- `onekhusa_initiate_standard_checkout` - Create a hosted checkout session and return its URL
 - `onekhusa_get_collection_transactions` - Get paginated collection transactions
 - `onekhusa_get_collection_transaction` - Get specific transaction details
 
@@ -217,7 +221,11 @@ Send a PawaPay payout of 50 UGX to phone number 256701234567
 ### OneKhusa Examples
 
 ```
-Request a payment of 5000 MWK from 265991234567 using OneKhusa
+Start a OneKhusa mobile money push for 5000 MWK to 265991234567
+```
+
+```
+Create a OneKhusa inline checkout for order ORDER12345
 ```
 
 ```

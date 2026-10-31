@@ -69,7 +69,8 @@ const sdk = ChiaSDK.initialize({
   onekhusa: {
     apiKey: "your-onekhusa-api-key",
     apiSecret: "your-onekhusa-api-secret",
-    organisationId: "your-organisation-id"
+    organisationId: "your-organisation-id",
+    merchantAccountNumber: 35253486
   }
 });
 ```
@@ -144,8 +145,17 @@ so on.
 
 `sdk.payouts.send()` on OneKhusa returns `status: "pending_approval"` and
 `requiresApproval: true`, because its API opens a maker-checker flow rather than sending.
-Advance it with `sdk.onekhusa.disbursements.approveSingle(id)`. Check
-`sdk.capabilities("onekhusa").payouts.requiresApproval` before calling.
+Advance it with the transaction reference and configured merchant account:
+
+```typescript
+await sdk.onekhusa.disbursements.approveSingle({
+  merchantAccountNumber: sdk.onekhusa.merchantAccountNumber,
+  transactionReferenceNumber: payout.id,
+  actionedBy: "payments@example.com"
+});
+```
+
+Check `sdk.capabilities("onekhusa").payouts.requiresApproval` before calling.
 
 ## PawaPay
 
@@ -237,73 +247,149 @@ const payout = await sdk.paychangu.initializeMobileMoneyPayout(
 
 Enterprise payment platform with collections and disbursements.
 
+### Direct mobile money push
+
+`initiateDirectPushPayment` starts a USSD prompt. Its response acknowledges
+initiation only; wait for a `pushpayment.success` webhook before fulfilling an
+order. Use a unique `sourceReferenceNumber` for each payment attempt. See
+[OneKhusa's direct push API](https://docs.onekhusa.com/api-reference/collections/direct-push-payment)
+and [push payment webhooks](https://docs.onekhusa.com/api-reference/webhooks/pushpayment-webhook)
+for the full lifecycle.
+
+```typescript
+import { isServiceError } from "@chiahq/sdk";
+
+const push = await sdk.onekhusa.collections.initiateDirectPushPayment({
+  merchantAccountNumber: 35253486,
+  connectorId: 550044,
+  payerAccountNumber: "0999000000",
+  sourceReferenceNumber: "ORDER12345",
+  transactionDescription: "Payment for order ORDER12345",
+  transactionAmount: 1000,
+  capturedBy: "payments@example.com"
+});
+
+if (isServiceError(push)) {
+  throw new Error(push.errorMessage);
+}
+
+console.log("Amount to pay:", push.amountToPay);
+```
+
+### Inline or hosted checkout
+
+`initiateStandardCheckout` creates a OneKhusa checkout session for card and
+mobile money. For inline checkout, load the returned `checkoutUrl` in your app's
+modal overlay. The URL expires after 10 minutes and can also be used as a redirect.
+Confirm the final result through the push
+payment webhooks. See [OneKhusa Standard Checkout](https://docs.onekhusa.com/api-reference/collections/standard-checkout)
+for the supported payment methods and setup requirements.
+
+```typescript
+import { isServiceError } from "@chiahq/sdk";
+
+const checkout = await sdk.onekhusa.collections.initiateStandardCheckout({
+  payment: {
+    merchantAccountNumber: 35253486,
+    amount: 150,
+    description: "Groceries purchase",
+    sourceReferenceNumber: "ORDER12346",
+    capturedBy: "payments@example.com"
+  },
+  route: {
+    successRedirectionUrl: "https://example.com/payment/success",
+    failureRedirectionUrl: "https://example.com/payment/failure"
+  }
+});
+
+if (isServiceError(checkout)) {
+  throw new Error(checkout.errorMessage);
+}
+
+console.log("Checkout URL:", checkout.checkoutUrl);
+```
+
 ### Request-to-Pay Collection
 
-`initiateRequestToPay` returns `CollectionResponse | ServiceError` - narrow with
-`isServiceError` before reading the success fields:
+`initiateRequestToPay` returns a timed account number for the customer to pay.
+Settlement arrives through the collection webhook.
 
 ```typescript
 import { isServiceError } from "@chiahq/sdk";
 
 const collection = await sdk.onekhusa.collections.initiateRequestToPay({
-  amount: 5000,
-  currency: "MWK",
-  phone: "265991234567",
-  paymentMethod: "MOBILE_MONEY",
-  reference: "order-789",
-  description: "Payment for goods"
+  merchantAccountNumber: 35253486,
+  transactionAmount: 5000,
+  transactionDescription: "Payment for goods",
+  referenceNumber: "ORDER789",
+  capturedBy: "payments@example.com"
 });
 
 if (isServiceError(collection)) {
   throw new Error(collection.errorMessage);
 }
 
-console.log("TAN:", collection.tan);
+console.log("TAN:", collection.timedAccountNumber);
 ```
 
 ### Single Disbursement
 
 ```typescript
+import { isServiceError } from "@chiahq/sdk";
+
 const disbursement = await sdk.onekhusa.disbursements.addSingle({
-  amount: 10000,
-  currency: "MWK",
-  paymentMethod: "MOBILE_MONEY",
-  recipient: {
-    name: "John Doe",
-    phone: "265991234567"
-  },
-  reference: "payout-001",
-  description: "Salary payment"
+  merchantAccountNumber: 35253486,
+  beneficiaryName: "John Doe",
+  connectorId: 550044,
+  beneficiaryAccountNumber: "265991234567",
+  transactionAmount: 10000,
+  transactionDescription: "Salary payment",
+  sourceReferenceNumber: "payout-001",
+  capturedBy: "payments@example.com"
 });
 
 if (isServiceError(disbursement)) {
   throw new Error(disbursement.errorMessage);
 }
 
-// Approve the disbursement
-await sdk.onekhusa.disbursements.approveSingle(disbursement.id);
+const approval = await sdk.onekhusa.disbursements.approveSingle({
+  merchantAccountNumber: 35253486,
+  transactionReferenceNumber: disbursement.transactionReferenceNumber,
+  actionedBy: "payments@example.com"
+});
+
+if (isServiceError(approval)) {
+  throw new Error(approval.errorMessage);
+}
 ```
 
 ### Batch Disbursement
 
-Batch items each carry their own `amount`, `currency`, `paymentMethod` and `recipient` - there is
-no top-level `currency`/`paymentMethod`/`recipients` on the batch request:
+Batch JSON requests contain a header and transaction entries:
 
 ```typescript
-const batch = await sdk.onekhusa.disbursements.addBatch({
-  name: "January Salaries",
-  items: [
+const batch = await sdk.onekhusa.disbursements.addBatchJson({
+  header: {
+    merchantAccountNumber: 35253486,
+    isBatchScheduled: false,
+    capturedBy: "payments@example.com"
+  },
+  transactions: [
     {
-      amount: 50000,
-      currency: "MWK",
-      paymentMethod: "MOBILE_MONEY",
-      recipient: { name: "John Doe", phone: "265991234567" }
+      beneficiaryName: "John Doe",
+      connectorId: 550044,
+      beneficiaryAccountNumber: "265991234567",
+      transactionDescription: "January salary",
+      transactionAmount: 50000,
+      sourceReferenceNumber: "salary-john-001"
     },
     {
-      amount: 45000,
-      currency: "MWK",
-      paymentMethod: "MOBILE_MONEY",
-      recipient: { name: "Jane Smith", phone: "265999876543" }
+      beneficiaryName: "Jane Smith",
+      connectorId: 550044,
+      beneficiaryAccountNumber: "265999876543",
+      transactionDescription: "January salary",
+      transactionAmount: 45000,
+      sourceReferenceNumber: "salary-jane-001"
     }
   ]
 });
@@ -312,9 +398,25 @@ if (isServiceError(batch)) {
   throw new Error(batch.errorMessage);
 }
 
-// Approve and transfer funds
-await sdk.onekhusa.disbursements.approveBatch(batch.id);
-await sdk.onekhusa.disbursements.transferBatchFunds(batch.id);
+const approval = await sdk.onekhusa.disbursements.approveBatch({
+  merchantAccountNumber: 35253486,
+  batchNumber: batch.batchNumber,
+  actionedBy: "payments@example.com"
+});
+
+if (isServiceError(approval)) {
+  throw new Error(approval.errorMessage);
+}
+
+const transfer = await sdk.onekhusa.disbursements.transferBatchFunds({
+  merchantAccountNumber: 35253486,
+  batchNumber: batch.batchNumber,
+  transferredBy: "payments@example.com"
+});
+
+if (isServiceError(transfer)) {
+  throw new Error(transfer.errorMessage);
+}
 ```
 
 ## Configuration
@@ -339,6 +441,7 @@ const sdk = ChiaSDK.initialize({
     apiKey: process.env.ONEKHUSA_API_KEY,
     apiSecret: process.env.ONEKHUSA_API_SECRET,
     organisationId: process.env.ONEKHUSA_ORGANISATION_ID,
+    merchantAccountNumber: Number(process.env.ONEKHUSA_MERCHANT_ACCOUNT_NUMBER),
     environment: ENVIRONMENTS.PRODUCTION
   }
 });
@@ -364,6 +467,7 @@ const sdk = ChiaSDK.initialize({
     apiKey: "your-key",
     apiSecret: "your-secret",
     organisationId: "your-org-id",
+    merchantAccountNumber: 35253486,
     sandboxUrl: "https://custom-sandbox.onekhusa.com/v1"
   }
 });

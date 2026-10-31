@@ -4,19 +4,35 @@ title: OneKhusa Tools
 description: OneKhusa MCP tools reference
 ---
 
-# OneKhusa Tools (18)
+# OneKhusa Tools (20)
 
 MCP tools for OneKhusa payment operations.
 
-## Collections (3 tools)
+## Collections (5 tools)
 
 ### Initiate Request-to-Pay
 
-Request payment from a customer.
+Reserve a timed account number for the customer to pay into.
 
 **Example prompts:**
-- *"Request a payment of 5000 MWK from 265991234567 using OneKhusa"*
-- *"Initiate a OneKhusa collection for 10000 MWK"*
+- *"Reserve a OneKhusa timed account number for 5000 MWK"*
+- *"Initiate a OneKhusa request-to-pay for order ORDER12345"*
+
+### Initiate Direct Push
+
+Start a USSD prompt on the customer's mobile money wallet. The final outcome arrives through webhooks.
+
+**Example prompts:**
+- *"Send a OneKhusa payment prompt for 5000 MWK to 265991234567"*
+- *"Start a direct OneKhusa push using connector 550044"*
+
+### Initiate Standard Checkout
+
+Create a hosted checkout session and return a URL that can be opened in a modal or redirect.
+
+**Example prompts:**
+- *"Create a OneKhusa checkout for 150 MWK and return to my success and failure pages"*
+- *"Start a OneKhusa inline checkout for order ORDER12345"*
 
 ### Get Collection Transactions
 
@@ -37,107 +53,107 @@ Get details for a specific collection.
 
 ### Add Single Disbursement
 
-Create a payout to one recipient.
+Create a payout to one beneficiary using their OneKhusa connector and account number.
 
 **Example prompts:**
-- *"Create a OneKhusa disbursement of 10000 MWK to John Doe at 265991234567"*
+- *"Create a OneKhusa disbursement of 10000 to John Doe at 265991234567 using connector 550044"*
 - *"Send a single payout via OneKhusa"*
 
 ### Approve Disbursement
 
-Approve a pending disbursement.
+Approve a pending disbursement using its transaction reference number.
 
 **Example prompts:**
-- *"Approve OneKhusa disbursement DIS_12345"*
+- *"Approve OneKhusa transaction reference PAYOUT123"*
 
 ### Review Disbursement
 
-Mark a disbursement as reviewed.
+Mark a disbursement as reviewed using its transaction reference number.
 
 **Example prompts:**
-- *"Review disbursement DIS_12345"*
+- *"Review OneKhusa transaction reference PAYOUT123"*
 
 ### Reject Disbursement
 
-Reject a disbursement.
+Reject a disbursement using its transaction reference number.
 
 **Example prompts:**
-- *"Reject disbursement DIS_12345 because of incorrect details"*
+- *"Reject OneKhusa transaction reference PAYOUT123 because of incorrect details"*
 
 ### Get Disbursement Details
 
-Check disbursement status.
+Check disbursement details using its transaction reference number.
 
 **Example prompts:**
-- *"Get status of disbursement DIS_12345"*
+- *"Get details for OneKhusa transaction reference PAYOUT123"*
 
 ## Batch Disbursements (9 tools)
 
 ### Add Batch Disbursement
 
-Create a batch with multiple recipients.
+Create a batch with beneficiary entries. Each entry includes a connector, beneficiary account, amount, description, and source reference.
 
 **Example prompts:**
-- *"Create a batch disbursement for January salaries with 3 recipients totaling 150000 MWK"*
+- *"Create a OneKhusa batch for January salaries with 3 beneficiary entries totaling 150000"*
 - *"Start a OneKhusa batch payout"*
 
 ### Approve Batch
 
-Approve a batch for processing.
+Approve a batch using its numeric batch number.
 
 **Example prompts:**
-- *"Approve batch BATCH_12345"*
+- *"Approve OneKhusa batch number 12345"*
 
 ### Review Batch
 
-Mark a batch as reviewed.
+Mark a batch as reviewed using its numeric batch number.
 
 **Example prompts:**
-- *"Review batch BATCH_12345"*
+- *"Review OneKhusa batch number 12345"*
 
 ### Reject Batch
 
-Reject a batch.
+Reject a batch, optionally identifying its header ID.
 
 **Example prompts:**
-- *"Reject batch BATCH_12345 - budget not approved"*
+- *"Reject OneKhusa batch header 12345 because the budget was not approved"*
 
 ### Cancel Batch
 
-Cancel a batch.
+Cancel a pending batch using its numeric batch number.
 
 **Example prompts:**
-- *"Cancel batch BATCH_12345"*
+- *"Cancel OneKhusa batch number 12345"*
 
 ### Transfer Batch Funds
 
-Process payment for an approved batch.
+Transfer funds for an approved batch using its numeric batch number.
 
 **Example prompts:**
-- *"Transfer funds for batch BATCH_12345"*
-- *"Process batch BATCH_12345"*
+- *"Transfer funds for OneKhusa batch number 12345"*
+- *"Process OneKhusa batch number 12345"*
 
 ### Get All Batches
 
-List your batches.
+List batches for a transaction date and page.
 
 **Example prompts:**
 - *"Show my OneKhusa batches"*
-- *"Get all pending batches"*
+- *"List OneKhusa disbursement batches for 2026-10-31"*
 
 ### Get Batch Details
 
-Get details for a specific batch.
+Get details for a specific batch number.
 
 **Example prompts:**
-- *"Get details for batch BATCH_12345"*
+- *"Get details for OneKhusa batch number 12345"*
 
 ### Get Batch Transactions
 
-List transactions within a batch.
+List transactions within a batch using its numeric batch number.
 
 **Example prompts:**
-- *"Show transactions in batch BATCH_12345"*
+- *"Show transactions in OneKhusa batch number 12345"*
 
 ## Config (1 tool)
 

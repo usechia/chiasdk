@@ -85,7 +85,9 @@ pawapay.post("/deposits", async (c) => {
 });
 
 pawapay.get("/deposits/:depositId", async (c) => {
-	const result = await sdk.pawapay.deposits.getDeposit(c.req.param("depositId"));
+	const result = await sdk.pawapay.deposits.getDeposit(
+		c.req.param("depositId"),
+	);
 	if (isServiceError(result)) {
 		return c.json(result, 400);
 	}
@@ -96,7 +98,10 @@ pawapay.post("/payments", async (c) => {
 	const body = await c.req.json();
 	const result = await sdk.pawapay.payments.initiatePayment({
 		depositId: body.depositId || crypto.randomUUID(),
-		returnUrl: body.returnUrl || process.env.PAWAPAY_RETURN_URL || "https://example.com/return",
+		returnUrl:
+			body.returnUrl ||
+			process.env.PAWAPAY_RETURN_URL ||
+			"https://example.com/return",
 		amount: body.amount,
 		country: body.country,
 		reason: body.reason,
@@ -121,13 +126,49 @@ const onekhusa = new Hono();
 onekhusa.post("/collections", async (c) => {
 	const body = await c.req.json();
 	const result = await sdk.onekhusa.collections.initiateRequestToPay({
-		amount: body.amount,
-		currency: body.currency || "MWK",
-		phone: body.phone,
-		paymentMethod: body.paymentMethod || "MOBILE_MONEY",
-		reference: body.reference,
-		description: body.description,
-		callbackUrl: body.callbackUrl,
+		merchantAccountNumber: sdk.onekhusa.merchantAccountNumber,
+		transactionAmount: body.amount,
+		transactionDescription: body.description,
+		referenceNumber: body.referenceNumber,
+		capturedBy: body.capturedBy,
+	});
+	if (isServiceError(result)) {
+		return c.json(result, 400);
+	}
+	return c.json(result);
+});
+
+onekhusa.post("/collections/direct-push", async (c) => {
+	const body = await c.req.json();
+	const result = await sdk.onekhusa.collections.initiateDirectPushPayment({
+		merchantAccountNumber: sdk.onekhusa.merchantAccountNumber,
+		connectorId: body.connectorId,
+		payerAccountNumber: body.payerAccountNumber,
+		sourceReferenceNumber: body.sourceReferenceNumber,
+		transactionDescription: body.description,
+		transactionAmount: body.amount,
+		capturedBy: body.capturedBy,
+	});
+	if (isServiceError(result)) {
+		return c.json(result, 400);
+	}
+	return c.json(result);
+});
+
+onekhusa.post("/checkout", async (c) => {
+	const body = await c.req.json();
+	const result = await sdk.onekhusa.collections.initiateStandardCheckout({
+		payment: {
+			merchantAccountNumber: sdk.onekhusa.merchantAccountNumber,
+			amount: body.amount,
+			description: body.description,
+			sourceReferenceNumber: body.sourceReferenceNumber,
+			capturedBy: body.capturedBy,
+		},
+		route: {
+			successRedirectionUrl: body.successRedirectionUrl,
+			failureRedirectionUrl: body.failureRedirectionUrl,
+		},
 	});
 	if (isServiceError(result)) {
 		return c.json(result, 400);
@@ -136,7 +177,10 @@ onekhusa.post("/collections", async (c) => {
 });
 
 onekhusa.get("/collections/:transactionId", async (c) => {
-	const result = await sdk.onekhusa.collections.getTransaction(c.req.param("transactionId"));
+	const result = await sdk.onekhusa.collections.getTransaction({
+		merchantAccountNumber: sdk.onekhusa.merchantAccountNumber,
+		transactionReferenceNumber: c.req.param("transactionId"),
+	});
 	if (isServiceError(result)) {
 		return c.json(result, 400);
 	}
@@ -149,5 +193,7 @@ const port = Number(process.env.PORT) || 9999;
 
 serve({ fetch: app.fetch, port }, () => {
 	console.log(`Server running on http://localhost:${port}`);
-	console.log(`Configured services: ${sdk.getConfiguredServices().join(", ") || "none"}`);
+	console.log(
+		`Configured services: ${sdk.getConfiguredServices().join(", ") || "none"}`,
+	);
 });
