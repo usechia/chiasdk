@@ -68,11 +68,11 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/usechia/chiasdk.git",
+		"url": "https://github.com/fickson/chia-sdk.git",
 		"directory": "packages/sdk"
 	},
 	"bugs": {
-		"url": "https://github.com/usechia/chiasdk/issues"
+		"url": "https://github.com/fickson/chia-sdk/issues"
 	},
-	"homepage": "https://github.com/usechia/chiasdk#readme"
+	"homepage": "https://github.com/fickson/chia-sdk#readme"
 }

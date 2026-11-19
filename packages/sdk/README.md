@@ -516,7 +516,7 @@ These credentials are needed when using the SDK directly. If you're using the Ch
 
 ## Documentation
 
-For full documentation, visit [docs.usechia.com](https://docs.usechia.com) or see the [docs](https://github.com/usechia/chiasdk/tree/master/docs).
+For full documentation, visit [docs.usechia.com](https://docs.usechia.com) or see the [docs](https://github.com/fickson/chia-sdk/tree/master/docs).
 
 ## MCP Server
 

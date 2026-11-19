@@ -16,7 +16,7 @@ If you discover a security vulnerability in Chia, please report it responsibly.
 
 Instead, please use one of the following methods:
 
-1. **GitHub Security Advisories** - Use the "Report a vulnerability" button on the [Security tab](https://github.com/usechia/chiasdk/security/advisories) of the repository.
+1. **GitHub Security Advisories** - Use the "Report a vulnerability" button on the [Security tab](https://github.com/fickson/chia-sdk/security/advisories) of the repository.
 2. **Email** - Write to chia@fickson.com.
 
 ### What to Include

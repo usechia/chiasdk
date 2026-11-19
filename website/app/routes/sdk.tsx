@@ -22,7 +22,7 @@ export default function SDK() {
               <Link to="/docs" className="hover:text-lime-400 transition-colors">Docs</Link>
               <Link to="/sdk" className="text-lime-400">SDK</Link>
               <Link to="/mcp" className="hover:text-lime-400 transition-colors">MCP</Link>
-              <a href="https://github.com/usechia/chiasdk" target="_blank" rel="noopener noreferrer" className="hover:text-lime-400 transition-colors">GitHub</a>
+              <a href="https://github.com/fickson/chia-sdk" target="_blank" rel="noopener noreferrer" className="hover:text-lime-400 transition-colors">GitHub</a>
             </div>
           </div>
         </div>
@@ -584,7 +584,7 @@ import type { PayChanguOperatorsResponse } from "@chiahq/sdk/dist/...";`}
               </a>
             </li>
             <li>
-              <a href="https://github.com/usechia/chiasdk" target="_blank" rel="noopener noreferrer" className="text-lime-400 hover:underline">
+              <a href="https://github.com/fickson/chia-sdk" target="_blank" rel="noopener noreferrer" className="text-lime-400 hover:underline">
                 GitHub Repository →
               </a>
             </li>
