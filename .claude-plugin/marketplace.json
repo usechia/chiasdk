@@ -4,7 +4,7 @@
 	"description": "Claude Code plugins for building on Chia, the subscription billing platform for African mobile money.",
 	"owner": {
 		"name": "Chia",
-		"email": "support@usechia.com"
+		"email": "chia@fickson.com"
 	},
 	"plugins": [
 		{
