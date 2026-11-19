@@ -115,7 +115,7 @@ Check internet connectivity and provider status.
 
 If you're still having issues:
 
-1. Check the [GitHub Issues](https://github.com/usechia/chiasdk/issues)
+1. Check the [GitHub Issues](https://github.com/fickson/chia-sdk/issues)
 2. Open a new issue with:
    - Error message
    - Claude Desktop version

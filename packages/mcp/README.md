@@ -299,7 +299,7 @@ For full documentation, visit [docs.usechia.com](https://docs.usechia.com).
 
 ## Support
 
-- [GitHub Issues](https://github.com/usechia/chiasdk/issues)
+- [GitHub Issues](https://github.com/fickson/chia-sdk/issues)
 - [PayChangu Documentation](https://developer.paychangu.com/)
 - [PawaPay Documentation](https://docs.pawapay.io/)
 - [OneKhusa](https://onekhusa.com/)

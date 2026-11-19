@@ -163,7 +163,7 @@ See the [MCP documentation](https://docs.usechia.com/docs/mcp/overview) for conf
 Teaches Claude how Chia works, so it writes correct integration code instead of guessing at auth modes and endpoint shapes. Run both inside a Claude Code session:
 
 ```bash
-/plugin marketplace add usechia/chiasdk
+/plugin marketplace add fickson/chia-sdk
 /plugin install chia-integration@chia
 ```
 

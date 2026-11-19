@@ -7,6 +7,6 @@
 		"email": "chia@fickson.com"
 	},
 	"homepage": "https://docs.usechia.com",
-	"repository": "https://github.com/usechia/chiasdk",
+	"repository": "https://github.com/fickson/chia-sdk",
 	"license": "MIT"
 }

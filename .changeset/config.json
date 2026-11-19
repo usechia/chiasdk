@@ -3,7 +3,7 @@
     "changelog": [
         "@changesets/cli/changelog",
         {
-            "repo": "usechia/chiasdk"
+            "repo": "fickson/chia-sdk"
         }
     ],
     "commit": false,
