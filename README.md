@@ -232,7 +232,7 @@ The project uses GitHub Actions for automated releases. Each package has its own
 
 Release types: `patch` (bug fixes), `minor` (new features), `major` (breaking changes), `beta` (pre-release).
 
-The documentation site deploys automatically from `master` through Cloudflare Workers Builds.
+The documentation site deploys automatically from `master` through Vercel (project chia-docs).
 
 ## Documentation
 

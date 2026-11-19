@@ -113,3 +113,5 @@ docs/superpowers/
 .verify/
 
 .claude/worktrees/
+.vercel
+.env*
